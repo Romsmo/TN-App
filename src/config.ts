@@ -30,3 +30,10 @@ export const TICK_INTERVAL_MS = 10_000;
 
 /** Radius of the map's data query around the map centre, in metres (the library caps it at 50 000). */
 export const MAP_QUERY_RADIUS_M = 15_000;
+
+/**
+ * Whether the user may switch the speed lock off at all. Default: yes (with the confirmed warning). A build with
+ * `EXPO_PUBLIC_ALLOW_DISABLE_DRIVE_LOCK=false` has the lock always on and shows no option, which is the cautious
+ * variant for an App Store review build (docs/store-risks.md).
+ */
+export const ALLOW_DISABLE_DRIVE_LOCK: boolean = process.env.EXPO_PUBLIC_ALLOW_DISABLE_DRIVE_LOCK !== 'false';

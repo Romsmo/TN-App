@@ -5,6 +5,7 @@ import { Body, Button, Section } from '@/components/ui';
 import { SOURCE_REPO_URL } from '@/config';
 import { renderBody } from '@/components/confirm-dialog';
 import { getLanguage, t } from '@/i18n';
+import { LICENSES } from '@/legal/licenses';
 import { CAMERA_NOTICE } from '@/legal/texts';
 import { useTheme } from '@/theme';
 
@@ -25,6 +26,13 @@ export function InfoScreen({ libraryVersion }: { libraryVersion: string }) {
         <Body secondary>{t('info.library', { version: libraryVersion })}</Body>
         <Body secondary>{t('info.source', { url: SOURCE_REPO_URL })}</Body>
         <Button kind="plain" label={SOURCE_REPO_URL} onPress={() => void Linking.openURL(SOURCE_REPO_URL)} />
+      </Section>
+      <Section title={t('info.components')}>
+        {LICENSES.map((entry) => (
+          <Body key={entry.name} secondary>
+            {entry.name} {entry.version} — {entry.license}
+          </Body>
+        ))}
       </Section>
     </ScrollView>
   );

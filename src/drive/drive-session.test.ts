@@ -301,13 +301,14 @@ describe('DriveSession one-tap report', () => {
     expect(submitReport).not.toHaveBeenCalled();
   });
 
-  it('reports at the current position with the speed and confirms with feedback', async () => {
+  it('reports at the current position, without sending the speed, and confirms with feedback', async () => {
     const { session, at, flush, submitReport, feedback } = setup();
     session.start();
     session.onFix(at(100, 70));
     await flush();
     await expect(session.report('traffic')).resolves.toBe(true);
-    expect(submitReport).toHaveBeenCalledWith('traffic', expect.objectContaining({ lat: expect.any(Number), lng: expect.any(Number) }), 70);
+    expect(submitReport).toHaveBeenCalledTimes(1);
+    expect(submitReport.mock.calls[0]).toEqual(['traffic', expect.objectContaining({ lat: expect.any(Number), lng: expect.any(Number) })]);
     expect(feedback.confirm).toHaveBeenCalled();
   });
 

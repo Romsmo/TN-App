@@ -1,7 +1,7 @@
 import type { CameraRef } from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui';
 import { interimCatalog } from '@/report/catalog';
@@ -17,6 +17,7 @@ import { useTheme } from '@/theme';
 import { DetailCard, type VoteState } from './detail-card';
 import { FilterBar } from './filter-bar';
 import { MapView } from './map-view';
+import { ReportList } from './report-list';
 import { ReportSheet, type ReportLocation } from './report-sheet';
 import { useNearby, type Viewport } from './use-nearby';
 
@@ -48,6 +49,7 @@ export function MapScreen() {
   const [viewport, setViewport] = useState<Viewport | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [located, setLocated] = useState(false);
+  const [listMode, setListMode] = useState(false);
   const [devicePosition, setDevicePosition] = useState<Position | null>(null);
   const [reporting, setReporting] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -61,6 +63,10 @@ export function MapScreen() {
   const items = useNearby(tn.service, viewport, tn.dataVersion + localChanges);
   const data = useMemo(() => toMapData(items, { hiddenHazardTypes: new Set(hiddenHazardTypes) }), [items, hiddenHazardTypes]);
   // Types seen in the data plus the ones switched off, so a hidden type can always be switched back on.
+  const visibleHazards = useMemo(
+    () => items.filter((i): i is Extract<typeof i, { kind: 'hazard' }> => i.kind === 'hazard' && !hiddenHazardTypes.includes(i.hazardType)),
+    [items, hiddenHazardTypes],
+  );
   const filterTypes = useMemo(() => [...new Set([...hazardTypesIn(items), ...hiddenHazardTypes])].sort(), [items, hiddenHazardTypes]);
   const selected = useMemo(() => {
     const item = items.find((i) => i.kind === 'hazard' && i.id === selectedId);
@@ -169,7 +175,23 @@ export function MapScreen() {
       ) : null}
       {notice ? <Text accessibilityRole="alert" style={[styles.banner, { backgroundColor: theme.surface, color: theme.text }]}>{notice}</Text> : null}
       {!MAP_STYLE_URL ? <Text style={[styles.note, { color: theme.textSecondary }]}>{t('map.noBackground')}</Text> : null}
-      <View style={styles.mapBox}>
+      <Button kind="plain" label={listMode ? t('map.showMap') : t('map.list')} onPress={() => setListMode((v) => !v)} />
+      {listMode ? (
+        <ScrollView>
+          <ReportList items={visibleHazards} onSelect={setSelectedId} />
+        </ScrollView>
+      ) : null}
+      {listMode && selected ? (
+        <View style={styles.listCard}>
+          <DetailCard
+            item={selected}
+            onClose={() => setSelectedId(null)}
+            onVote={(stillThere) => void castVote(stillThere)}
+            voteState={vote?.id === selected.id ? vote.state : 'idle'}
+          />
+        </View>
+      ) : null}
+      <View style={[styles.mapBox, listMode ? styles.hidden : null]}>
         <MapView
           data={data}
           background={theme.surface}
@@ -191,7 +213,7 @@ export function MapScreen() {
             <Button label={t('report.open')} onPress={openReport} />
           </View>
         ) : null}
-        {selected && !reporting ? (
+        {selected && !reporting && !listMode ? (
           <View style={styles.card}>
             <DetailCard
               item={selected}
@@ -223,6 +245,8 @@ const styles = StyleSheet.create({
   banner: { paddingHorizontal: 14, paddingVertical: 8, fontSize: 14 },
   note: { paddingHorizontal: 14, paddingVertical: 4, fontSize: 13 },
   mapBox: { flex: 1 },
+  hidden: { flex: 0, height: 0, overflow: 'hidden' },
+  listCard: { padding: 12 },
   attribution: { position: 'absolute', left: 8, bottom: 8, paddingHorizontal: 6, paddingVertical: 2, fontSize: 11, borderRadius: 4, opacity: 0.9 },
   locate: { position: 'absolute', right: 12, top: 12, gap: 8 },
   rejected: { paddingHorizontal: 14, paddingVertical: 8, gap: 4 },

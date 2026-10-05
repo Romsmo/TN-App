@@ -57,8 +57,8 @@ export type DriveDeps = {
   feedback: Feedback;
   getSettings: () => DriveSettings;
   now: () => number;
-  /** One-tap report; resolves true when the report was stored. */
-  submitReport: (type: string, position: { lat: number; lng: number }, speedKmh: number | null) => Promise<boolean>;
+  /** One-tap report at a position; resolves true when the report was stored. No speed is sent: the server refuses it for most types, and it is data nobody needs. */
+  submitReport: (type: string, position: { lat: number; lng: number }) => Promise<boolean>;
   /** Vote on a report; resolves true when stored. */
   vote: (reportId: string, stillThere: boolean) => Promise<boolean>;
   simulated?: boolean;
@@ -301,7 +301,7 @@ export class DriveSession {
   async report(type: string): Promise<boolean> {
     const fix = this.lastFix;
     if (!fix) return false;
-    const ok = await this.deps.submitReport(type, { lat: fix.lat, lng: fix.lng }, fix.speedKmh);
+    const ok = await this.deps.submitReport(type, { lat: fix.lat, lng: fix.lng });
     if (ok) this.deps.feedback.confirm({ sound: this.deps.getSettings().sound && !this.snap.muted });
     return ok;
   }

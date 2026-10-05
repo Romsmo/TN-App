@@ -37,10 +37,10 @@ export function createAppDriveHost(getService: () => TnService | null = () => cu
         now: Date.now,
         simulated,
         // A simulated drive must never put invented reports or votes into the real queue.
-        submitReport: async (type, position, speedKmh) => {
+        submitReport: async (type, position) => {
           if (simulated) return true;
           const current = getService();
-          return current ? (await submitHazard(current, type, position, speedKmh ?? undefined)).ok : false;
+          return current ? (await submitHazard(current, type, position)).ok : false;
         },
         vote: async (reportId, stillThere) => {
           if (simulated) return true;

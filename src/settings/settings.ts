@@ -1,3 +1,5 @@
+import { ALLOW_DISABLE_DRIVE_LOCK } from '@/config';
+
 /** Local, non-secret settings. They live in an ordinary app file, never in the Keychain: that survives a reinstall on iOS. */
 export type Settings = {
   /** A server the user entered ("Server verbinden"); null = use discovery from the built-in seeds. */
@@ -66,7 +68,7 @@ export function parseSettings(raw: string | null | undefined): Settings {
     camerasNoticeSeen: typeof o.camerasNoticeSeen === 'string' && o.camerasNoticeSeen ? o.camerasNoticeSeen : null,
     driveNoticeSeen: bool(o.driveNoticeSeen, d.driveNoticeSeen),
     // Only an explicit `false` switches the lock off; garbage or a missing value means "on".
-    driveLockEnabled: o.driveLockEnabled === false ? false : true,
+    driveLockEnabled: ALLOW_DISABLE_DRIVE_LOCK && o.driveLockEnabled === false ? false : true,
   };
 }
 

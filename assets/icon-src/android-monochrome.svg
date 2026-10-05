@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><g transform="translate(512 512) scale(0.62) translate(-512 -560)">
+  <!-- road -->
+  <path d="M492 452 L532 452 L860 960 L164 960 Z" fill="#FFFFFF"/>
+  <!-- lane dashes -->
+  <g fill="#FFFFFF">
+    <path d="M507 486 L517 486 L520 530 L504 530 Z"/>
+    <path d="M501 576 L523 576 L531 650 L493 650 Z"/>
+    <path d="M488 712 L536 712 L552 830 L472 830 Z"/>
+  </g>
+  <!-- location ring over the horizon -->
+  <circle cx="512" cy="300" r="120" fill="none" stroke="#FFFFFF" stroke-width="44"/>
+  <circle cx="512" cy="300" r="34" fill="#FFFFFF"/>
+</g></svg>

@@ -29,8 +29,8 @@ describe('isPlausiblePosition', () => {
 describe('submitHazard', () => {
   it('queues the report and returns the local id', async () => {
     const submit = jest.fn().mockResolvedValue('local-9');
-    await expect(submitHazard(service({ submitReport: submit }), 'ice', { lat: 52.5, lng: 13.4 }, 30)).resolves.toEqual({ ok: true, localId: 'local-9' });
-    expect(submit).toHaveBeenCalledWith('ice', 52.5, 13.4, 30);
+    await expect(submitHazard(service({ submitReport: submit }), 'ice', { lat: 52.5, lng: 13.4 })).resolves.toEqual({ ok: true, localId: 'local-9' });
+    expect(submit.mock.calls).toEqual([['ice', 52.5, 13.4]]); // type and position only, no speed
   });
 
   it('refuses an implausible position without calling the library', async () => {

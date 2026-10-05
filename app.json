@@ -20,7 +20,7 @@
     "android": {
       "package": "info.trafficnetwork.tnviewer",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0B2E4F",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -42,7 +42,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "TNViewer nutzt deinen Standort, um Meldungen in deiner Nähe anzuzeigen und Meldungen an deiner Position abzusetzen. / TNViewer uses your location to show reports near you and to place reports at your position.",
+          "locationWhenInUsePermission": "TNViewer nutzt deinen Standort, um Meldungen in deiner Nähe anzuzeigen und Meldungen an deiner Position abzusetzen. Im Fahrmodus wird er auch bei ausgeschaltetem Bildschirm genutzt, solange der Fahrmodus läuft, um dich vor Meldungen voraus zu warnen. / TNViewer uses your location to show reports near you and to place reports at your position. In the drive mode it is also used with the screen off, only while the drive mode is running, to warn you about reports ahead.",
           "isAndroidBackgroundLocationEnabled": false,
           "isIosBackgroundLocationEnabled": true,
           "locationAlwaysAndWhenInUsePermission": false,
@@ -54,7 +54,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#0B2E4F",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }

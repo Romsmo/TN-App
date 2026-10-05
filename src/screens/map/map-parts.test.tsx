@@ -5,6 +5,7 @@ import type { TnService } from '@/tn/service';
 import type { HazardItem } from '@/tn/types';
 
 import { DetailCard } from './detail-card';
+import { ReportList } from './report-list';
 import { ReportSheet } from './report-sheet';
 import { FilterBar } from './filter-bar';
 import { radiusFor, useNearby } from './use-nearby';
@@ -146,5 +147,28 @@ describe('ReportSheet', () => {
     expect(screen.getByText('Nope')).toBeTruthy();
     await fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(onCancel).toHaveBeenCalled();
+  });
+});
+
+describe('ReportList (the screen-reader way into the map)', () => {
+  const near: HazardItem = { ...item, id: 'near', hazardType: 'traffic', distanceMeters: 80, confirmCount: 5 };
+  const far: HazardItem = { ...item, id: 'far', hazardType: 'ice', distanceMeters: 2400.4, confirmCount: 1 };
+
+  it('lists the nearest first, each row saying what, how far and how well confirmed', async () => {
+    await render(<ReportList items={[far, near]} onSelect={() => {}} />);
+    const rows = screen.getAllByRole('button');
+    expect(rows.map((r) => r.props.accessibilityLabel)).toEqual(['Traffic jam, 80 m away, 5 confirmations', 'Ice, 2400 m away, 1 confirmations']);
+  });
+
+  it('reports which row was chosen', async () => {
+    const onSelect = jest.fn();
+    await render(<ReportList items={[near]} onSelect={onSelect} />);
+    await fireEvent.press(screen.getByRole('button'));
+    expect(onSelect).toHaveBeenCalledWith('near');
+  });
+
+  it('says so when there is nothing in the area', async () => {
+    await render(<ReportList items={[]} onSelect={() => {}} />);
+    expect(screen.getByText('No reports in this area.')).toBeTruthy();
   });
 });

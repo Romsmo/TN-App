@@ -17,11 +17,11 @@ function outcomeFromError(error: unknown): Extract<SubmitOutcome, { ok: false }>
   return { ok: false, reason: 'failed' };
 }
 
-/** Queues a hazard report. It is stored on the device first; nothing leaves the phone until the next sync. */
-export async function submitHazard(service: TnService, type: string, position: Position, speedKmh?: number): Promise<SubmitOutcome> {
+/** Queues a hazard report. It is stored on the device first; nothing leaves the phone until the next sync. Only type and position are sent. */
+export async function submitHazard(service: TnService, type: string, position: Position): Promise<SubmitOutcome> {
   if (!isPlausiblePosition(position)) return { ok: false, reason: 'invalidPosition' };
   try {
-    return { ok: true, localId: await service.submitReport(type, position.lat, position.lng, speedKmh) };
+    return { ok: true, localId: await service.submitReport(type, position.lat, position.lng) };
   } catch (error) {
     return outcomeFromError(error);
   }

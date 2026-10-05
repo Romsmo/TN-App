@@ -99,3 +99,15 @@ describe('settings store', () => {
     expect(listener).not.toHaveBeenCalled();
   });
 });
+
+describe('a build without the option to switch the speed lock off', () => {
+  it('keeps the lock on even if an old file says it was off', () => {
+    jest.isolateModules(() => {
+      process.env.EXPO_PUBLIC_ALLOW_DISABLE_DRIVE_LOCK = 'false';
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { parseSettings: parseStrict } = require('./settings') as typeof import('./settings');
+      expect(parseStrict(JSON.stringify({ driveLockEnabled: false })).driveLockEnabled).toBe(true);
+    });
+    delete process.env.EXPO_PUBLIC_ALLOW_DISABLE_DRIVE_LOCK;
+  });
+});

@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-nat
 
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Body, Button, MIN_TOUCH, Section } from '@/components/ui';
+import { ALLOW_DISABLE_DRIVE_LOCK } from '@/config';
 import { t, type TextKey } from '@/i18n';
 import { hazardLabel } from '@/map/hazard-labels';
 import { interimCatalog } from '@/report/catalog';
@@ -110,7 +111,11 @@ export function SettingsScreen() {
       </Section>
 
       <Section title={t('settings.section.safety')}>
-        <LockSwitch enabled={settings.driveLockEnabled} onChange={(driveLockEnabled) => set({ driveLockEnabled })} />
+        {ALLOW_DISABLE_DRIVE_LOCK ? (
+          <LockSwitch enabled={settings.driveLockEnabled} onChange={(driveLockEnabled) => set({ driveLockEnabled })} />
+        ) : (
+          <Body secondary>{t('lockSwitch.always')}</Body>
+        )}
       </Section>
 
       <Section title={t('settings.section.more')}>
