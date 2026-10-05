@@ -71,6 +71,10 @@
         "projectId": "3f5ea996-3ae2-4418-9fdc-7b85c9ecb1c3"
       }
     },
-    "owner": "reamcrbss-team"
+    "owner": "reamcrbss-team",
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    }
   }
 }

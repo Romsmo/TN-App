@@ -16,7 +16,7 @@ export function FilterBar({ types, hidden, onToggle }: Props) {
   const theme = useTheme();
   if (types.length === 0) return null;
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} accessibilityLabel={t('map.filter.title')}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll} contentContainerStyle={styles.row} accessibilityLabel={t('map.filter.title')}>
       {types.map((type) => {
         const on = !hidden.includes(type);
         return (
@@ -36,6 +36,8 @@ export function FilterBar({ types, hidden, onToggle }: Props) {
 }
 
 const styles = StyleSheet.create({
+  // a horizontal ScrollView grows to fill a column by default; the filter bar must only be as tall as its chips
+  scroll: { flexGrow: 0 },
   row: { gap: 8, paddingHorizontal: 12, paddingVertical: 8 },
   chip: { minHeight: MIN_TOUCH - 8, paddingHorizontal: 14, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
 });

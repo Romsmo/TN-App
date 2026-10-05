@@ -47,7 +47,7 @@ export function Body({ children, secondary }: { children: React.ReactNode; secon
 
 const styles = StyleSheet.create({
   button: { minHeight: MIN_TOUCH, borderRadius: 10, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
-  buttonText: { fontSize: 17, fontWeight: '600' },
+  buttonText: { fontSize: 17, fontWeight: '600', textAlign: 'center' },
   section: { gap: 6 },
   sectionTitle: { fontSize: 13, textTransform: 'uppercase', marginLeft: 4 },
   sectionBody: { borderRadius: 12, padding: 14, gap: 10 },
