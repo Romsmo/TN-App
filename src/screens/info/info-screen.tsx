@@ -3,7 +3,9 @@ import { ScrollView, StyleSheet } from 'react-native';
 
 import { Body, Button, Section } from '@/components/ui';
 import { SOURCE_REPO_URL } from '@/config';
-import { t } from '@/i18n';
+import { renderBody } from '@/components/confirm-dialog';
+import { getLanguage, t } from '@/i18n';
+import { CAMERA_NOTICE } from '@/legal/texts';
 import { useTheme } from '@/theme';
 
 /** Library version shown for transparency; passed in so this screen never imports native code. */
@@ -15,6 +17,9 @@ export function InfoScreen({ libraryVersion }: { libraryVersion: string }) {
         <Body>{t('info.osm')}</Body>
         <Body>{t('info.maplibre')}</Body>
         <Body secondary>{t('info.reports')}</Body>
+      </Section>
+      <Section title={t('info.cameraNotice')}>
+        <Body>{renderBody(CAMERA_NOTICE[getLanguage()])}</Body>
       </Section>
       <Section>
         <Body secondary>{t('info.library', { version: libraryVersion })}</Body>

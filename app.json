@@ -9,7 +9,13 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "info.trafficnetwork.tnviewer",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "location",
+          "audio"
+        ]
+      }
     },
     "android": {
       "package": "info.trafficnetwork.tnviewer",
@@ -38,9 +44,10 @@
         {
           "locationWhenInUsePermission": "TNViewer nutzt deinen Standort, um Meldungen in deiner Nähe anzuzeigen und Meldungen an deiner Position abzusetzen. / TNViewer uses your location to show reports near you and to place reports at your position.",
           "isAndroidBackgroundLocationEnabled": false,
-          "isIosBackgroundLocationEnabled": false,
+          "isIosBackgroundLocationEnabled": true,
           "locationAlwaysAndWhenInUsePermission": false,
-          "locationAlwaysPermission": false
+          "locationAlwaysPermission": false,
+          "isAndroidForegroundServiceEnabled": true
         }
       ],
       "@maplibre/maplibre-react-native",
@@ -51,7 +58,8 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "./plugins/with-only-needed-background-modes.js"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -6,7 +6,7 @@ import type { RawClient } from '@/tn/service';
 
 import { TnProvider, useTn } from './tn-provider';
 
-let mockSettings = { serverAddress: null as string | null, hiddenHazardTypes: [] as string[], dataWifiOnly: true };
+let mockSettings = { serverAddress: null as string | null, hiddenHazardTypes: [] as string[], dataWifiOnly: true, camerasEnabled: false };
 const mockListeners = new Set<() => void>();
 jest.mock('@/settings', () => {
   const { useSyncExternalStore } = jest.requireActual('react');
@@ -49,12 +49,14 @@ function memorySecrets(): SecretStore {
 }
 
 function Probe() {
-  const { phase, waitingForWifi, error, rejectedWrites, dismissRejected } = useTn();
+  const { phase, waitingForWifi, error, rejectedWrites, dismissRejected, resetLocalData, resetDeviceIdentity } = useTn();
   return (
     <>
       <Text>{`${phase}|${waitingForWifi ? 'wifi' : 'go'}|${error ?? ''}`}</Text>
       <Text>{`rejected:${rejectedWrites}`}</Text>
       <Text onPress={dismissRejected}>dismiss</Text>
+      <Text onPress={() => void resetLocalData()}>reset-data</Text>
+      <Text onPress={() => void resetDeviceIdentity()}>reset-identity</Text>
     </>
   );
 }
@@ -68,7 +70,7 @@ const baseAnswers = {
 };
 
 async function mount(client: ReturnType<typeof fakeClient>, onWifi: boolean) {
-  const createClient = jest.fn(() => client.raw);
+  const createClient = jest.fn((_options: unknown) => client.raw);
   await render(
     <TnProvider createClient={createClient} credentialsStore={createCredentialsStore(memorySecrets())} isOnWifi={async () => onWifi} tickIntervalMs={3_600_000}>
       <Probe />
@@ -79,7 +81,7 @@ async function mount(client: ReturnType<typeof fakeClient>, onWifi: boolean) {
 }
 
 beforeEach(() => {
-  mockSettings = { serverAddress: null, hiddenHazardTypes: [], dataWifiOnly: true };
+  mockSettings = { serverAddress: null, hiddenHazardTypes: [], dataWifiOnly: true, camerasEnabled: false };
 });
 
 describe('TnProvider', () => {
@@ -120,6 +122,15 @@ describe('TnProvider', () => {
     expect(screen.getByText('rejected:2')).toBeTruthy();
     await act(async () => screen.getByText('dismiss').props.onPress());
     expect(screen.getByText('rejected:0')).toBeTruthy();
+  });
+
+  it('builds the client with the camera switch the user chose, off by default', async () => {
+    const client = fakeClient(baseAnswers);
+    const first = await mount(client, true);
+    expect(first.mock.calls[0]![0]).toMatchObject({ cameraNamespaceEnabled: false });
+    mockSettings = { ...mockSettings, camerasEnabled: true };
+    const second = await mount(fakeClient(baseAnswers), true);
+    expect(second.mock.calls[0]![0]).toMatchObject({ cameraNamespaceEnabled: true });
   });
 
   it('reports missing credentials as its own phase, not as an error', async () => {
@@ -165,5 +176,46 @@ describe('TnProvider', () => {
     expect(createClient).toHaveBeenCalledTimes(2);
     expect(createClient.mock.calls[1]![0]).toMatchObject({ discovery: false, nodes: ['https://node.example.org'] });
     expect(first.raw.uniffiDestroy).toHaveBeenCalled();
+  });
+});
+
+describe('TnProvider resets', () => {
+  async function mountWithMaintenance() {
+    const order: string[] = [];
+    const clients = [fakeClient(baseAnswers), fakeClient(baseAnswers)];
+    const created: ReturnType<typeof fakeClient>[] = [];
+    const createClient = jest.fn((_options: unknown) => {
+      const c = clients[created.length]!;
+      created.push(c);
+      return c.raw;
+    });
+    (clients[0]!.raw.uniffiDestroy as jest.Mock).mockImplementation(() => order.push('close'));
+    const maintenance = {
+      deleteLocalData: jest.fn(async () => void order.push('delete-data')),
+      wipeSecrets: jest.fn(async () => void order.push('wipe-secrets')),
+    };
+    await render(
+      <TnProvider createClient={createClient} credentialsStore={createCredentialsStore(memorySecrets())} isOnWifi={async () => true} tickIntervalMs={3_600_000} maintenance={maintenance}>
+        <Probe />
+      </TnProvider>,
+    );
+    await act(async () => {});
+    return { order, maintenance, createClient };
+  }
+
+  it('closes the client, deletes the local data and starts a fresh client', async () => {
+    const { order, maintenance, createClient } = await mountWithMaintenance();
+    await act(async () => screen.getByText('reset-data').props.onPress());
+    expect(order).toEqual(['close', 'delete-data']);
+    expect(maintenance.wipeSecrets).not.toHaveBeenCalled();
+    expect(createClient).toHaveBeenCalledTimes(2);
+  });
+
+  it('removes the secrets first when the device identity is reset, then the data, then starts anew', async () => {
+    const { order, maintenance, createClient } = await mountWithMaintenance();
+    await act(async () => screen.getByText('reset-identity').props.onPress());
+    expect(order).toEqual(['close', 'wipe-secrets', 'delete-data']);
+    expect(maintenance.wipeSecrets).toHaveBeenCalledTimes(1);
+    expect(createClient).toHaveBeenCalledTimes(2);
   });
 });

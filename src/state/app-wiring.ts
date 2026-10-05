@@ -2,7 +2,8 @@
 import * as Network from 'expo-network';
 
 import { createCredentialsStore } from '@/tn/credentials';
-import { createNativeClient, secureStore } from '@/tn/native';
+import { createNativeClient, deleteLibraryData, wipeLibrarySecrets, secureStore } from '@/tn/native';
+import type { Maintenance } from './tn-provider';
 
 export { createNativeClient };
 
@@ -17,3 +18,9 @@ export async function isOnWifi(): Promise<boolean> {
     return false;
   }
 }
+
+/** The device-level parts of "delete local data" and "reset device identity". */
+export const maintenance: Maintenance = {
+  deleteLocalData: async () => deleteLibraryData(),
+  wipeSecrets: wipeLibrarySecrets,
+};

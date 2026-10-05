@@ -1,5 +1,10 @@
+import { LockGuard } from '@/components/lock-guard';
 import { DataScreen } from '@/screens/data/data-screen';
 
 export default function DataRoute() {
-  return <DataScreen />;
+  return (
+    <LockGuard>
+      <DataScreen />
+    </LockGuard>
+  );
 }

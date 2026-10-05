@@ -1,6 +1,6 @@
 import { t } from '@/i18n';
 import { hazardLabel } from '@/map/hazard-labels';
-import type { NearbyItem } from '@/tn/types';
+import type { NearbyItem, SpeedUnit } from '@/tn/types';
 
 import type { DriveDataSource } from './data-source';
 import type { Feedback } from './feedback';
@@ -8,7 +8,6 @@ import { bearingDegrees, distanceMeters } from './geo';
 import { LockTracker } from './lock';
 import { thresholds, WarningEngine, DEFAULT_WARN_CONFIG, type Fix, type WarnCandidate, type WarnEvent } from './warning-engine';
 import { speedState, type SpeedState } from './units';
-import type { SpeedUnit } from '@/tn/types';
 
 /** The settings the session reads, fresh at every use (they can change while driving, e.g. mute). */
 export type DriveSettings = {
@@ -47,6 +46,8 @@ export type DriveSnapshot = {
   muted: boolean;
   /** The speed lock is in force (driving above the threshold, lock switched on). */
   locked: boolean;
+  /** Driving above the threshold, whatever the user's lock setting says. */
+  speedLocked: boolean;
   /** No position for a while. */
   gpsLost: boolean;
 };
@@ -81,6 +82,7 @@ const INITIAL: DriveSnapshot = {
   prompt: null,
   muted: false,
   locked: false,
+  speedLocked: false,
   gpsLost: false,
 };
 
@@ -178,7 +180,8 @@ export class DriveSession {
     this.lastFix = fix;
     this.lastFixAtMs = now;
 
-    const locked = this.lock.update(fix.speedKmh, now) && settings.lockEnabled;
+    const speedLocked = this.lock.update(fix.speedKmh, now);
+    const locked = speedLocked && settings.lockEnabled;
     void this.refreshData(fix, now);
 
     const events = this.engine.update(fix, this.candidates(settings));
@@ -190,6 +193,7 @@ export class DriveSession {
       speedState: speedState(fix.speedKmh, this.snap.limit),
       warnings,
       locked,
+      speedLocked,
       gpsLost: false,
     });
   }
@@ -200,10 +204,11 @@ export class DriveSession {
     const now = this.deps.now();
     const warnings = this.snap.warnings.filter((w) => now - w.since < WARNING_SHOWN_MS);
     const prompt = this.snap.prompt && now - this.snap.prompt.since < PROMPT_SHOWN_MS ? this.snap.prompt : null;
-    const stillLocked = this.lock.tick(now) && this.deps.getSettings().lockEnabled;
+    const speedLocked = this.lock.tick(now);
+    const stillLocked = speedLocked && this.deps.getSettings().lockEnabled;
     const gpsLost = now - this.lastFixAtMs > GPS_LOST_AFTER_MS;
     if (warnings.length !== this.snap.warnings.length || prompt !== this.snap.prompt || stillLocked !== this.snap.locked || gpsLost !== this.snap.gpsLost) {
-      this.set({ warnings, prompt, locked: stillLocked, gpsLost });
+      this.set({ warnings, prompt, locked: stillLocked, speedLocked, gpsLost });
     }
   }
 

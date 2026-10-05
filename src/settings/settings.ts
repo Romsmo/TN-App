@@ -6,13 +6,42 @@ export type Settings = {
   hiddenHazardTypes: string[];
   /** Download data packages on Wi-Fi only. */
   dataWifiOnly: boolean;
+  speedUnit: 'kmh' | 'mph';
+  /** Tones and spoken warnings in the drive mode. */
+  driveSound: boolean;
+  driveVoice: boolean;
+  /** Categories (hazard types, `cameras`) without drive-mode warnings. Stored as "off", so new types warn by default. */
+  warnOffCategories: string[];
+  /** Stretches or shrinks the warning distances. */
+  warnScale: 0.75 | 1 | 1.5;
+  /** The speed-camera category, like the checkbox on the web page: off at first start. */
+  camerasEnabled: boolean;
+  /** Version of the speed-camera notice the user has seen; null = never. */
+  camerasNoticeSeen: string | null;
+  /** The legal notice at the first start of the drive mode was shown. */
+  driveNoticeSeen: boolean;
+  /** The speed lock. On by default, also on a fresh install (no settings file) and after resetting the device identity. */
+  driveLockEnabled: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
   serverAddress: null,
   hiddenHazardTypes: [],
   dataWifiOnly: true,
+  speedUnit: 'kmh',
+  driveSound: true,
+  driveVoice: true,
+  warnOffCategories: [],
+  warnScale: 1,
+  camerasEnabled: false,
+  camerasNoticeSeen: null,
+  driveNoticeSeen: false,
+  driveLockEnabled: true,
 };
+
+const stringList = (value: unknown, fallback: string[]): string[] =>
+  Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : fallback;
+const bool = (value: unknown, fallback: boolean): boolean => (typeof value === 'boolean' ? value : fallback);
 
 /** Reads stored JSON tolerantly: anything missing or of the wrong type falls back to the default. */
 export function parseSettings(raw: string | null | undefined): Settings {
@@ -23,12 +52,21 @@ export function parseSettings(raw: string | null | undefined): Settings {
     data = {};
   }
   const o = (typeof data === 'object' && data !== null ? data : {}) as Record<string, unknown>;
+  const d = DEFAULT_SETTINGS;
   return {
-    serverAddress: typeof o.serverAddress === 'string' && o.serverAddress ? o.serverAddress : DEFAULT_SETTINGS.serverAddress,
-    hiddenHazardTypes: Array.isArray(o.hiddenHazardTypes)
-      ? o.hiddenHazardTypes.filter((v): v is string => typeof v === 'string')
-      : DEFAULT_SETTINGS.hiddenHazardTypes,
-    dataWifiOnly: typeof o.dataWifiOnly === 'boolean' ? o.dataWifiOnly : DEFAULT_SETTINGS.dataWifiOnly,
+    serverAddress: typeof o.serverAddress === 'string' && o.serverAddress ? o.serverAddress : d.serverAddress,
+    hiddenHazardTypes: stringList(o.hiddenHazardTypes, d.hiddenHazardTypes),
+    dataWifiOnly: bool(o.dataWifiOnly, d.dataWifiOnly),
+    speedUnit: o.speedUnit === 'mph' ? 'mph' : 'kmh',
+    driveSound: bool(o.driveSound, d.driveSound),
+    driveVoice: bool(o.driveVoice, d.driveVoice),
+    warnOffCategories: stringList(o.warnOffCategories, d.warnOffCategories),
+    warnScale: o.warnScale === 0.75 || o.warnScale === 1.5 ? o.warnScale : 1,
+    camerasEnabled: bool(o.camerasEnabled, d.camerasEnabled),
+    camerasNoticeSeen: typeof o.camerasNoticeSeen === 'string' && o.camerasNoticeSeen ? o.camerasNoticeSeen : null,
+    driveNoticeSeen: bool(o.driveNoticeSeen, d.driveNoticeSeen),
+    // Only an explicit `false` switches the lock off; garbage or a missing value means "on".
+    driveLockEnabled: o.driveLockEnabled === false ? false : true,
   };
 }
 

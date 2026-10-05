@@ -1,6 +1,5 @@
-import { Placeholder } from '@/components/placeholder';
-import { t } from '@/i18n';
+import { DriveScreen } from '@/screens/drive/drive-screen';
 
 export default function DriveRoute() {
-  return <Placeholder title={t('tabs.drive')} />;
+  return <DriveScreen />;
 }

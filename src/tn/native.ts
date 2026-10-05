@@ -25,6 +25,12 @@ export async function wipeLibrarySecrets(): Promise<void> {
   }
 }
 
+/** Deletes the library's database directory. Close the client first. */
+export function deleteLibraryData(): void {
+  const dir = new Directory(Paths.document, 'trafficnetwork');
+  if (dir.exists) dir.delete();
+}
+
 /** The directory the library keeps its database in, created if missing. */
 export function libraryStoragePath(): string {
   const dir = new Directory(Paths.document, 'trafficnetwork');

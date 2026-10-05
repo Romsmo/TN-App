@@ -7,14 +7,14 @@ export const MIN_TOUCH = 48;
 
 type ButtonProps = Omit<PressableProps, 'children' | 'style'> & { label: string; kind?: 'primary' | 'plain' };
 
-export function Button({ label, kind = 'primary', disabled, ...rest }: ButtonProps) {
+export function Button({ label, kind = 'primary', disabled, accessibilityState, ...rest }: ButtonProps) {
   const theme = useTheme();
   const primary = kind === 'primary';
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ disabled: !!disabled }}
+      accessibilityState={{ disabled: !!disabled, ...accessibilityState }}
       disabled={disabled}
       style={({ pressed }) => [
         styles.button,
