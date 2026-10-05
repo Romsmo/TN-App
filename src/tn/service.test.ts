@@ -36,6 +36,20 @@ describe('TnService', () => {
     await expect(service.sync()).rejects.toMatchObject({ code: 'badResponse' });
   });
 
+  it('queues a report and a vote with the argument names of api.md', async () => {
+    const raw = fakeRaw({
+      submitReport: JSON.stringify({ ok: { localId: 'local-1' } }),
+      confirmReport: JSON.stringify({ ok: { localId: 'local-2' } }),
+    });
+    const service = new TnService(raw);
+    await expect(service.submitReport('ice', 52.5, 13.4)).resolves.toBe('local-1');
+    await expect(service.confirmReport('r1', false)).resolves.toBe('local-2');
+    expect(raw.calls).toEqual([
+      ['submitReport', { type: 'ice', lat: 52.5, lng: 13.4 }],
+      ['confirmReport', { reportId: 'r1', stillThere: false }],
+    ]);
+  });
+
   it('accepts a null result (no speed limit nearby)', async () => {
     const service = new TnService(fakeRaw({ getSpeedLimitAt: JSON.stringify({ ok: null }) }));
     await expect(service.getSpeedLimitAt(1, 2)).resolves.toBeNull();

@@ -5,6 +5,7 @@ import type { TnService } from '@/tn/service';
 import type { HazardItem } from '@/tn/types';
 
 import { DetailCard } from './detail-card';
+import { ReportSheet } from './report-sheet';
 import { FilterBar } from './filter-bar';
 import { radiusFor, useNearby } from './use-nearby';
 
@@ -86,5 +87,64 @@ describe('radiusFor', () => {
     expect(radiusFor({ lat: 0, lng: 0 }, { lat: 0, lng: 0.1 })).toBeLessThan(11_200);
     expect(radiusFor({ lat: 0, lng: 0 }, { lat: 0, lng: 0.0001 })).toBe(500);
     expect(radiusFor({ lat: 0, lng: 0 }, { lat: 0, lng: 20 })).toBe(50_000);
+  });
+});
+
+describe('DetailCard voting', () => {
+  it('offers "still there" and "gone" and reports the choice', async () => {
+    const onVote = jest.fn();
+    await render(<DetailCard item={{ ...item, pending: false }} onClose={() => {}} onVote={onVote} />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Still there' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Gone' }));
+    expect(onVote.mock.calls).toEqual([[true], [false]]);
+  });
+
+  it('has no voting without a handler, and none for a report that is still only on this device', async () => {
+    await render(<DetailCard item={{ ...item, pending: false }} onClose={() => {}} />);
+    expect(screen.queryByText('Is the report still current?')).toBeNull();
+    await render(<DetailCard item={item} onClose={() => {}} onVote={() => {}} />);
+    expect(screen.queryByRole('button', { name: 'Still there' })).toBeNull();
+  });
+
+  it('thanks after a saved vote and shows a failed one', async () => {
+    const { rerender } = await render(<DetailCard item={{ ...item, pending: false }} onClose={() => {}} onVote={() => {}} voteState="saved" />);
+    expect(screen.getByText('Thanks, your answer is being sent.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Still there' })).toBeNull();
+    await rerender(<DetailCard item={{ ...item, pending: false }} onClose={() => {}} onVote={() => {}} voteState="failed" />);
+    expect(screen.getByText('The answer could not be saved.')).toBeTruthy();
+  });
+});
+
+describe('ReportSheet', () => {
+  const types = ['traffic', 'ice'];
+
+  it('shows one big button per type and reports the pick', async () => {
+    const onPick = jest.fn();
+    await render(<ReportSheet types={types} location={{ lat: 1, lng: 2, source: 'device' }} locating={false} message={null} onPick={onPick} onCancel={() => {}} />);
+    expect(screen.getByText('At your location')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Report Ice' }));
+    expect(onPick).toHaveBeenCalledWith('ice');
+  });
+
+  it('names the marked spot when the user tapped the map', async () => {
+    await render(<ReportSheet types={types} location={{ lat: 1, lng: 2, source: 'map' }} locating={false} message={null} onPick={() => {}} onCancel={() => {}} />);
+    expect(screen.getByText('At the marked spot')).toBeTruthy();
+  });
+
+  it('cannot be submitted without a location', async () => {
+    const onPick = jest.fn();
+    await render(<ReportSheet types={types} location={null} locating message={null} onPick={onPick} onCancel={() => {}} />);
+    expect(screen.getByText('Finding your location …')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Report Ice' }));
+    expect(onPick).not.toHaveBeenCalled();
+  });
+
+  it('explains when no location is available, shows a message and can be cancelled', async () => {
+    const onCancel = jest.fn();
+    await render(<ReportSheet types={types} location={null} locating={false} message="Nope" onPick={() => {}} onCancel={onCancel} />);
+    expect(screen.getByText(/No location available/)).toBeTruthy();
+    expect(screen.getByText('Nope')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(onCancel).toHaveBeenCalled();
   });
 });

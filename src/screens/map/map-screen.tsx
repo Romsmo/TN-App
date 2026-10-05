@@ -4,6 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui';
+import { interimCatalog } from '@/report/catalog';
+import { pendingText, rejectedText } from '@/report/pending';
+import { submitHazard, voteOnReport } from '@/report/submit';
 import { MAP_ATTRIBUTION, MAP_STYLE_URL } from '@/config';
 import { t } from '@/i18n';
 import { hazardTypesIn, toMapData } from '@/map/geojson';
@@ -11,9 +14,10 @@ import { settingsStore, useSettings } from '@/settings';
 import { useTn, type TnState } from '@/state/tn-provider';
 import { useTheme } from '@/theme';
 
-import { DetailCard } from './detail-card';
+import { DetailCard, type VoteState } from './detail-card';
 import { FilterBar } from './filter-bar';
 import { MapView } from './map-view';
+import { ReportSheet, type ReportLocation } from './report-sheet';
 import { useNearby, type Viewport } from './use-nearby';
 
 type Position = { lat: number; lng: number };
@@ -44,8 +48,17 @@ export function MapScreen() {
   const [viewport, setViewport] = useState<Viewport | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [located, setLocated] = useState(false);
+  const [devicePosition, setDevicePosition] = useState<Position | null>(null);
+  const [reporting, setReporting] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [draft, setDraft] = useState<Position | null>(null);
+  const [reportMessage, setReportMessage] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [vote, setVote] = useState<{ id: string; state: VoteState } | null>(null);
+  // Local writes show up at once (optimistic view), before any sync reports a change.
+  const [localChanges, setLocalChanges] = useState(0);
 
-  const items = useNearby(tn.service, viewport, tn.dataVersion);
+  const items = useNearby(tn.service, viewport, tn.dataVersion + localChanges);
   const data = useMemo(() => toMapData(items, { hiddenHazardTypes: new Set(hiddenHazardTypes) }), [items, hiddenHazardTypes]);
   // Types seen in the data plus the ones switched off, so a hidden type can always be switched back on.
   const filterTypes = useMemo(() => [...new Set([...hazardTypesIn(items), ...hiddenHazardTypes])].sort(), [items, hiddenHazardTypes]);
@@ -57,6 +70,7 @@ export function MapScreen() {
   const service = tn.service;
   const moveTo = (position: Position) => {
     setLocated(true);
+    setDevicePosition(position);
     cameraRef.current?.flyTo({ center: [position.lng, position.lat], zoom: 12, duration: 800 });
     // Tells the library which tiles to watch: the one place this screen sends a (coarse) position to the library.
     void service?.updatePosition(position.lat, position.lng).catch(() => undefined);
@@ -72,11 +86,60 @@ export function MapScreen() {
       .then((position) => {
         if (!position) return;
         setLocated(true);
+        setDevicePosition(position);
         cameraRef.current?.flyTo({ center: [position.lng, position.lat], zoom: 12, duration: 800 });
         void service?.updatePosition(position.lat, position.lng).catch(() => undefined);
       })
       .catch(() => undefined);
   }, [service]);
+
+  const openReport = () => {
+    setReporting(true);
+    setSelectedId(null);
+    setReportMessage(null);
+    setNotice(null);
+    if (!devicePosition) {
+      setLocating(true);
+      currentPosition(true)
+        .then((position) => position && moveTo(position))
+        .catch(() => undefined)
+        .finally(() => setLocating(false));
+    }
+  };
+  const closeReport = () => {
+    setReporting(false);
+    setDraft(null);
+    setReportMessage(null);
+  };
+  const reportLocation: ReportLocation = draft ? { ...draft, source: 'map' } : devicePosition ? { ...devicePosition, source: 'device' } : null;
+
+  const pickType = async (type: string) => {
+    if (!service || !reportLocation) return;
+    const outcome = await submitHazard(service, type, reportLocation);
+    if (!outcome.ok) {
+      setReportMessage(t(`report.error.${outcome.reason}`));
+      return;
+    }
+    closeReport();
+    setNotice(t('report.saved'));
+    setLocalChanges((n) => n + 1);
+    void tn.syncNow(); // sends right away when allowed; otherwise the pending note explains the wait
+  };
+
+  const castVote = async (stillThere: boolean) => {
+    if (!service || !selected) return;
+    const outcome = await voteOnReport(service, selected.id, stillThere);
+    setVote({ id: selected.id, state: outcome.ok ? 'saved' : 'failed' });
+    if (outcome.ok) {
+      setLocalChanges((n) => n + 1);
+      void tn.syncNow();
+    }
+  };
+
+  const onMapPress = (position: Position) => {
+    if (reporting) setDraft(position);
+    else setSelectedId(null);
+  };
 
   const toggleType = (type: string) => {
     const hidden = new Set(hiddenHazardTypes);
@@ -86,6 +149,8 @@ export function MapScreen() {
   };
 
   const banner = bannerText(tn);
+  const pending = pendingText({ pending: tn.sync?.pendingWrites ?? 0, waitingForWifi: tn.waitingForWifi, offline: tn.sync?.connection === 'offline' });
+  const rejected = rejectedText(tn.rejectedWrites);
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -95,6 +160,14 @@ export function MapScreen() {
           {banner}
         </Text>
       ) : null}
+      {pending ? <Text style={[styles.banner, { backgroundColor: theme.surface, color: theme.text }]}>{pending}</Text> : null}
+      {rejected ? (
+        <View style={[styles.rejected, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.rejectedText, { color: theme.text }]}>{rejected}</Text>
+          <Button kind="plain" label={t('rejected.dismiss')} onPress={tn.dismissRejected} />
+        </View>
+      ) : null}
+      {notice ? <Text accessibilityRole="alert" style={[styles.banner, { backgroundColor: theme.surface, color: theme.text }]}>{notice}</Text> : null}
       {!MAP_STYLE_URL ? <Text style={[styles.note, { color: theme.textSecondary }]}>{t('map.noBackground')}</Text> : null}
       <View style={styles.mapBox}>
         <MapView
@@ -102,18 +175,42 @@ export function MapScreen() {
           background={theme.surface}
           showUserLocation={located}
           onViewport={setViewport}
-          onSelectHazard={setSelectedId}
+          onSelectHazard={(id) => {
+            if (!reporting) setSelectedId(id);
+          }}
+          onMapPress={onMapPress}
+          draft={reporting ? draft : null}
           cameraRef={cameraRef}
         />
         <Text accessibilityLabel={MAP_ATTRIBUTION} style={[styles.attribution, { backgroundColor: theme.surface, color: theme.textSecondary }]}>
           {t('map.attribution')}
         </Text>
-        <View style={styles.locate}>
-          <Button label={t('map.locate')} onPress={() => void locate(true)} />
-        </View>
-        {selected ? (
+        {!reporting ? (
+          <View style={styles.locate}>
+            <Button label={t('map.locate')} onPress={() => void locate(true)} />
+            <Button label={t('report.open')} onPress={openReport} />
+          </View>
+        ) : null}
+        {selected && !reporting ? (
           <View style={styles.card}>
-            <DetailCard item={selected} onClose={() => setSelectedId(null)} />
+            <DetailCard
+              item={selected}
+              onClose={() => setSelectedId(null)}
+              onVote={(stillThere) => void castVote(stillThere)}
+              voteState={vote?.id === selected.id ? vote.state : 'idle'}
+            />
+          </View>
+        ) : null}
+        {reporting ? (
+          <View style={styles.card}>
+            <ReportSheet
+              types={interimCatalog.types()}
+              location={reportLocation}
+              locating={locating}
+              message={reportMessage}
+              onPick={(type) => void pickType(type)}
+              onCancel={closeReport}
+            />
           </View>
         ) : null}
       </View>
@@ -127,6 +224,8 @@ const styles = StyleSheet.create({
   note: { paddingHorizontal: 14, paddingVertical: 4, fontSize: 13 },
   mapBox: { flex: 1 },
   attribution: { position: 'absolute', left: 8, bottom: 8, paddingHorizontal: 6, paddingVertical: 2, fontSize: 11, borderRadius: 4, opacity: 0.9 },
-  locate: { position: 'absolute', right: 12, top: 12 },
+  locate: { position: 'absolute', right: 12, top: 12, gap: 8 },
+  rejected: { paddingHorizontal: 14, paddingVertical: 8, gap: 4 },
+  rejectedText: { fontSize: 14 },
   card: { position: 'absolute', left: 12, right: 12, bottom: 36 },
 });

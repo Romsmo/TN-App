@@ -14,6 +14,7 @@ export type { Phase } from './connection';
 export type TnState = ConnectionSnapshot & {
   credentialsStore: CredentialsStore;
   syncNow(options?: { ignoreWifi?: boolean }): Promise<void>;
+  dismissRejected(): void;
 };
 
 const TnContext = createContext<TnState | null>(null);
@@ -55,7 +56,7 @@ export function TnProvider({ children, createClient, credentialsStore, isOnWifi,
 
   const snapshot = useSyncExternalStore(connection.subscribe, connection.getSnapshot);
   const value = useMemo<TnState>(
-    () => ({ ...snapshot, credentialsStore, syncNow: connection.syncNow }),
+    () => ({ ...snapshot, credentialsStore, syncNow: connection.syncNow, dismissRejected: connection.dismissRejected }),
     [snapshot, credentialsStore, connection],
   );
   return <TnContext.Provider value={value}>{children}</TnContext.Provider>;

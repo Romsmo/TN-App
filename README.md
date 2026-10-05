@@ -2,7 +2,7 @@
 
 Mobile App (iOS + Android, Expo) für das [Trafficnetwork](https://github.com/Romsmo/Trafficnetwork): Karte ansehen, Gefahren melden und ein Fahrmodus mit Warnungen — ohne Navigation. Apache License 2.0.
 
-**Stand: `0.1.0`, Stufe M2 (Ansehen).** Die Client-Bibliothek ist eingebunden, die Karte zeigt Meldungen mit Filter und Detailkarte, „Server verbinden" und „Datenpakete" gibt es. Der Fahrmodus ist noch ein Platzhalter (M4), Melden folgt in M3. **Nichts davon wurde auf einem Gerät oder Emulator ausgeführt** (siehe unten).
+**Stand: `0.1.0`, Stufe M3 (Melden).** Die Client-Bibliothek ist eingebunden, die Karte zeigt Meldungen mit Filter und Detailkarte, „Server verbinden" und „Datenpakete" gibt es. Melden (am Standort oder per Tipp auf die Karte), Bestätigen/Widerlegen und ein sichtbarer Wartezustand für noch nicht gesendete Meldungen sind da. Der Fahrmodus ist noch ein Platzhalter (M4). **Nichts davon wurde auf einem Gerät oder Emulator ausgeführt** (siehe unten).
 
 ## Entwickeln
 

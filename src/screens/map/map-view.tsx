@@ -20,6 +20,10 @@ type Props = {
   showUserLocation: boolean;
   onViewport: (viewport: Viewport) => void;
   onSelectHazard: (id: string) => void;
+  /** A tap on empty map (not on a report). */
+  onMapPress: (position: { lat: number; lng: number }) => void;
+  /** The spot the user marked for a new report. */
+  draft: { lat: number; lng: number } | null;
   cameraRef: React.RefObject<CameraRef | null>;
 };
 
@@ -27,13 +31,17 @@ type Props = {
  * The MapLibre map. Native code: this file is not covered by the unit tests, the data it draws is (map/geojson.ts).
  * Zones are drawn as areas only; there is deliberately no point layer for them.
  */
-export function MapView({ data, background, showUserLocation, onViewport, onSelectHazard, cameraRef }: Props) {
+export function MapView({ data, background, showUserLocation, onViewport, onSelectHazard, onMapPress, draft, cameraRef }: Props) {
   return (
     <Map
       style={styles.map}
       mapStyle={MAP_STYLE_URL ?? plainStyle(background)}
       attribution={false}
       logo={false}
+      onPress={(event) => {
+        const [lng, lat] = event.nativeEvent.lngLat;
+        onMapPress({ lat, lng });
+      }}
       onRegionDidChange={(event) => {
         const { center, bounds } = event.nativeEvent;
         const [lng, lat] = center;
@@ -48,6 +56,14 @@ export function MapView({ data, background, showUserLocation, onViewport, onSele
       </GeoJSONSource>
       <GeoJSONSource id="signs" data={data.signs}>
         <Layer id="signs-circle" type="circle" paint={{ 'circle-radius': 4, 'circle-color': '#495057', 'circle-stroke-width': 1, 'circle-stroke-color': '#FFFFFF' }} />
+      </GeoJSONSource>
+      <GeoJSONSource
+        id="draft"
+        data={{
+          type: 'FeatureCollection',
+          features: draft ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [draft.lng, draft.lat] } }] : [],
+        }}>
+        <Layer id="draft-ring" type="circle" paint={{ 'circle-radius': 14, 'circle-color': '#FFFFFF', 'circle-opacity': 0.0, 'circle-stroke-width': 4, 'circle-stroke-color': '#C92A2A' }} />
       </GeoJSONSource>
       <GeoJSONSource
         id="hazards"

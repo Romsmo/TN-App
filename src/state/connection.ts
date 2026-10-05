@@ -12,6 +12,8 @@ export type ConnectionSnapshot = {
   network: NetworkStatus | null;
   /** The static data is still waiting for Wi-Fi (the "Wi-Fi only" setting). */
   waitingForWifi: boolean;
+  /** Queued writes the server refused for good since the app started and the user has not yet acknowledged. */
+  rejectedWrites: number;
   /** Bumps whenever data in the local store changed; screens re-read when it moves. */
   dataVersion: number;
 };
@@ -30,6 +32,7 @@ const INITIAL: ConnectionSnapshot = {
   sync: null,
   network: null,
   waitingForWifi: false,
+  rejectedWrites: 0,
   dataVersion: 0,
 };
 
@@ -60,6 +63,9 @@ export class TnConnection {
   setWifiOnly(value: boolean): void {
     this.wifiOnly = value;
   }
+
+  /** The user has read the notice about refused writes. */
+  dismissRejected = (): void => this.set({ rejectedWrites: 0 });
 
   /** Sync now. `ignoreWifi` is for an explicit tap on "load anyway". */
   syncNow = (options?: { ignoreWifi?: boolean }): Promise<void> => this.run(true, options?.ignoreWifi ?? false);
@@ -119,8 +125,8 @@ export class TnConnection {
       if (this.stopped) return;
       this.set({ waitingForWifi: !allowed });
       if (allowed) {
-        if (force) await client.sync();
-        else await client.tick();
+        const report = force ? await client.sync() : (await client.tick()).report;
+        if (report && report.rejected > 0) this.set({ rejectedWrites: this.snap.rejectedWrites + report.rejected });
         this.bump();
       }
       const [sync, network] = await Promise.all([client.getSyncStatus(), client.getNetworkStatus()]);

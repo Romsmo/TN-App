@@ -26,6 +26,8 @@ Nur, was wirklich offen ist.
 - **TLS:** die Bibliothek vertraut nur den eingebauten Mozilla-Wurzeln; ein echter Handshake ist nirgends getestet; Seeds `seed1./seed2.trafficnetwork.info` sind noch nicht im DNS.
 - **Standortabfluss:** `updatePosition` sendet grobe H3-Kacheln (~2,4 km, bei >100 km/h zwei Ringe) an den Server; im Fahrmodus laufend. Gehört in `docs/privacy-mapping.md` (M5); die App ruft `updatePosition` nur auf, wenn nötig.
 - **Wünsche für `client-lib 1.2`** (nicht in der App bauen): richtungsbewusstes `getSpeedLimitAt` (`heading` wird heute ignoriert), Voraus-Filter entlang der Fahrtrichtung/eigenen Fahrbahn, Entprellen von Warnungen, Map-Matching über mehrere Positionen. Bis dahin: Übergangslösung hinter einer Schnittstelle (M4). Dazu aus M2: eine Methode für die **Liste der Meldungsarten** (heute nur die elf Typen aus `server/docs/api.md`; die App leitet die Filter aus den vorhandenen Daten ab und braucht für „Melden" in M3 eine Liste), das **Alter einer Meldung** (`NearbyItem` hat nur `expiresAt`, die Detailkarte zeigt „Gültig bis" statt „Alter") und **Regionen einzeln laden** (heute lädt `sync` alles, was der Server anbietet).
+- **Senden gekoppelt an das Laden der Kartendaten:** `sync` erledigt Kartendaten, Live-Meldungen und das Senden wartender Meldungen in einem Zug. Steht „Nur im WLAN" an und sind die Kartendaten noch nicht geladen, wartet deshalb auch das Senden einer Meldung auf WLAN (die App sagt das an). Wunsch an `client-lib 1.2`: das Senden der Warteschlange getrennt auslösen können (`flushWrites`).
+- **Mehrknoten-Verhalten** (Serverwechsel, Ausfall mitten im Sync, Offline-Meldung an anderem Server) liegt in der Bibliothek; ihre Tests decken es ab. Die App hat dazu **keinen eigenen Test gegen ein Testnetz** (kein Docker/Gerät hier): offen.
 - **Live-Meldungen nur rund um den Standort:** Die Bibliothek abonniert nur die Kacheln um die zuletzt gemeldete Position (`updatePosition`). Schiebt der Nutzer die Karte weit weg, erscheinen dort nur Daten, die schon lokal sind.
 - `expo-doctor` und `expo install` laufen in dieser Umgebung wegen der Netzsperre nur eingeschränkt; Versionen kommen aus `bundledNativeModules.json`.
 
@@ -34,7 +36,8 @@ Nur, was wirklich offen ist.
 - [x] M2 Bibliothek eingebunden, Karte, Ansehen, „Server verbinden", Datenpakete — **nur Typen, Tests und Bundles geprüft, nicht auf einem Gerät**
 - [ ] Aus M2 offen: **Blitzer-Kategorie, Blitzer-Filter und Rechtshinweis (M4)** — die Karte zeigt Kameras/Zonen nur, wenn die Bibliothek sie liefert (`cameraNamespaceEnabled` bleibt aus)
 - [ ] „Lokale Daten löschen" und „Geräteidentität zurücksetzen" (Einstellungen, M5)
-- [ ] M3 Melden, Bestätigen, Offline-Puffer
+- [x] M3 Melden, Bestätigen, Offline-Puffer, Hinweise zu Wartezustand und Begrenzungen — **nur Typen, Tests und Bundles geprüft, nicht auf einem Gerät**
+- [ ] Aus M3 offen: Melden von **Blitzer-Arten** (gehört zur Blitzer-Behandlung in M4: Schalter, Länderpolitik, Rechtshinweis); Haptik/Ton als Rückmeldung (M4); Maestro-Abläufe (M5/M6)
 - [ ] M4 Fahrmodus, Simulationsfahrt, Blitzer-Filter und Hinweise, Fahrsperre
 - [ ] M5 Politur, Barrierefreiheit, eigenes Icon und Splash (derzeit Expo-Platzhalter), Store-Texte, Datenschutz-Zuordnung, `ITSAppUsesNonExemptEncryption` begründet setzen
 - [ ] M6 Abnahmefassung; M7 Einreichung erst nach schriftlichem „Abnahme"

@@ -49,8 +49,14 @@ function memorySecrets(): SecretStore {
 }
 
 function Probe() {
-  const { phase, waitingForWifi, error } = useTn();
-  return <Text>{`${phase}|${waitingForWifi ? 'wifi' : 'go'}|${error ?? ''}`}</Text>;
+  const { phase, waitingForWifi, error, rejectedWrites, dismissRejected } = useTn();
+  return (
+    <>
+      <Text>{`${phase}|${waitingForWifi ? 'wifi' : 'go'}|${error ?? ''}`}</Text>
+      <Text>{`rejected:${rejectedWrites}`}</Text>
+      <Text onPress={dismissRejected}>dismiss</Text>
+    </>
+  );
 }
 
 const baseAnswers = {
@@ -105,6 +111,15 @@ describe('TnProvider', () => {
     const client = fakeClient(baseAnswers);
     await mount(client, false);
     expect(client.calls).toContain('tick');
+  });
+
+  it('counts writes the server refused and lets the user acknowledge them', async () => {
+    const report = { skipped: false, ok: true, staticDataError: null, dynamicDataError: null, submitted: 0, rejected: 2, pendingWrites: 0 };
+    const client = fakeClient({ ...baseAnswers, tick: ok({ synced: true, report }) });
+    await mount(client, true);
+    expect(screen.getByText('rejected:2')).toBeTruthy();
+    await act(async () => screen.getByText('dismiss').props.onPress());
+    expect(screen.getByText('rejected:0')).toBeTruthy();
   });
 
   it('reports missing credentials as its own phase, not as an error', async () => {

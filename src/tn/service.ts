@@ -96,6 +96,16 @@ export class TnService {
     return this.call('getCameraPolicy');
   }
 
+  /** Stores a report locally (queue) and returns its local id; it is sent with the next sync. */
+  async submitReport(type: string, lat: number, lng: number, speedKmh?: number): Promise<string> {
+    return (await this.call<{ localId: string }>('submitReport', { type, lat, lng, speedKmh })).localId;
+  }
+
+  /** Votes on a report: still there (`true`) or gone (`false`). Queued like every write. */
+  async confirmReport(reportId: string, stillThere: boolean): Promise<string> {
+    return (await this.call<{ localId: string }>('confirmReport', { reportId, stillThere })).localId;
+  }
+
   async pollEvents(): Promise<TnEvent[]> {
     return (await this.call<{ events: TnEvent[] }>('pollEvents')).events;
   }
