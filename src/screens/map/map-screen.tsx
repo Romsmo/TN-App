@@ -1,8 +1,9 @@
 import type { CameraRef } from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { Icon } from '@/components/icon';
 import { Button } from '@/components/ui';
 import { interimCatalog } from '@/report/catalog';
 import { pendingText, rejectedText } from '@/report/pending';
@@ -12,7 +13,7 @@ import { t } from '@/i18n';
 import { hazardTypesIn, toMapData } from '@/map/geojson';
 import { settingsStore, useSettings } from '@/settings';
 import { useTn, type TnState } from '@/state/tn-provider';
-import { useTheme } from '@/theme';
+import { elevation, radius, TAB_BAR_CLEARANCE, type, useTheme } from '@/theme';
 
 import { DetailCard, type VoteState } from './detail-card';
 import { FilterBar } from './filter-bar';
@@ -158,43 +159,23 @@ export function MapScreen() {
   const pending = pendingText({ pending: tn.sync?.pendingWrites ?? 0, waitingForWifi: tn.waitingForWifi, offline: tn.sync?.connection === 'offline' });
   const rejected = rejectedText(tn.rejectedWrites);
 
+  const notes: { key: string; text: string; tone?: 'warn' }[] = [];
+  if (banner) notes.push({ key: 'banner', text: banner });
+  if (pending) notes.push({ key: 'pending', text: pending, tone: 'warn' });
+  if (notice) notes.push({ key: 'notice', text: notice });
+  if (!MAP_STYLE_URL) notes.push({ key: 'nomap', text: t('map.noBackground') });
+
+  const detail =
+    selected && !reporting ? (
+      <DetailCard item={selected} onClose={() => setSelectedId(null)} onVote={(stillThere) => void castVote(stillThere)} voteState={vote?.id === selected.id ? vote.state : 'idle'} />
+    ) : null;
+
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
-      <FilterBar types={filterTypes} hidden={hiddenHazardTypes} onToggle={toggleType} />
-      {banner ? (
-        <Text accessibilityRole="alert" style={[styles.banner, { backgroundColor: theme.surface, color: theme.textSecondary }]}>
-          {banner}
-        </Text>
-      ) : null}
-      {pending ? <Text style={[styles.banner, { backgroundColor: theme.surface, color: theme.text }]}>{pending}</Text> : null}
-      {rejected ? (
-        <View style={[styles.rejected, { backgroundColor: theme.surface }]}>
-          <Text style={[styles.rejectedText, { color: theme.text }]}>{rejected}</Text>
-          <Button kind="plain" label={t('rejected.dismiss')} onPress={tn.dismissRejected} />
-        </View>
-      ) : null}
-      {notice ? <Text accessibilityRole="alert" style={[styles.banner, { backgroundColor: theme.surface, color: theme.text }]}>{notice}</Text> : null}
-      {!MAP_STYLE_URL ? <Text style={[styles.note, { color: theme.textSecondary }]}>{t('map.noBackground')}</Text> : null}
-      <Button kind="plain" label={listMode ? t('map.showMap') : t('map.list')} onPress={() => setListMode((v) => !v)} />
-      {listMode ? (
-        <ScrollView>
-          <ReportList items={visibleHazards} onSelect={setSelectedId} />
-        </ScrollView>
-      ) : null}
-      {listMode && selected ? (
-        <View style={styles.listCard}>
-          <DetailCard
-            item={selected}
-            onClose={() => setSelectedId(null)}
-            onVote={(stillThere) => void castVote(stillThere)}
-            voteState={vote?.id === selected.id ? vote.state : 'idle'}
-          />
-        </View>
-      ) : null}
       <View style={[styles.mapBox, listMode ? styles.hidden : null]}>
         <MapView
           data={data}
-          background={theme.surface}
+          background={theme.surfaceAlt}
           showUserLocation={located}
           onViewport={setViewport}
           onSelectHazard={(id) => {
@@ -204,52 +185,84 @@ export function MapScreen() {
           draft={reporting ? draft : null}
           cameraRef={cameraRef}
         />
-        <Text accessibilityLabel={MAP_ATTRIBUTION} style={[styles.attribution, { backgroundColor: theme.surface, color: theme.textSecondary }]}>
-          {t('map.attribution')}
-        </Text>
-        {!reporting ? (
-          <View style={styles.locate}>
-            <Button label={t('map.locate')} onPress={() => void locate(true)} />
-            <Button label={t('report.open')} onPress={openReport} />
-          </View>
-        ) : null}
-        {selected && !reporting && !listMode ? (
-          <View style={styles.card}>
-            <DetailCard
-              item={selected}
-              onClose={() => setSelectedId(null)}
-              onVote={(stillThere) => void castVote(stillThere)}
-              voteState={vote?.id === selected.id ? vote.state : 'idle'}
-            />
-          </View>
-        ) : null}
-        {reporting ? (
-          <View style={styles.card}>
+      </View>
+
+      {listMode ? (
+        <ScrollView contentContainerStyle={styles.listContent}>
+          <ReportList items={visibleHazards} onSelect={setSelectedId} />
+        </ScrollView>
+      ) : null}
+
+      {/* floating layer on top of the map */}
+      <View pointerEvents="box-none" style={styles.overlay}>
+        <View pointerEvents="box-none" style={styles.top}>
+          <FilterBar types={filterTypes} hidden={hiddenHazardTypes} onToggle={toggleType} />
+          {notes.map((note) => (
+            <View key={note.key} accessibilityRole="alert" style={[styles.note, elevation(theme), { backgroundColor: theme.surface }]}>
+              <Text style={[type.caption, { color: note.tone === 'warn' ? theme.warn : theme.textSecondary }]}>{note.text}</Text>
+            </View>
+          ))}
+          {rejected ? (
+            <View style={[styles.note, elevation(theme), { backgroundColor: theme.surface }]}>
+              <Text style={[type.caption, { color: theme.text }]}>{rejected}</Text>
+              <Button kind="plain" label={t('rejected.dismiss')} onPress={tn.dismissRejected} />
+            </View>
+          ) : null}
+        </View>
+
+        <View pointerEvents="box-none" style={styles.bottom}>
+          {!reporting ? (
+            <View style={styles.fabs}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={listMode ? t('map.showMap') : t('map.list')}
+                onPress={() => setListMode((v) => !v)}
+                style={[styles.fabRound, elevation(theme, 2), { backgroundColor: theme.surface }]}>
+                <Icon name={listMode ? 'map' : 'list'} size={24} color={theme.tint} />
+              </Pressable>
+              <Pressable accessibilityRole="button" accessibilityLabel={t('map.locate')} onPress={() => void locate(true)} style={[styles.fabRound, elevation(theme, 2), { backgroundColor: theme.surface }]}>
+                <Icon name="locate" size={24} color={theme.tint} />
+              </Pressable>
+              <Pressable accessibilityRole="button" accessibilityLabel={t('report.open')} onPress={openReport} style={[styles.fabReport, elevation(theme, 2), { backgroundColor: theme.tint }]}>
+                <Icon name="add" size={26} color={theme.onTint} />
+                <Text style={[styles.fabReportText, { color: theme.onTint }]}>{t('report.open')}</Text>
+              </Pressable>
+            </View>
+          ) : null}
+          {detail}
+          {reporting ? (
             <ReportSheet
               types={interimCatalog.types()}
               location={reportLocation}
               locating={locating}
               message={reportMessage}
-              onPick={(type) => void pickType(type)}
+              onPick={(reportType) => void pickType(reportType)}
               onCancel={closeReport}
             />
-          </View>
-        ) : null}
+          ) : null}
+          <Text accessibilityLabel={MAP_ATTRIBUTION} style={[styles.attribution, { color: theme.textSecondary }]}>
+            {t('map.attribution')}
+          </Text>
+        </View>
       </View>
     </View>
   );
 }
 
+const FILL = { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as const;
+
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  banner: { paddingHorizontal: 14, paddingVertical: 8, fontSize: 14 },
-  note: { paddingHorizontal: 14, paddingVertical: 4, fontSize: 13 },
-  mapBox: { flex: 1 },
-  hidden: { flex: 0, height: 0, overflow: 'hidden' },
-  listCard: { padding: 12 },
-  attribution: { position: 'absolute', left: 8, bottom: 8, paddingHorizontal: 6, paddingVertical: 2, fontSize: 11, borderRadius: 4, opacity: 0.9 },
-  locate: { position: 'absolute', right: 12, top: 12, gap: 8 },
-  rejected: { paddingHorizontal: 14, paddingVertical: 8, gap: 4 },
-  rejectedText: { fontSize: 14 },
-  card: { position: 'absolute', left: 12, right: 12, bottom: 36 },
+  mapBox: { ...FILL },
+  hidden: { display: 'none' },
+  listContent: { paddingTop: 170, paddingBottom: TAB_BAR_CLEARANCE + 16 },
+  overlay: { ...FILL, justifyContent: 'space-between' },
+  top: { gap: 8, paddingTop: 6 },
+  note: { marginHorizontal: 16, borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 10, gap: 6 },
+  bottom: { gap: 10, paddingHorizontal: 16, paddingBottom: TAB_BAR_CLEARANCE },
+  fabs: { alignItems: 'flex-end', gap: 12 },
+  fabRound: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  fabReport: { height: 56, borderRadius: 28, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  fabReportText: { fontSize: 17, fontWeight: '800' },
+  attribution: { fontSize: 11, alignSelf: 'flex-start', marginLeft: 4 },
 });

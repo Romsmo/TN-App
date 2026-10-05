@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Body } from '@/components/ui';
+import { Body, RowIcon, Toggle } from '@/components/ui';
 import { getLanguage, t } from '@/i18n';
 import { LOCK_WARNING } from '@/legal/texts';
 
@@ -20,10 +20,11 @@ export function LockSwitch({ enabled, onChange }: Props) {
   return (
     <View>
       <View style={styles.row}>
+        <RowIcon name="lock-closed" />
         <View style={styles.flex}>
           <Body>{t('lockSwitch.label')}</Body>
         </View>
-        <Switch
+        <Toggle
           accessibilityLabel={t('lockSwitch.label')}
           value={enabled}
           onValueChange={(value) => (value ? onChange(true) : setAsking(true))}

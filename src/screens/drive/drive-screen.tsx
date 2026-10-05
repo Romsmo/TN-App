@@ -11,7 +11,7 @@ import { CAMERA_NOTICE, DRIVE_NOTICE_EXTRA, type Segment } from '@/legal/texts';
 import { settingsStore, useSettings } from '@/settings';
 import { useCameraPolicy } from '@/state/camera-policy';
 import { useTn } from '@/state/tn-provider';
-import { useTheme } from '@/theme';
+import { TAB_BAR_CLEARANCE, type, useTheme } from '@/theme';
 
 import { DriveView } from './drive-view';
 
@@ -89,14 +89,14 @@ export function DriveScreen() {
   return (
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
       <View style={styles.box}>
-        <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
+        <Text accessibilityRole="header" style={[type.title, { color: theme.text }]}>
           {t('tabs.drive')}
         </Text>
         <Body secondary>{t('drive.startHint')}</Body>
-        <Button label={starting ? t('drive.starting') : t('drive.start')} disabled={starting} onPress={() => request('real')} />
+        <Button icon="play-circle" label={starting ? t('drive.starting') : t('drive.start')} disabled={starting} onPress={() => request('real')} />
         <Body secondary>{t('drive.simulateHint')}</Body>
-        <Button kind="plain" label={t('drive.simulate')} disabled={starting} onPress={() => request('simulation')} />
-        <Button kind="plain" label={t('drive.simulateFast')} disabled={starting} onPress={() => request('simulation', 4)} />
+        <Button kind="plain" icon="flask" label={t('drive.simulate')} disabled={starting} onPress={() => request('simulation')} />
+        <Button kind="plain" icon="flash" label={t('drive.simulateFast')} disabled={starting} onPress={() => request('simulation', 4)} />
         {error ? (
           <Text accessibilityRole="alert" style={{ color: theme.danger, fontSize: 16 }}>
             {error}
@@ -120,7 +120,6 @@ export function DriveScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  content: { flexGrow: 1, justifyContent: 'center', padding: 20, paddingBottom: TAB_BAR_CLEARANCE + 16 },
   box: { gap: 12 },
-  title: { fontSize: 28, fontWeight: '700' },
 });

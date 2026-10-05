@@ -95,4 +95,4 @@ export function GeoJSONSource({ id, data, onPress }: any) {
   );
 }
 
-const styles = StyleSheet.create({ label: { position: 'absolute', right: 8, top: 8, fontSize: 11, color: '#6B7480', backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 6, borderRadius: 4 } });
+const styles = StyleSheet.create({ label: { position: 'absolute', alignSelf: 'center', bottom: 86, fontSize: 11, color: '#6B7480', backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 6, borderRadius: 4 } });

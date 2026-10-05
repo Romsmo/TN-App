@@ -7,10 +7,18 @@ export const drivePalette = {
   /** Speed within the limit. */
   ok: '#E8EAED',
   /** Speed over the limit. */
-  over: '#FF6B5E',
+  over: '#FF7A70',
   warnFirst: '#E8A93A',
-  warnSecond: '#FF6B5E',
+  warnSecond: '#FF7A70',
   tint: '#5BB0F0',
   onTint: '#08141F',
   badge: '#7A3B35',
+  /** Raised tiles for the report buttons. */
+  tile: '#1B2430',
+  /** The speed-limit sign: dimmed white (no glare at night), red ring, black figures. */
+  sign: '#E9EBEE',
+  signRing: '#D32F2F',
+  signInk: '#0B0D10',
+  /** Text on the amber and red warning cards. */
+  onWarn: '#0B0D10',
 } as const;

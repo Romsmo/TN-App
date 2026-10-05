@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Body } from '@/components/ui';
+import { Body, RowIcon, Toggle } from '@/components/ui';
 import { getLanguage, t } from '@/i18n';
 import { CAMERA_NOTICE, CAMERA_NOTICE_VERSION } from '@/legal/texts';
 import type { CameraLevel } from '@/tn/types';
@@ -41,10 +41,11 @@ export function CamerasSwitch({ enabled, onChange, maxLevel, noticeSeen, serverN
   return (
     <View>
       <View style={styles.row}>
+        <RowIcon name="camera" />
         <View style={styles.flex}>
           <Body>{t('cameras.label')}</Body>
         </View>
-        <Switch accessibilityLabel={t('cameras.label')} value={enabled && !blocked} disabled={blocked} onValueChange={toggle} />
+        <Toggle accessibilityLabel={t('cameras.label')} value={enabled && !blocked} disabled={blocked} onValueChange={toggle} />
       </View>
       <Body secondary>{t('cameras.hint')}</Body>
       {blocked ? <Body secondary>{t('cameras.policyOff')}</Body> : null}

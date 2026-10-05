@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { Body, Button, Section } from '@/components/ui';
+import { Body, Button, RowIcon, Section, Toggle } from '@/components/ui';
 import { formatBytes } from '@/i18n/format';
 import { t } from '@/i18n';
 import { settingsStore, useSettings } from '@/settings';
 import { useTn } from '@/state/tn-provider';
 import type { BootstrapPlan } from '@/tn/types';
 import type { TnService } from '@/tn/service';
-import { useTheme } from '@/theme';
+import { TAB_BAR_CLEARANCE, useTheme } from '@/theme';
 
 /** The download plan from the library; null while unknown (no service, offline, no access). Re-reads when `version` moves. */
 function usePlan(service: TnService | null, version: number): BootstrapPlan | null {
@@ -43,10 +43,11 @@ export function DataScreen() {
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
       <Section>
         <View style={styles.switchRow}>
+          <RowIcon name="wifi" />
           <View style={styles.flex}>
             <Body>{t('data.wifiOnly')}</Body>
           </View>
-          <Switch
+          <Toggle
             accessibilityLabel={t('data.wifiOnly')}
             value={dataWifiOnly}
             onValueChange={(value) => settingsStore.update({ dataWifiOnly: value })}
@@ -77,7 +78,7 @@ export function DataScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, gap: 18 },
+  content: { padding: 16, paddingBottom: TAB_BAR_CLEARANCE + 16, gap: 18 },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   flex: { flex: 1 },
 });

@@ -21,6 +21,7 @@ if (process.env.TN_PREVIEW === '1') {
     'expo-speech': 'speech',
     'expo-haptics': 'haptics',
     'expo-network': 'network',
+    '@expo/vector-icons': 'vector-icons',
   };
   const original = config.resolver.resolveRequest;
   config.resolver.resolveRequest = (context, moduleName, platform) => {

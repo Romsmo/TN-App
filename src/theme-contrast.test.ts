@@ -22,6 +22,11 @@ describe('contrast (WCAG AA: 4.5 for text)', () => {
     expect(contrast(c.onTint, c.tint)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(c.tint, c.surface)).toBeGreaterThanOrEqual(3); // tint as text on surface (links, plain buttons): large/bold text
     expect(contrast(c.danger, c.background)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(c.danger, c.surface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(c.text, c.surfaceAlt)).toBeGreaterThanOrEqual(4.5); // text on inputs and report tiles
+    expect(contrast(c.tint, c.tintSoft)).toBeGreaterThanOrEqual(4.5); // the soft secondary button
+    expect(contrast(c.warn, c.surface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(c.success, c.surface)).toBeGreaterThanOrEqual(4.5);
   });
 
   it('the drive mode: the speed, the warnings and the buttons are readable, and the over-limit colour stands out', () => {
@@ -33,6 +38,11 @@ describe('contrast (WCAG AA: 4.5 for text)', () => {
     expect(contrast(d.onTint, d.tint)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(d.text, d.surface)).toBeGreaterThanOrEqual(7);
     expect(contrast(d.text, d.badge)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(d.text, d.tile)).toBeGreaterThanOrEqual(7); // report buttons
+    expect(contrast(d.onWarn, d.warnFirst)).toBeGreaterThanOrEqual(7); // warning cards
+    expect(contrast(d.onWarn, d.warnSecond)).toBeGreaterThanOrEqual(7);
+    expect(contrast(d.signInk, d.sign)).toBeGreaterThanOrEqual(7); // the speed-limit sign
+    expect(contrast(d.onTint, d.tint)).toBeGreaterThanOrEqual(7);
   });
 
   it('the drive mode is dark, not glaring', () => {

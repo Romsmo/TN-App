@@ -2,7 +2,7 @@ import { Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui';
 import type { Segment } from '@/legal/texts';
-import { useTheme } from '@/theme';
+import { elevation, radius, type, useTheme } from '@/theme';
 
 type Props = {
   visible: boolean;
@@ -26,16 +26,18 @@ export function ConfirmDialog({ visible, title, body, confirmLabel, cancelLabel,
   const theme = useTheme();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel ?? onConfirm} accessibilityViewIsModal>
-      <View style={styles.backdrop}>
-        <View accessibilityRole="alert" style={[styles.card, { backgroundColor: theme.surface }]}>
-          <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
+      <View style={[styles.backdrop, { backgroundColor: theme.overlay }]}>
+        <View accessibilityRole="alert" style={[styles.card, elevation(theme, 2), { backgroundColor: theme.surface }]}>
+          <Text accessibilityRole="header" style={[type.heading, { color: theme.text }]}>
             {title}
           </Text>
           <ScrollView style={styles.scroll}>
-            <Text style={[styles.body, { color: theme.text }]}>{renderBody(body)}</Text>
+            <Text style={[type.body, { color: theme.text }]}>{renderBody(body)}</Text>
           </ScrollView>
-          <Button label={confirmLabel} onPress={onConfirm} />
-          {cancelLabel && onCancel ? <Button kind="plain" label={cancelLabel} onPress={onCancel} /> : null}
+          <View style={styles.buttons}>
+            <Button label={confirmLabel} onPress={onConfirm} />
+            {cancelLabel && onCancel ? <Button kind="plain" label={cancelLabel} onPress={onCancel} /> : null}
+          </View>
         </View>
       </View>
     </Modal>
@@ -43,10 +45,9 @@ export function ConfirmDialog({ visible, title, body, confirmLabel, cancelLabel,
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 20 },
-  card: { borderRadius: 16, padding: 18, gap: 12, maxHeight: '85%' },
-  title: { fontSize: 20, fontWeight: '700' },
+  backdrop: { flex: 1, justifyContent: 'center', padding: 20 },
+  card: { borderRadius: radius.sheet, padding: 22, gap: 14, maxHeight: '85%' },
   scroll: { flexGrow: 0 },
-  body: { fontSize: 17, lineHeight: 24 },
+  buttons: { gap: 8 },
   strong: { fontWeight: '800' },
 });

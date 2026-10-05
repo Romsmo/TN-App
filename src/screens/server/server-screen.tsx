@@ -7,7 +7,7 @@ import { t, type TextKey } from '@/i18n';
 import { settingsStore, useSettings } from '@/settings';
 import { useTn } from '@/state/tn-provider';
 import { normalizeServerAddress } from '@/tn/server-address';
-import { useTheme } from '@/theme';
+import { radius, TAB_BAR_CLEARANCE, useTheme } from '@/theme';
 
 const ADDRESS_ERRORS = {
   empty: 'server.errorEmpty',
@@ -32,7 +32,7 @@ export function ServerScreen() {
   const [accessSecret, setAccessSecret] = useState('');
   const [accessMessage, setAccessMessage] = useState<TextKey | null>(null);
 
-  const inputStyle = [styles.input, { color: theme.text, borderColor: theme.textSecondary, backgroundColor: theme.background }];
+  const inputStyle = [styles.input, { color: theme.text, backgroundColor: theme.surfaceAlt }];
 
   const connect = () => {
     const result = normalizeServerAddress(address, { allowInsecure: __DEV__ });
@@ -170,8 +170,8 @@ export function ServerScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, gap: 18 },
-  input: { minHeight: MIN_TOUCH, borderWidth: StyleSheet.hairlineWidth, borderRadius: 10, paddingHorizontal: 12, fontSize: 17 },
+  content: { padding: 16, paddingBottom: TAB_BAR_CLEARANCE + 16, gap: 18 },
+  input: { minHeight: MIN_TOUCH, borderRadius: radius.md, paddingHorizontal: 16, fontSize: 17 },
   row: { flexDirection: 'row', gap: 8 },
   flex: { flex: 1 },
 });

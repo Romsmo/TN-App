@@ -7,7 +7,7 @@ import { renderBody } from '@/components/confirm-dialog';
 import { getLanguage, t } from '@/i18n';
 import { LICENSES } from '@/legal/licenses';
 import { CAMERA_NOTICE } from '@/legal/texts';
-import { useTheme } from '@/theme';
+import { TAB_BAR_CLEARANCE, useTheme } from '@/theme';
 
 /** Library version shown for transparency; passed in so this screen never imports native code. */
 export function InfoScreen({ libraryVersion }: { libraryVersion: string }) {
@@ -38,4 +38,4 @@ export function InfoScreen({ libraryVersion }: { libraryVersion: string }) {
   );
 }
 
-const styles = StyleSheet.create({ content: { padding: 16, gap: 18 } });
+const styles = StyleSheet.create({ content: { padding: 16, paddingBottom: TAB_BAR_CLEARANCE + 16, gap: 18 } });

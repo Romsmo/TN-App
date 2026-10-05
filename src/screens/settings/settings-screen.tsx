@@ -1,10 +1,11 @@
 import Constants from 'expo-constants';
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Body, Button, MIN_TOUCH, Section } from '@/components/ui';
+import { Icon, type IconName } from '@/components/icon';
+import { Body, Button, MIN_TOUCH, RowIcon, Section, Toggle } from '@/components/ui';
 import { ALLOW_DISABLE_DRIVE_LOCK } from '@/config';
 import { t, type TextKey } from '@/i18n';
 import { hazardLabel } from '@/map/hazard-labels';
@@ -12,17 +13,18 @@ import { interimCatalog } from '@/report/catalog';
 import { settingsStore, useSettings, type Settings } from '@/settings';
 import { useCameraPolicy } from '@/state/camera-policy';
 import { useTn } from '@/state/tn-provider';
-import { useTheme } from '@/theme';
+import { hazardIcon } from '@/map/hazard-icons';
+import { TAB_BAR_CLEARANCE, type, useTheme } from '@/theme';
 
 import { CamerasSwitch } from './cameras-switch';
 import { LockSwitch } from './lock-switch';
 
-type Entry = { href: '/server' | '/data' | '/info'; title: TextKey; hint: TextKey };
+type Entry = { href: '/server' | '/data' | '/info'; title: TextKey; hint: TextKey; icon: IconName };
 
 const ENTRIES: Entry[] = [
-  { href: '/server', title: 'settings.server', hint: 'settings.serverHint' },
-  { href: '/data', title: 'settings.data', hint: 'settings.dataHint' },
-  { href: '/info', title: 'settings.info', hint: 'settings.infoHint' },
+  { href: '/server', title: 'settings.server', hint: 'settings.serverHint', icon: 'server' },
+  { href: '/data', title: 'settings.data', hint: 'settings.dataHint', icon: 'cloud-download' },
+  { href: '/info', title: 'settings.info', hint: 'settings.infoHint', icon: 'information-circle' },
 ];
 
 function Choice<T extends string | number>({ label, options, value, onChange }: { label: string; options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
@@ -37,13 +39,14 @@ function Choice<T extends string | number>({ label, options, value, onChange }: 
   );
 }
 
-function SwitchRow({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+function SwitchRow({ label, value, onChange, icon }: { label: string; value: boolean; onChange: (v: boolean) => void; icon?: IconName }) {
   return (
     <View style={styles.row}>
+      {icon ? <RowIcon name={icon} /> : null}
       <View style={styles.flex}>
         <Body>{label}</Body>
       </View>
-      <Switch accessibilityLabel={label} value={value} onValueChange={onChange} />
+      <Toggle accessibilityLabel={label} value={value} onValueChange={onChange} />
     </View>
   );
 }
@@ -90,8 +93,8 @@ export function SettingsScreen() {
       <Section title={t('settings.section.drive')}>
         <Body>{t('settings.units')}</Body>
         <Choice label={t('settings.units')} value={settings.speedUnit} onChange={(speedUnit) => set({ speedUnit })} options={[{ value: 'kmh', label: 'km/h' }, { value: 'mph', label: 'mph' }]} />
-        <SwitchRow label={t('settings.sound')} value={settings.driveSound} onChange={(driveSound) => set({ driveSound })} />
-        <SwitchRow label={t('settings.voice')} value={settings.driveVoice} onChange={(driveVoice) => set({ driveVoice })} />
+        <SwitchRow icon="volume-high" label={t('settings.sound')} value={settings.driveSound} onChange={(driveSound) => set({ driveSound })} />
+        <SwitchRow icon="chatbubble-ellipses" label={t('settings.voice')} value={settings.driveVoice} onChange={(driveVoice) => set({ driveVoice })} />
         <Body>{t('settings.scale')}</Body>
         <Choice
           label={t('settings.scale')}
@@ -102,7 +105,7 @@ export function SettingsScreen() {
         <Body>{t('settings.warnCategories')}</Body>
         {warnTypes.map((category) => {
           const label = category === 'cameras' ? t('settings.section.cameras') : hazardLabel(category);
-          return <SwitchRow key={category} label={t('settings.warnCategory', { type: label })} value={!settings.warnOffCategories.includes(category)} onChange={(on) => toggleWarn(category, on)} />;
+          return <SwitchRow key={category} icon={hazardIcon(category)} label={t('settings.warnCategory', { type: label })} value={!settings.warnOffCategories.includes(category)} onChange={(on) => toggleWarn(category, on)} />;
         })}
       </Section>
 
@@ -129,10 +132,12 @@ export function SettingsScreen() {
         {ENTRIES.map((entry) => (
           <Link key={entry.href} href={entry.href} asChild>
             <Pressable accessibilityRole="link" accessibilityLabel={`${t(entry.title)}, ${t(entry.hint)}`} style={styles.entry}>
-              <View>
+              <RowIcon name={entry.icon} />
+              <View style={styles.flex}>
                 <Text style={[styles.entryTitle, { color: theme.text }]}>{t(entry.title)}</Text>
-                <Text style={[styles.hint, { color: theme.textSecondary }]}>{t(entry.hint)}</Text>
+                <Text style={[type.caption, { color: theme.textSecondary }]}>{t(entry.hint)}</Text>
               </View>
+              <Icon name="chevron-forward" size={20} color={theme.textSecondary} />
             </Pressable>
           </Link>
         ))}
@@ -163,12 +168,11 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, gap: 18 },
+  content: { padding: 16, paddingBottom: TAB_BAR_CLEARANCE + 16, gap: 18 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   flex: { flex: 1 },
   choiceRow: { flexDirection: 'row', gap: 8 },
-  entry: { minHeight: MIN_TOUCH, justifyContent: 'center' },
+  entry: { minHeight: MIN_TOUCH + 4, flexDirection: 'row', alignItems: 'center', gap: 12 },
   entryTitle: { fontSize: 17, fontWeight: '600' },
-  hint: { fontSize: 14 },
   version: { textAlign: 'center', fontSize: 13 },
 });
