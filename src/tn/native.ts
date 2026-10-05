@@ -2,7 +2,7 @@
  * The only file that imports the client library. Everything else talks to `RawClient` / `TnService`,
  * so tests and Storybook-like previews never load native code.
  */
-import { TrafficNetworkClient } from '@trafficnetwork/react-native';
+import { libraryVersion, TrafficNetworkClient } from '@trafficnetwork/react-native';
 import { Directory, Paths } from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
 
@@ -49,4 +49,9 @@ export function createNativeClient(options: Omit<ClientOptions, 'storagePath'>):
     setEventListener: (listener) => client.setEventListener(listener),
     uniffiDestroy: () => client.uniffiDestroy(),
   };
+}
+
+/** Version of the bundled library, for the info screen. */
+export function getLibraryVersion(): string {
+  return libraryVersion();
 }

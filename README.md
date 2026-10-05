@@ -2,7 +2,7 @@
 
 Mobile App (iOS + Android, Expo) für das [Trafficnetwork](https://github.com/Romsmo/Trafficnetwork): Karte ansehen, Gefahren melden und ein Fahrmodus mit Warnungen — ohne Navigation. Apache License 2.0.
 
-**Stand: `0.1.0`, Stufe M1 (Gerüst).** Die Bereiche Karte, Fahrmodus und Einstellungen sind Platzhalter, die das auch sagen. Noch **nicht** eingebunden: die Client-Bibliothek (M2).
+**Stand: `0.1.0`, Stufe M2 (Ansehen).** Die Client-Bibliothek ist eingebunden, die Karte zeigt Meldungen mit Filter und Detailkarte, „Server verbinden" und „Datenpakete" gibt es. Der Fahrmodus ist noch ein Platzhalter (M4), Melden folgt in M3. **Nichts davon wurde auf einem Gerät oder Emulator ausgeführt** (siehe unten).
 
 ## Entwickeln
 
@@ -22,10 +22,20 @@ npm start            # Metro für einen Development Build (kein Expo Go: natives
 
 Bundle-ID und Android-Paketname: `info.trafficnetwork.tnviewer`.
 
-## Was in M1 geprüft wurde — und was nicht
+## Aufbau
 
-Geprüft (Linux-Container, nicht Windows): `npm run check` grün; `expo export` baut die JavaScript-Bundles für Android und iOS (Hermes).
-**Nicht** geprüft: App auf einem Gerät oder Emulator (hier gibt es weder Android SDK noch Apple-Toolchain, und ein Android-Gerät fehlt gerade); EAS-Build; `expo-doctor` vollständig (2 von 21 Prüfungen scheitern, weil `api.expo.dev` und `reactnative.directory` vom Netz-Proxy gesperrt sind — 19 bestanden).
+- `src/tn/` — alles rund um die Bibliothek. Nur `native.ts` importiert `@trafficnetwork/react-native`; der Rest spricht mit `RawClient`/`TnService` und lässt sich mit einer Attrappe testen: SecureStore-Adapter, typisierte Aufrufe, Optionen, Adress- und Sync-Regeln.
+- `src/state/` — `TnConnection` (Verbindungsablauf als Klasse) und `TnProvider` (bindet sie an React).
+- `src/map/`, `src/screens/` — Kartendaten (GeoJSON, Farben, Beschriftung) und Bildschirme.
+- `src/settings/` — lokale Einstellungen in einer App-Datei (nicht im Keychain).
+- `src/config.ts` — Domain, Seeds und Karten-Schalter an einer Stelle.
+
+Die Bibliothek kommt als vorgebautes Paket aus dem Release `client-lib-v1.1.0` des Trafficnetwork-Repos (URL und Prüfsumme in `package-lock.json`); es liegt nicht im Git (113 MB).
+
+## Was bisher geprüft wurde — und was nicht
+
+Geprüft (Linux-Container, nicht Windows): `npm run check` grün (Lint, Typen, Tests); `expo export` baut die JavaScript-Bundles für Android und iOS (Hermes); `expo prebuild` erzeugt beide Projekte, und das Autolinking findet Trafficnetwork- und MapLibre-Bibliothek für beide Plattformen.
+**Nicht** geprüft: native Builds (Gradle/Xcode), die JSI-Schicht der Bibliothek, die Karte auf dem Bildschirm, ein echter Server; App auf einem Gerät oder Emulator (hier gibt es weder Android SDK noch Apple-Toolchain, und ein Android-Gerät fehlt gerade); EAS-Build; `expo-doctor` vollständig (2 von 21 Prüfungen scheitern, weil `api.expo.dev` und `reactnative.directory` vom Netz-Proxy gesperrt sind — 19 bestanden).
 
 ## Rahmen
 

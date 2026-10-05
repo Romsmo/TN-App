@@ -1,6 +1,5 @@
-import { Placeholder } from '@/components/placeholder';
-import { t } from '@/i18n';
+import { MapScreen } from '@/screens/map/map-screen';
 
-export default function MapScreen() {
-  return <Placeholder title={t('tabs.map')} />;
+export default function MapRoute() {
+  return <MapScreen />;
 }
