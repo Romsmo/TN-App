@@ -50,6 +50,13 @@ describe('toMapData', () => {
     expect(toMapData([broken], none).zones.features).toHaveLength(0);
   });
 
+  it('hides every camera type, and the zones, with the one camera group key', () => {
+    const items = [hazard('h1', 'ice'), hazard('h2', 'mobileSpeedCamera'), camera, zone];
+    const data = toMapData(items, { hiddenHazardTypes: new Set(['cameras']) });
+    expect(data.hazards.features.map((f) => f.properties!.type)).toEqual(['ice']);
+    expect(data.zones.features).toHaveLength(0);
+  });
+
   it('shows individual cameras only if the library delivered them', () => {
     expect(toMapData([], none).hazards.features).toHaveLength(0);
     expect(toMapData([camera], none).hazards.features).toHaveLength(1);
@@ -58,6 +65,14 @@ describe('toMapData', () => {
 
 describe('hazardTypesIn', () => {
   it('lists the distinct hazard types from the data, sorted', () => {
-    expect(hazardTypesIn([hazard('1', 'traffic'), hazard('2', 'ice'), hazard('3', 'traffic'), zone, camera])).toEqual(['ice', 'traffic']);
+    expect(hazardTypesIn([hazard('1', 'traffic'), hazard('2', 'ice'), hazard('3', 'traffic'), zone, camera])).toEqual(['cameras', 'ice', 'traffic']);
+  });
+
+  it('collapses every camera type (reports, fixed devices, zones) into the one camera group', () => {
+    expect(hazardTypesIn([hazard('1', 'mobileSpeedCamera'), hazard('2', 'redLightCamera'), camera, zone])).toEqual(['cameras']);
+  });
+
+  it('has no camera group without camera data', () => {
+    expect(hazardTypesIn([hazard('1', 'ice')])).toEqual(['ice']);
   });
 });

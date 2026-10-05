@@ -102,7 +102,7 @@ describe('mapReportTypes: the speed camera is offered only where it is on and al
     expect(mapReportTypes(active, level)).toEqual(interimCatalog.types());
   });
 
-  it('on and allowed in full: the mobile speed camera is added', () => {
-    expect(mapReportTypes(true, 'full')).toEqual([...interimCatalog.types(), 'mobileSpeedCamera']);
+  it('on and allowed in full: every camera type is added', () => {
+    expect(mapReportTypes(true, 'full')).toEqual([...interimCatalog.types(), 'fixedSpeedCamera', 'mobileSpeedCamera', 'trailerCamera', 'redLightCamera', 'distanceControl']);
   });
 });

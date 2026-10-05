@@ -132,7 +132,7 @@ describe('DriveScreen: running', () => {
     expect(driveReportTypes(false, 'full')).not.toContain('mobileSpeedCamera');
     expect(driveReportTypes(true, 'zones')).not.toContain('mobileSpeedCamera');
     expect(driveReportTypes(true, null)).not.toContain('mobileSpeedCamera');
-    expect(driveReportTypes(true, 'full')).toContain('mobileSpeedCamera');
+    for (const type of ['fixedSpeedCamera', 'mobileSpeedCamera', 'trailerCamera', 'redLightCamera', 'distanceControl']) expect(driveReportTypes(true, 'full')).toContain(type);
     expect(driveReportTypes(false, 'off')).toEqual(['traffic', 'accident', 'construction', 'ice']);
   });
 
@@ -170,6 +170,26 @@ describe('DriveView', () => {
   it('marks a simulation unmistakably', async () => {
     await render(<DriveView {...base} snapshot={{ ...running, simulated: true }} />);
     expect(screen.getByText('SIMULATION – not a real drive')).toBeTruthy();
+  });
+
+  it('puts all camera kinds behind one "Camera" tile and reports the chosen kind', async () => {
+    const onReport = jest.fn();
+    const types = ['traffic', 'fixedSpeedCamera', 'mobileSpeedCamera', 'trailerCamera', 'redLightCamera', 'distanceControl'];
+    await render(<DriveView {...base} reportTypes={types} onReport={onReport} />);
+    expect(screen.queryByRole('button', { name: /Report Speed camera/ })).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: 'Camera' }));
+    for (const label of ['Speed camera (fixed)', 'Speed camera (mobile)', 'Speed camera (trailer)', 'Red-light camera', 'Distance control']) {
+      expect(screen.getByLabelText(new RegExp(label.replace(/[()]/g, '\\$&')))).toBeTruthy();
+    }
+    await fireEvent.press(screen.getByLabelText(/Red-light camera/));
+    expect(onReport).toHaveBeenCalledWith('redLightCamera');
+    // back on the first screen after a report
+    expect(screen.getByRole('button', { name: 'Camera' })).toBeTruthy();
+  });
+
+  it('shows no camera tile when no camera kind is offered', async () => {
+    await render(<DriveView {...base} />);
+    expect(screen.queryByRole('button', { name: 'Camera' })).toBeNull();
   });
 
   it('shows an area warning without any distance and without a spot', async () => {
@@ -210,5 +230,26 @@ describe('DriveView', () => {
     const flat = typeof style === 'function' ? style({ pressed: false }) : style;
     const minHeight = [flat].flat(3).reduce((m: number, s: { minHeight?: number }) => Math.max(m, s?.minHeight ?? 0), 0);
     expect(minHeight).toBeGreaterThanOrEqual(80);
+  });
+});
+
+describe('DriveView in the emergency mode', () => {
+  const base = {
+    snapshot: running, unit: 'kmh' as const, lockEnabled: true, reportTypes: ['traffic'], toast: null,
+    onReport: jest.fn(), onAnswer: jest.fn(), onMute: jest.fn(), onStop: jest.fn(), onEnableLock: jest.fn(),
+  };
+
+  it('says so, and still shows the speed and offers reports', async () => {
+    await render(<DriveView {...base} emergency />);
+    expect(screen.getByText('Emergency mode: no warning data')).toBeTruthy();
+    expect(screen.getByText('No warning data, only your speed')).toBeTruthy();
+    expect(screen.queryByText('Watching the road ahead')).toBeNull();
+    expect(screen.getByText('62')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Report Traffic jam/ })).toBeTruthy();
+  });
+
+  it('shows no emergency chip normally', async () => {
+    await render(<DriveView {...base} />);
+    expect(screen.queryByText(/Emergency mode/)).toBeNull();
   });
 });

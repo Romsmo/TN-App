@@ -29,9 +29,36 @@ describe('DetailCard', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it("shows no validity line for this device's own report that has no expiry yet", async () => {
+    await render(<DetailCard item={{ ...item, expiresAt: null }} onClose={() => {}} />);
+    expect(screen.queryByText(/Valid until/)).toBeNull();
+    expect(screen.queryByText(/1970/)).toBeNull();
+  });
+
   it('omits the pending note for a delivered report', async () => {
     await render(<DetailCard item={{ ...item, pending: false }} onClose={() => {}} />);
     expect(screen.queryByText(/Not sent yet/)).toBeNull();
+  });
+});
+
+describe('DetailCard for a permanently installed camera', () => {
+  const camera = { kind: 'camera' as const, id: 'c1', cameraType: 'redLightCamera', lat: 1, lng: 2, distanceMeters: 55 };
+
+  it('says it is permanently installed and offers only "not there anymore"', async () => {
+    const onRemove = jest.fn();
+    await render(<DetailCard item={camera} onClose={() => {}} onRemoveCamera={onRemove} />);
+    expect(screen.getByText('Red-light camera')).toBeTruthy();
+    expect(screen.getByText('Permanently installed')).toBeTruthy();
+    expect(screen.queryByText(/confirmations/)).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: 'Not there anymore' }));
+    expect(onRemove).toHaveBeenCalled();
+  });
+
+  it('thanks after the report and shows a failure', async () => {
+    const { rerender } = await render(<DetailCard item={camera} onClose={() => {}} onRemoveCamera={() => {}} voteState="saved" />);
+    expect(screen.getByText('Thanks, your report is being sent.')).toBeTruthy();
+    await rerender(<DetailCard item={camera} onClose={() => {}} onRemoveCamera={() => {}} voteState="failed" />);
+    expect(screen.getByText('The answer could not be saved.')).toBeTruthy();
   });
 });
 

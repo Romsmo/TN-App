@@ -55,7 +55,7 @@ function fakeHost(initial: DriveSnapshot | null) {
 }
 
 const tnState = (overrides: Partial<TnState> = {}): TnState => ({
-  phase: 'ready', error: null, service: null, sync: null, network: null, waitingForWifi: false, dataVersion: 0, rejectedWrites: 0,
+  phase: 'ready', error: null, service: null, sync: null, network: null, waitingForWifi: false, dataVersion: 0, rejectedWrites: 0, emergency: null,
   credentialsStore: { get: () => undefined, set: jest.fn(), clear: jest.fn(), subscribe: () => () => {} },
   syncNow: jest.fn(async () => {}), dismissRejected: jest.fn(), resetLocalData: jest.fn(async () => {}), resetDeviceIdentity: jest.fn(async () => {}), ...overrides,
 });

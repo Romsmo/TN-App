@@ -2,6 +2,8 @@ import type { Feature, FeatureCollection, Point, Polygon } from 'geojson';
 
 import type { CameraZoneItem, NearbyItem } from '@/tn/types';
 
+import { CAMERAS_GROUP, isCameraType, isTypeHidden } from './camera-types';
+
 export type MapFilter = { hiddenHazardTypes: ReadonlySet<string> };
 
 export type MapData = {
@@ -40,7 +42,7 @@ export function toMapData(items: readonly NearbyItem[], filter: MapFilter): MapD
   for (const item of items) {
     switch (item.kind) {
       case 'hazard':
-        if (filter.hiddenHazardTypes.has(item.hazardType)) break;
+        if (isTypeHidden(item.hazardType, filter.hiddenHazardTypes)) break;
         hazards.push(
           point(item, {
             id: item.id,
@@ -53,13 +55,14 @@ export function toMapData(items: readonly NearbyItem[], filter: MapFilter): MapD
         );
         break;
       case 'camera':
-        if (filter.hiddenHazardTypes.has(item.cameraType)) break;
+        if (isTypeHidden(item.cameraType, filter.hiddenHazardTypes)) break;
         hazards.push(point(item, { id: item.id, kind: 'camera', type: item.cameraType, confirmCount: 0, denyCount: 0, pending: false }));
         break;
       case 'sign':
         signs.push(point(item, { id: item.id, kind: 'sign', type: item.signType }));
         break;
       case 'cameraZone': {
+        if (filter.hiddenHazardTypes.has(CAMERAS_GROUP)) break;
         const polygon = zonePolygon(item);
         if (polygon) zones.push(polygon);
         break;
@@ -73,9 +76,22 @@ export function toMapData(items: readonly NearbyItem[], filter: MapFilter): MapD
   };
 }
 
-/** The distinct hazard types present in the data, for the filter chips: the list comes from the data, not from the app. */
+/**
+ * The distinct types present in the data, for the filter chips: the list comes from the data, not from the app.
+ * All camera types (reports, fixed devices, zones) collapse into one entry, the camera group.
+ */
 export function hazardTypesIn(items: readonly NearbyItem[]): string[] {
   const types = new Set<string>();
-  for (const item of items) if (item.kind === 'hazard') types.add(item.hazardType);
+  for (const item of items) {
+    if (item.kind === 'hazard') types.add(isCameraType(item.hazardType) ? CAMERAS_GROUP : item.hazardType);
+    else if (item.kind === 'camera' || item.kind === 'cameraZone') types.add(CAMERAS_GROUP);
+  }
   return [...types].sort();
+}
+
+/** What a pin on the map is: a report (with votes) or a permanently installed device. */
+export type PointItem = Extract<NearbyItem, { kind: 'hazard' | 'camera' }>;
+
+export function pointType(item: PointItem): string {
+  return item.kind === 'hazard' ? item.hazardType : item.cameraType;
 }

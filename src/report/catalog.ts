@@ -1,9 +1,11 @@
+import { CAMERA_TYPES } from '@/map/camera-types';
+
 /**
  * The hazard types a user can report. The library offers no list yet (wish for client-lib 1.2, docs/todo.md), so this
  * is the documented set from server/docs/api.md behind a small interface that a library method can replace.
  *
- * Camera types are not offered here: reporting speed cameras belongs to the camera handling (user switch, country
- * policy, legal notice), which comes with the drive mode.
+ * Camera types are not in this list: they are offered by `mapReportTypes` and the drive mode, only where the user
+ * switched cameras on and the country policy allows them in full.
  */
 export interface ReportCatalog {
   types(): readonly string[];
@@ -14,11 +16,9 @@ export const interimCatalog: ReportCatalog = {
 };
 
 /**
- * What the report sheet on the map offers: the common hazards, plus the mobile speed camera only where the user has
+ * What the report sheet on the map offers: the common hazards, plus every camera type, but only where the user has
  * switched cameras on and the country policy allows them in full (never under `zones` or `off`).
  */
 export function mapReportTypes(camerasActive: boolean, maxLevel: 'off' | 'zones' | 'full' | null): string[] {
-  const types = [...interimCatalog.types()];
-  if (camerasActive && maxLevel === 'full') types.push('mobileSpeedCamera');
-  return types;
+  return [...interimCatalog.types(), ...(camerasActive && maxLevel === 'full' ? CAMERA_TYPES : [])];
 }

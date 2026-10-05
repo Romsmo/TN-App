@@ -9,6 +9,11 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "info.trafficnetwork.tnviewer",
+      "icon": {
+        "light": "./assets/images/icon.png",
+        "dark": "./assets/images/icon-dark.png",
+        "tinted": "./assets/images/icon-tinted.png"
+      },
       "supportsTablet": false,
       "infoPlist": {
         "UIBackgroundModes": [
@@ -20,7 +25,7 @@
     "android": {
       "package": "info.trafficnetwork.tnviewer",
       "adaptiveIcon": {
-        "backgroundColor": "#0B2E4F",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -54,9 +59,13 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0B2E4F",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 200,
+          "dark": {
+            "backgroundColor": "#000000",
+            "image": "./assets/images/splash-icon-dark.png"
+          }
         }
       ],
       "./plugins/with-only-needed-background-modes.js"

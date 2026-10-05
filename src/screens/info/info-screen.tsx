@@ -1,5 +1,5 @@
 import * as Linking from 'expo-linking';
-import { ScrollView, StyleSheet } from 'react-native';
+import { Image, ScrollView, StyleSheet, useColorScheme, View } from 'react-native';
 
 import { Body, Button, Section } from '@/components/ui';
 import { SOURCE_REPO_URL } from '@/config';
@@ -12,8 +12,17 @@ import { TAB_BAR_CLEARANCE, useTheme } from '@/theme';
 /** Library version shown for transparency; passed in so this screen never imports native code. */
 export function InfoScreen({ libraryVersion }: { libraryVersion: string }) {
   const theme = useTheme();
+  const dark = useColorScheme() === 'dark';
   return (
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
+      <View style={styles.logoBox}>
+        <Image
+          accessibilityLabel="Trafficnetwork"
+          source={dark ? require('../../../assets/images/splash-icon-dark.png') : require('../../../assets/images/splash-icon.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
       <Section>
         <Body>{t('info.osm')}</Body>
         <Body>{t('info.maplibre')}</Body>
@@ -38,4 +47,8 @@ export function InfoScreen({ libraryVersion }: { libraryVersion: string }) {
   );
 }
 
-const styles = StyleSheet.create({ content: { padding: 16, paddingBottom: TAB_BAR_CLEARANCE + 16, gap: 18 } });
+const styles = StyleSheet.create({
+  content: { padding: 16, paddingBottom: TAB_BAR_CLEARANCE + 16, gap: 18 },
+  logoBox: { alignItems: 'center' },
+  logo: { width: 140, height: 140 },
+});

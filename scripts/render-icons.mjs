@@ -5,10 +5,13 @@ import { readFileSync } from 'node:fs';
 
 const jobs = [
   ['icon.svg', 'icon.png', false],
+  ['icon-dark.svg', 'icon-dark.png', false],
+  ['icon-tinted.svg', 'icon-tinted.png', false],
   ['android-foreground.svg', 'android-icon-foreground.png', true],
   ['android-background.svg', 'android-icon-background.png', false],
   ['android-monochrome.svg', 'android-icon-monochrome.png', true],
   ['splash.svg', 'splash-icon.png', true],
+  ['splash-dark.svg', 'splash-icon-dark.png', true],
 ];
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 const page = await browser.newPage({ viewport: { width: 1024, height: 1024 } });

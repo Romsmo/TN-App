@@ -22,7 +22,8 @@ export type HazardItem = {
   lat: number;
   lng: number;
   distanceMeters: number;
-  expiresAt: string;
+  /** Null for this device's own report that has not been delivered yet (measured against the real library). */
+  expiresAt: string | null;
   confirmCount: number;
   denyCount: number;
   pending: boolean;

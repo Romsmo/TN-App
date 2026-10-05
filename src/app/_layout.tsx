@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react';
 import { Platform, StyleSheet, type ColorValue } from 'react-native';
 
 import { Icon, type IconName } from '@/components/icon';
+import { StartupGate } from '@/components/startup-screen';
 import { DriveProvider, useDriveSnapshot } from '@/drive/drive-provider';
 import { drivePalette } from '@/drive/palette';
 import { defineDriveLocationTask } from '@/drive/location-backend';
@@ -110,7 +111,9 @@ function Tabbed() {
   return (
     <DriveProvider host={host}>
       <StatusBar style="auto" />
-      <TabsView />
+      <StartupGate ready={tn.phase !== 'starting'}>
+        <TabsView />
+      </StartupGate>
     </DriveProvider>
   );
 }

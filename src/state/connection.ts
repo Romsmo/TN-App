@@ -1,8 +1,17 @@
 import { TnError, TnService, type RawClient } from '@/tn/service';
 import { shouldSync } from '@/tn/sync-policy';
-import type { ClientOptions, NetworkStatus, SyncStatus } from '@/tn/types';
+import type { ClientOptions, NetworkStatus, SyncReport, SyncStatus } from '@/tn/types';
 
 export type Phase = 'starting' | 'ready' | 'noCredentials' | 'error';
+
+/**
+ * The emergency mode: this install has never loaded any data from a server, and right now it cannot.
+ * `noServer`: nothing was reachable; `noAccess`: no credentials were given. Reads answer from an empty store, writes are
+ * queued on the device (the library stores every write locally first) and go out when a server answers.
+ * Measured against the real library (client-lib 1.1.0, offline): `lastSyncedAtUnixMs` is the time of the last *attempt*,
+ * so "never loaded anything" is told by `staticDataVersion` being null.
+ */
+export type Emergency = 'noServer' | 'noAccess';
 
 export type ConnectionSnapshot = {
   phase: Phase;
@@ -16,7 +25,19 @@ export type ConnectionSnapshot = {
   rejectedWrites: number;
   /** Bumps whenever data in the local store changed; screens re-read when it moves. */
   dataVersion: number;
+  /** The emergency mode (see `Emergency`), or null. It ends by itself with the first successful sync. */
+  emergency: Emergency | null;
 };
+
+/** Derived from the rest of the snapshot, so it can never disagree with it. */
+export function emergencyOf(s: Pick<ConnectionSnapshot, 'phase' | 'sync' | 'waitingForWifi'>): Emergency | null {
+  if (s.phase === 'starting') return null; // the first attempt is still running
+  if (s.waitingForWifi) return null; // not "no server": the user's own Wi-Fi-only choice is holding the download back
+  if (s.phase === 'noCredentials') return 'noAccess';
+  if (s.phase !== 'ready' || !s.sync) return null; // an error of the app itself has its own message
+  if (s.sync.staticDataVersion != null) return null; // data from an earlier sync is on the device: plain offline, not an emergency
+  return s.sync.connection === 'online' ? null : 'noServer';
+}
 
 type Deps = {
   createClient: (options: Omit<ClientOptions, 'storagePath'>) => RawClient;
@@ -37,6 +58,7 @@ const INITIAL: ConnectionSnapshot = {
   waitingForWifi: false,
   rejectedWrites: 0,
   dataVersion: 0,
+  emergency: null,
 };
 
 /**
@@ -108,7 +130,8 @@ export class TnConnection {
 
   private set(patch: Partial<ConnectionSnapshot>): void {
     if (this.stopped) return;
-    this.snap = { ...this.snap, ...patch };
+    const next = { ...this.snap, ...patch };
+    this.snap = { ...next, emergency: emergencyOf(next) };
     this.listeners.forEach((l) => l());
   }
 
@@ -122,6 +145,19 @@ export class TnConnection {
     const pass = this.pass(force, ignoreWifi);
     this.current = pass;
     return pass;
+  }
+
+  /**
+   * One sync or tick. The library *throws* `network` when no server answers (measured, client-lib 1.1.0): that is the
+   * offline state, not an error of the app, so it is turned into "nothing synced" and the pass goes on to read the status.
+   */
+  private async syncPass(client: TnService, force: boolean): Promise<SyncReport | null> {
+    try {
+      return force ? await client.sync() : (await client.tick()).report;
+    } catch (e) {
+      if (e instanceof TnError && (e.code === 'network' || e.code === 'unavailable')) return null;
+      throw e;
+    }
   }
 
   private async pass(force: boolean, ignoreWifi: boolean): Promise<void> {
@@ -145,7 +181,7 @@ export class TnConnection {
       if (this.stopped) return;
       this.set({ waitingForWifi: !allowed });
       if (allowed) {
-        const report = force ? await client.sync() : (await client.tick()).report;
+        const report = await this.syncPass(client, force);
         if (report && report.rejected > 0) this.set({ rejectedWrites: this.snap.rejectedWrites + report.rejected });
         // Screens re-read only when something changed: the library tells (dataChanged), or this pass sent something.
         if (report && report.submitted > 0) this.bump();

@@ -6,10 +6,10 @@ import { t } from '@/i18n';
 import { hazardColor } from '@/map/colors';
 import { hazardIcon } from '@/map/hazard-icons';
 import { hazardLabel } from '@/map/hazard-labels';
-import type { HazardItem } from '@/tn/types';
+import { pointType, type PointItem } from '@/map/geojson';
 import { elevation, radius, type, useTheme } from '@/theme';
 
-type Props = { items: readonly HazardItem[]; onSelect: (id: string) => void };
+type Props = { items: readonly PointItem[]; onSelect: (id: string) => void };
 
 /**
  * The reports of the current map area as a plain list, nearest first. A map is not usable with a screen reader, the list is:
@@ -23,18 +23,19 @@ export function ReportList({ items, onSelect }: Props) {
     <View accessibilityRole="list" style={styles.list}>
       {sorted.map((item) => {
         const meters = Math.round(item.distanceMeters);
+        const kind = pointType(item);
         return (
           <Pressable
             key={item.id}
             accessibilityRole="button"
-            accessibilityLabel={t('map.listRow', { type: hazardLabel(item.hazardType), meters, count: item.confirmCount })}
+            accessibilityLabel={item.kind === 'hazard' ? t('map.listRow', { type: hazardLabel(kind), meters, count: item.confirmCount }) : t('map.listRowCamera', { type: hazardLabel(kind), meters })}
             onPress={() => onSelect(item.id)}
             style={[styles.row, elevation(theme), { backgroundColor: theme.surface }]}>
-            <View style={[styles.badge, { backgroundColor: hazardColor(item.hazardType) }]}>
-              <Icon name={hazardIcon(item.hazardType)} size={20} color="#FFFFFF" />
+            <View style={[styles.badge, { backgroundColor: hazardColor(kind) }]}>
+              <Icon name={hazardIcon(kind)} size={20} color="#FFFFFF" />
             </View>
             <View style={styles.text}>
-              <Text style={[styles.type, { color: theme.text }]}>{hazardLabel(item.hazardType)}</Text>
+              <Text style={[styles.type, { color: theme.text }]}>{hazardLabel(kind)}</Text>
               <Text style={[type.caption, { color: theme.textSecondary }]}>{t('detail.distance', { meters })}</Text>
             </View>
             <Icon name="chevron-forward" size={20} color={theme.textSecondary} />

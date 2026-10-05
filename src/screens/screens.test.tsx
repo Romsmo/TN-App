@@ -41,7 +41,7 @@ function fakeCredentials(): CredentialsStore & { set: jest.Mock; clear: jest.Moc
 
 function tnState(overrides: Partial<TnState> = {}): TnState {
   return {
-    phase: 'ready', error: null, service: null, sync: null, network: null, waitingForWifi: false, dataVersion: 0,
+    phase: 'ready', error: null, service: null, sync: null, network: null, waitingForWifi: false, dataVersion: 0, emergency: null,
     rejectedWrites: 0, credentialsStore: fakeCredentials(), syncNow: jest.fn(async () => {}), dismissRejected: jest.fn(), resetLocalData: jest.fn(async () => {}), resetDeviceIdentity: jest.fn(async () => {}), ...overrides,
   };
 }

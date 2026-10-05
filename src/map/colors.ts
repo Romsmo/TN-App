@@ -13,6 +13,7 @@ export const HAZARD_COLORS: Record<string, string> = {
   trailerCamera: '#862E9C',
   redLightCamera: '#862E9C',
   distanceControl: '#862E9C',
+  cameras: '#862E9C',
 };
 export const UNKNOWN_HAZARD_COLOR = '#868E96';
 

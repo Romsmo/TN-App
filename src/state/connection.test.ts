@@ -137,3 +137,99 @@ describe('TnConnection: screens re-read only when data changed', () => {
     c.stop();
   });
 });
+
+describe('TnConnection: the emergency mode (first install, no server)', () => {
+  // as measured against the real library: the time of the last attempt is set, but no static data was ever loaded
+  const neverSynced = { ...syncStatus, connection: 'offline', staticDataVersion: null, lastSyncedAtUnixMs: 1_790_000_000_000, lastErrorCode: 'network' };
+  const failedReport = { ...report, ok: false, dynamicDataError: 'network error' };
+
+  it('is off while the first attempt is still running', async () => {
+    const f = fake({ planBootstrap: () => new Promise<string>(() => {}) });
+    const c = make(f);
+    c.start();
+    await settle();
+    expect(c.getSnapshot().phase).toBe('starting');
+    expect(c.getSnapshot().emergency).toBeNull();
+    c.stop();
+  });
+
+  it('starts when nothing was ever loaded and no server answers', async () => {
+    const f = fake({ tick: () => ok({ synced: false, report: failedReport }), getSyncStatus: () => ok(neverSynced) });
+    const c = make(f);
+    c.start();
+    await settle();
+    expect(c.getSnapshot().emergency).toBe('noServer');
+    c.stop();
+  });
+
+  it('treats a thrown "network" error (the real library throws it when no server answers) as offline, not as an app error', async () => {
+    const down = () => JSON.stringify({ error: { code: 'network', message: 'every server in the current pool failed' } });
+    const f = fake({ tick: down, sync: down, getSyncStatus: () => ok(neverSynced) });
+    const c = make(f);
+    c.start();
+    await settle();
+    expect(c.getSnapshot().phase).toBe('ready');
+    expect(c.getSnapshot().error).toBeNull();
+    expect(c.getSnapshot().emergency).toBe('noServer');
+    await c.syncNow();
+    expect(c.getSnapshot().phase).toBe('ready');
+    c.stop();
+  });
+
+  it('keeps an error of another kind (wrong credentials) as an error, not as the emergency mode', async () => {
+    const f = fake({ tick: () => JSON.stringify({ error: { code: 'auth', message: 'credentials refused' } }) });
+    const c = make(f);
+    c.start();
+    await settle();
+    expect(c.getSnapshot().phase).toBe('error');
+    expect(c.getSnapshot().emergency).toBeNull();
+    c.stop();
+  });
+
+  it('says "no access" when no credentials were given', async () => {
+    const f = fake({ planBootstrap: () => JSON.stringify({ error: { code: 'notConfigured', message: 'no credentials' } }), tick: () => JSON.stringify({ error: { code: 'notConfigured', message: 'no credentials' } }) });
+    const c = make(f);
+    c.start();
+    await settle();
+    expect(c.getSnapshot().phase).toBe('noCredentials');
+    expect(c.getSnapshot().emergency).toBe('noAccess');
+    c.stop();
+  });
+
+  it('is not the emergency mode when data from an earlier sync is on the device (plain offline)', async () => {
+    const f = fake({ tick: () => ok({ synced: false, report: failedReport }), getSyncStatus: () => ok({ ...syncStatus, connection: 'offline', staticDataVersion: 3 }) });
+    const c = make(f);
+    c.start();
+    await settle();
+    expect(c.getSnapshot().emergency).toBeNull();
+    c.stop();
+  });
+
+  it('is not the emergency mode while the Wi-Fi-only choice holds the download back', async () => {
+    const f = fake({ planBootstrap: () => ok({ partitionsTotal: 1, partitionsPending: 1, bytesTotal: 9, bytesPending: 9 }), getSyncStatus: () => ok({ ...neverSynced, connection: 'never' }) });
+    const c = make(f, false);
+    c.setWifiOnly(true);
+    c.start();
+    await settle();
+    expect(c.getSnapshot().waitingForWifi).toBe(true);
+    expect(c.getSnapshot().emergency).toBeNull();
+    c.stop();
+  });
+
+  it('ends by itself with the first successful sync', async () => {
+    let up = false;
+    const f = fake({
+      tick: () => ok({ synced: up, report: up ? report : failedReport }),
+      sync: () => ok(up ? report : failedReport),
+      getSyncStatus: () => ok(up ? syncStatus : neverSynced),
+    });
+    const c = make(f);
+    c.start();
+    await settle();
+    expect(c.getSnapshot().emergency).toBe('noServer');
+    up = true;
+    await c.syncNow();
+    expect(c.getSnapshot().emergency).toBeNull();
+    c.stop();
+  });
+});

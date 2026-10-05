@@ -9,16 +9,17 @@ import type { DriveMode } from '@/drive/drive-host';
 import { getLanguage, t } from '@/i18n';
 import { CAMERA_NOTICE, DRIVE_NOTICE_EXTRA, type Segment } from '@/legal/texts';
 import { settingsStore, useSettings } from '@/settings';
+import { CAMERA_TYPES } from '@/map/camera-types';
 import { useCameraPolicy } from '@/state/camera-policy';
 import { useTn } from '@/state/tn-provider';
 import { TAB_BAR_CLEARANCE, type, useTheme } from '@/theme';
 
 import { DriveView } from './drive-view';
 
-/** The one-tap report buttons: the most common hazards, plus camera types only where cameras are on and allowed in full. */
+/** The one-tap report buttons: the most common hazards, plus all camera types only where cameras are on and allowed in full. */
 export function driveReportTypes(camerasActive: boolean, maxLevel: 'off' | 'zones' | 'full' | null): string[] {
-  const types = ['traffic', 'accident', 'construction', 'ice'];
-  if (camerasActive && maxLevel === 'full') types.push('mobileSpeedCamera');
+  const types: string[] = ['traffic', 'accident', 'construction', 'ice'];
+  if (camerasActive && maxLevel === 'full') types.push(...CAMERA_TYPES);
   return types;
 }
 
@@ -48,6 +49,7 @@ function RunningDrive() {
       snapshot={snapshot}
       unit={settings.speedUnit}
       lockEnabled={settings.driveLockEnabled}
+      emergency={tn.emergency !== null}
       reportTypes={driveReportTypes(settings.camerasEnabled && policy?.active === true, policy?.maxLevel ?? null)}
       toast={toast}
       onReport={(type) => void session?.report(type).then((ok) => showToast(ok ? t('drive.reported') : t('drive.reportFailed')))}
@@ -70,6 +72,7 @@ export function DriveScreen() {
   const host = useDriveHost();
   const snapshot = useDriveSnapshot();
   const { driveNoticeSeen } = useSettings();
+  const tn = useTn();
   const [pending, setPending] = useState<{ mode: DriveMode; speedup: number } | null>(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +96,7 @@ export function DriveScreen() {
           {t('tabs.drive')}
         </Text>
         <Body secondary>{t('drive.startHint')}</Body>
+        {tn.emergency ? <Body secondary>{t('emergency.driveHint')}</Body> : null}
         <Button icon="play-circle" label={starting ? t('drive.starting') : t('drive.start')} disabled={starting} onPress={() => request('real')} />
         <Body secondary>{t('drive.simulateHint')}</Body>
         <Button kind="plain" icon="flask" label={t('drive.simulate')} disabled={starting} onPress={() => request('simulation')} />

@@ -27,6 +27,15 @@ export async function submitHazard(service: TnService, type: string, position: P
   }
 }
 
+/** Queues the vote "this permanently installed camera is gone". */
+export async function reportCameraGone(service: TnService, cameraId: string): Promise<SubmitOutcome> {
+  try {
+    return { ok: true, localId: await service.reportCameraRemoved(cameraId) };
+  } catch (error) {
+    return outcomeFromError(error);
+  }
+}
+
 /** Queues a vote on someone's report. */
 export async function voteOnReport(service: TnService, reportId: string, stillThere: boolean): Promise<SubmitOutcome> {
   try {

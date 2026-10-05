@@ -1,18 +1,21 @@
 import type { CameraRef } from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EmergencyCard } from '@/components/emergency-card';
 import { Icon, type IconName } from '@/components/icon';
 import { Button } from '@/components/ui';
 import { mapReportTypes } from '@/report/catalog';
 import { useCameraPolicy } from '@/state/camera-policy';
 import { pendingText, rejectedText } from '@/report/pending';
-import { submitHazard, voteOnReport } from '@/report/submit';
+import { reportCameraGone, submitHazard, voteOnReport } from '@/report/submit';
 import { MAP_ATTRIBUTION, MAP_STYLE_URL } from '@/config';
 import { t } from '@/i18n';
-import { hazardTypesIn, toMapData } from '@/map/geojson';
+import { isTypeHidden } from '@/map/camera-types';
+import { hazardTypesIn, toMapData, type PointItem } from '@/map/geojson';
 import { settingsStore, useSettings } from '@/settings';
 import { useTn, type TnState } from '@/state/tn-provider';
 import { elevation, radius, squircle, TAB_BAR_CLEARANCE, type, useTheme } from '@/theme';
@@ -35,6 +38,7 @@ async function currentPosition(ask: boolean): Promise<Position | null> {
 }
 
 function bannerText(tn: TnState): string | null {
+  if (tn.emergency) return null; // the emergency card says it (and more)
   if (tn.phase === 'starting') return t('status.starting');
   if (tn.phase === 'noCredentials') return t('status.noCredentials');
   if (tn.phase === 'error') return t('status.error', { message: tn.error ?? t('common.unknown') });
@@ -46,6 +50,7 @@ function bannerText(tn: TnState): string | null {
 export function MapScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const tn = useTn();
   const { hiddenHazardTypes, camerasEnabled } = useSettings();
   const policy = useCameraPolicy(tn.service, tn.dataVersion);
@@ -68,14 +73,14 @@ export function MapScreen() {
   const items = useNearby(tn.service, viewport, tn.dataVersion + localChanges);
   const data = useMemo(() => toMapData(items, { hiddenHazardTypes: new Set(hiddenHazardTypes) }), [items, hiddenHazardTypes]);
   // Types seen in the data plus the ones switched off, so a hidden type can always be switched back on.
-  const visibleHazards = useMemo(
-    () => items.filter((i): i is Extract<typeof i, { kind: 'hazard' }> => i.kind === 'hazard' && !hiddenHazardTypes.includes(i.hazardType)),
-    [items, hiddenHazardTypes],
-  );
+  const visibleHazards = useMemo(() => {
+    const hidden = new Set(hiddenHazardTypes);
+    return items.filter((i): i is PointItem => (i.kind === 'hazard' && !isTypeHidden(i.hazardType, hidden)) || (i.kind === 'camera' && !isTypeHidden(i.cameraType, hidden)));
+  }, [items, hiddenHazardTypes]);
   const filterTypes = useMemo(() => [...new Set([...hazardTypesIn(items), ...hiddenHazardTypes])].sort(), [items, hiddenHazardTypes]);
   const selected = useMemo(() => {
-    const item = items.find((i) => i.kind === 'hazard' && i.id === selectedId);
-    return item?.kind === 'hazard' ? item : null;
+    const item = items.find((i) => (i.kind === 'hazard' || i.kind === 'camera') && i.id === selectedId);
+    return item && (item.kind === 'hazard' || item.kind === 'camera') ? item : null;
   }, [items, selectedId]);
 
   const service = tn.service;
@@ -145,8 +150,18 @@ export function MapScreen() {
   };
 
   const castVote = async (stillThere: boolean) => {
-    if (!service || !selected) return;
+    if (!service || !selected || selected.kind !== 'hazard') return;
     const outcome = await voteOnReport(service, selected.id, stillThere);
+    setVote({ id: selected.id, state: outcome.ok ? 'saved' : 'failed' });
+    if (outcome.ok) {
+      setLocalChanges((n) => n + 1);
+      void tn.syncNow();
+    }
+  };
+
+  const removeCamera = async () => {
+    if (!service || !selected || selected.kind !== 'camera') return;
+    const outcome = await reportCameraGone(service, selected.id);
     setVote({ id: selected.id, state: outcome.ok ? 'saved' : 'failed' });
     if (outcome.ok) {
       setLocalChanges((n) => n + 1);
@@ -178,7 +193,13 @@ export function MapScreen() {
 
   const detail =
     selected && !reporting ? (
-      <DetailCard item={selected} onClose={() => setSelectedId(null)} onVote={(stillThere) => void castVote(stillThere)} voteState={vote?.id === selected.id ? vote.state : 'idle'} />
+      <DetailCard
+        item={selected}
+        onClose={() => setSelectedId(null)}
+        onVote={(stillThere) => void castVote(stillThere)}
+        onRemoveCamera={() => void removeCamera()}
+        voteState={vote?.id === selected.id ? vote.state : 'idle'}
+      />
     ) : null;
 
   return (
@@ -208,6 +229,7 @@ export function MapScreen() {
       <View pointerEvents="box-none" style={styles.overlay}>
         <View pointerEvents="box-none" style={[styles.top, { paddingTop: insets.top + 8 }]}>
           <FilterBar types={filterTypes} hidden={hiddenHazardTypes} onToggle={toggleType} />
+          {tn.emergency ? <EmergencyCard reason={tn.emergency} onRetry={() => tn.syncNow({ ignoreWifi: true })} onSetup={() => router.push('/server')} /> : null}
           {notes.map((note) => (
             <View key={note.key} accessibilityRole="alert" style={[styles.note, styles.noteRow, squircle, elevation(theme), { backgroundColor: theme.surface }]}>
               <Icon name={note.icon} size={18} color={note.tone === 'warn' ? theme.warn : note.tone === 'ok' ? theme.success : theme.textSecondary} />

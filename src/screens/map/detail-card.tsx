@@ -7,37 +7,64 @@ import { t } from '@/i18n';
 import { hazardColor } from '@/map/colors';
 import { hazardIcon } from '@/map/hazard-icons';
 import { hazardLabel } from '@/map/hazard-labels';
-import type { HazardItem } from '@/tn/types';
+import { pointType, type PointItem } from '@/map/geojson';
 import { elevation, radius, squircle, type, useTheme } from '@/theme';
 
 export type VoteState = 'idle' | 'saved' | 'failed';
 
 type Props = {
-  item: HazardItem;
+  item: PointItem;
   onClose: () => void;
+  /** Reports "this permanently installed device is gone" (cameras of `kind: 'camera'`). Without it the card has no such action. */
+  onRemoveCamera?: () => void;
   /** Votes "still there" (`true`) or "gone" (`false`). Without it the card has no voting (read-only). */
   onVote?: (stillThere: boolean) => void;
   voteState?: VoteState;
 };
 
 /** A bottom sheet with the details of one report: kind, how sure the community is, how long it stays. */
-export function DetailCard({ item, onClose, onVote, voteState = 'idle' }: Props) {
+export function DetailCard({ item, onClose, onVote, onRemoveCamera, voteState = 'idle' }: Props) {
   const theme = useTheme();
-  const color = hazardColor(item.hazardType);
+  const kind = pointType(item);
+  const color = hazardColor(kind);
   return (
     <View accessibilityViewIsModal style={[styles.card, squircle, elevation(theme, 2), { backgroundColor: theme.surface }]}>
       <View style={[styles.grabber, { backgroundColor: theme.border }]} />
       <View style={styles.header}>
         <View style={[styles.badge, { backgroundColor: color }]}>
-          <Icon name={hazardIcon(item.hazardType)} size={24} color="#FFFFFF" />
+          <Icon name={hazardIcon(kind)} size={24} color="#FFFFFF" />
         </View>
         <Text accessibilityRole="header" style={[type.heading, styles.title, { color: theme.text }]}>
-          {hazardLabel(item.hazardType)}
+          {hazardLabel(kind)}
         </Text>
         <Pressable accessibilityRole="button" accessibilityLabel={t('detail.close')} onPress={onClose} style={[styles.close, { backgroundColor: theme.surfaceAlt }]}>
           <Icon name="close" size={20} color={theme.text} />
         </Pressable>
       </View>
+      {item.kind === 'camera' ? (
+        <>
+      <Text style={[type.caption, { color: theme.textSecondary }]}>{t('detail.camera.fixed')}</Text>
+      <Text style={[type.caption, { color: theme.textSecondary }]}>{t('detail.distance', { meters: Math.round(item.distanceMeters) })}</Text>
+      {onRemoveCamera ? (
+        <View style={styles.vote}>
+          <Text style={[styles.question, { color: theme.text }]}>{t('camera.question')}</Text>
+          {voteState === 'saved' ? (
+            <Text accessibilityRole="alert" style={[type.body, { color: theme.success }]}>
+              {t('camera.goneThanks')}
+            </Text>
+          ) : (
+            <Button kind="plain" label={t('camera.gone')} onPress={onRemoveCamera} />
+          )}
+          {voteState === 'failed' ? (
+            <Text accessibilityRole="alert" style={[type.caption, { color: theme.danger }]}>
+              {t('vote.error')}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+        </>
+      ) : (
+        <>
       <View style={styles.counts}>
         <View style={[styles.count, { backgroundColor: theme.surfaceAlt }]}>
           <Icon name="checkmark-circle" size={16} color={theme.success} />
@@ -48,7 +75,7 @@ export function DetailCard({ item, onClose, onVote, voteState = 'idle' }: Props)
           <Text style={[type.caption, { color: theme.text }]}>{t('detail.denied', { count: item.denyCount })}</Text>
         </View>
       </View>
-      <Text style={[type.caption, { color: theme.textSecondary }]}>{t('detail.validUntil', { time: formatDateTime(item.expiresAt) })}</Text>
+      {item.expiresAt ? <Text style={[type.caption, { color: theme.textSecondary }]}>{t('detail.validUntil', { time: formatDateTime(item.expiresAt) })}</Text> : null}
       <Text style={[type.caption, { color: theme.textSecondary }]}>{t('detail.distance', { meters: Math.round(item.distanceMeters) })}</Text>
       {item.pending ? <Text style={[type.caption, { color: theme.warn }]}>{t('detail.pending')}</Text> : null}
       {onVote && !item.pending ? (
@@ -75,6 +102,8 @@ export function DetailCard({ item, onClose, onVote, voteState = 'idle' }: Props)
           ) : null}
         </View>
       ) : null}
+        </>
+      )}
     </View>
   );
 }

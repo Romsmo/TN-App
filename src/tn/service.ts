@@ -106,6 +106,11 @@ export class TnService {
     return (await this.call<{ localId: string }>('confirmReport', { reportId, stillThere })).localId;
   }
 
+  /** "This device is gone": the one vote that exists for permanently installed cameras. Queued like every write. */
+  async reportCameraRemoved(cameraId: string): Promise<string> {
+    return (await this.call<{ localId: string }>('reportCameraRemoved', { cameraId })).localId;
+  }
+
   async pollEvents(): Promise<TnEvent[]> {
     return (await this.call<{ events: TnEvent[] }>('pollEvents')).events;
   }
