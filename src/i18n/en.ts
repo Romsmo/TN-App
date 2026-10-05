@@ -103,6 +103,7 @@ export const en: Record<TextKey, string> = {
   'drive.unmute': 'Sound on',
   'drive.noGps': 'No GPS signal',
   'drive.waiting': 'Waiting for position …',
+  'drive.watching': 'Watching the road ahead',
   'drive.lockOff': 'Driving lock off',
   'drive.lockOffHint': 'Tap to switch the driving lock on again',
   'drive.overLimit': 'over the speed limit',

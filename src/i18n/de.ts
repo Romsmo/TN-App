@@ -101,6 +101,7 @@ export const de = {
   'drive.unmute': 'Ton an',
   'drive.noGps': 'Kein GPS-Signal',
   'drive.waiting': 'Warte auf Position …',
+  'drive.watching': 'Ich beobachte die Strecke voraus',
   'drive.lockOff': 'Fahrsperre aus',
   'drive.lockOffHint': 'Tippen, um die Fahrsperre wieder einzuschalten',
   'drive.overLimit': 'über dem Tempolimit',

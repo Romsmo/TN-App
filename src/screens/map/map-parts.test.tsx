@@ -21,7 +21,8 @@ describe('DetailCard', () => {
     const onClose = jest.fn();
     await render(<DetailCard item={item} onClose={onClose} />);
     expect(screen.getByText('Ice')).toBeTruthy();
-    expect(screen.getByText('3 confirmations · 1 denials')).toBeTruthy();
+    expect(screen.getByText('3 confirmations')).toBeTruthy();
+    expect(screen.getByText('1 denials')).toBeTruthy();
     expect(screen.getByText('123 m away')).toBeTruthy();
     expect(screen.getByText('Not sent yet — will be transmitted at the next sync.')).toBeTruthy();
     await fireEvent.press(screen.getByRole('button', { name: 'Close' }));

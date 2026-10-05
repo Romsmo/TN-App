@@ -2,8 +2,9 @@ import type { CameraRef } from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon } from '@/components/icon';
+import { Icon, type IconName } from '@/components/icon';
 import { Button } from '@/components/ui';
 import { interimCatalog } from '@/report/catalog';
 import { pendingText, rejectedText } from '@/report/pending';
@@ -43,6 +44,7 @@ function bannerText(tn: TnState): string | null {
 
 export function MapScreen() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const tn = useTn();
   const { hiddenHazardTypes } = useSettings();
   const cameraRef = useRef<CameraRef | null>(null);
@@ -99,6 +101,13 @@ export function MapScreen() {
       })
       .catch(() => undefined);
   }, [service]);
+
+  // A confirmation is a moment, not a fixture: it fades away on its own.
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), 6000);
+    return () => clearTimeout(timer);
+  }, [notice]);
 
   const openReport = () => {
     setReporting(true);
@@ -159,11 +168,11 @@ export function MapScreen() {
   const pending = pendingText({ pending: tn.sync?.pendingWrites ?? 0, waitingForWifi: tn.waitingForWifi, offline: tn.sync?.connection === 'offline' });
   const rejected = rejectedText(tn.rejectedWrites);
 
-  const notes: { key: string; text: string; tone?: 'warn' }[] = [];
-  if (banner) notes.push({ key: 'banner', text: banner });
-  if (pending) notes.push({ key: 'pending', text: pending, tone: 'warn' });
-  if (notice) notes.push({ key: 'notice', text: notice });
-  if (!MAP_STYLE_URL) notes.push({ key: 'nomap', text: t('map.noBackground') });
+  const notes: { key: string; text: string; tone?: 'warn' | 'ok'; icon: IconName }[] = [];
+  if (banner) notes.push({ key: 'banner', text: banner, icon: 'information-circle' });
+  if (pending) notes.push({ key: 'pending', text: pending, tone: 'warn', icon: 'time' });
+  if (notice) notes.push({ key: 'notice', text: notice, tone: 'ok', icon: 'checkmark-circle' });
+  if (!MAP_STYLE_URL) notes.push({ key: 'nomap', text: t('map.noBackground'), icon: 'map-outline' });
 
   const detail =
     selected && !reporting ? (
@@ -195,11 +204,12 @@ export function MapScreen() {
 
       {/* floating layer on top of the map */}
       <View pointerEvents="box-none" style={styles.overlay}>
-        <View pointerEvents="box-none" style={styles.top}>
+        <View pointerEvents="box-none" style={[styles.top, { paddingTop: insets.top + 8 }]}>
           <FilterBar types={filterTypes} hidden={hiddenHazardTypes} onToggle={toggleType} />
           {notes.map((note) => (
-            <View key={note.key} accessibilityRole="alert" style={[styles.note, elevation(theme), { backgroundColor: theme.surface }]}>
-              <Text style={[type.caption, { color: note.tone === 'warn' ? theme.warn : theme.textSecondary }]}>{note.text}</Text>
+            <View key={note.key} accessibilityRole="alert" style={[styles.note, styles.noteRow, elevation(theme), { backgroundColor: theme.surface }]}>
+              <Icon name={note.icon} size={18} color={note.tone === 'warn' ? theme.warn : note.tone === 'ok' ? theme.success : theme.textSecondary} />
+              <Text style={[type.caption, styles.noteText, { color: note.tone === 'warn' ? theme.warn : theme.textSecondary }]}>{note.text}</Text>
             </View>
           ))}
           {rejected ? (
@@ -255,10 +265,12 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   mapBox: { ...FILL },
   hidden: { display: 'none' },
-  listContent: { paddingTop: 170, paddingBottom: TAB_BAR_CLEARANCE + 16 },
+  listContent: { paddingTop: 190, paddingBottom: TAB_BAR_CLEARANCE + 16 },
   overlay: { ...FILL, justifyContent: 'space-between' },
-  top: { gap: 8, paddingTop: 6 },
+  top: { gap: 8 },
   note: { marginHorizontal: 16, borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 10, gap: 6 },
+  noteRow: { flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'flex-start' },
+  noteText: { flexShrink: 1 },
   bottom: { gap: 10, paddingHorizontal: 16, paddingBottom: TAB_BAR_CLEARANCE },
   fabs: { alignItems: 'flex-end', gap: 12 },
   fabRound: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },

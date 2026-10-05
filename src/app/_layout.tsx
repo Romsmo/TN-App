@@ -68,7 +68,7 @@ function TabsView() {
         headerTitleStyle: { fontWeight: '800', fontSize: 22, letterSpacing: -0.4 },
         sceneStyle: { backgroundColor: theme.background },
       }}>
-      <Tabs.Screen name="index" options={{ title: t('tabs.map'), tabBarIcon: tabIcon('index') }} />
+      <Tabs.Screen name="index" options={{ title: t('tabs.map'), tabBarIcon: tabIcon('index'), headerShown: false }} />
       <Tabs.Screen
         name="drive"
         options={{ title: t('tabs.drive'), tabBarIcon: tabIcon('drive'), headerShown: false, sceneStyle: { backgroundColor: driving ? drivePalette.background : theme.background } }}

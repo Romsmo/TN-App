@@ -76,7 +76,10 @@ export function DriveView({ snapshot, unit, lockEnabled, reportTypes, toast, onR
 
       <View style={styles.warnings} accessibilityLiveRegion="assertive">
         {snapshot.warnings.length === 0 ? (
-          <Text style={[styles.calm, { color: c.textSecondary }]}>{snapshot.speedKmh === null ? t('drive.waiting') : ''}</Text>
+          <View style={styles.calmBox}>
+            <Icon name={snapshot.speedKmh === null ? 'locate' : 'radio'} size={28} color={c.textSecondary} />
+            <Text style={[styles.calm, { color: c.textSecondary }]}>{snapshot.speedKmh === null ? t('drive.waiting') : t('drive.watching')}</Text>
+          </View>
         ) : (
           snapshot.warnings.map((w) => {
             const second = w.level === 'second';
@@ -167,6 +170,7 @@ const styles = StyleSheet.create({
   limit: { width: 96, height: 96, borderRadius: 48, borderWidth: 9, alignItems: 'center', justifyContent: 'center' },
   limitText: { fontSize: 38, fontWeight: '800', letterSpacing: -1 },
   warnings: { flex: 1, gap: 10, justifyContent: 'center' },
+  calmBox: { alignItems: 'center', gap: 8 },
   calm: { fontSize: 18, textAlign: 'center' },
   warning: { borderRadius: radius.lg, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 14 },
   warningIcon: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
@@ -179,8 +183,8 @@ const styles = StyleSheet.create({
   reports: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   tile: { flexGrow: 1, flexBasis: '45%', minHeight: DRIVE_TOUCH, borderRadius: radius.lg, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14 },
   tileIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  tileText: { fontSize: 22, fontWeight: '800', flexShrink: 1 },
+  tileText: { fontSize: 20, fontWeight: '800', flexShrink: 1 },
   row: { flexDirection: 'row', gap: 10 },
   big: { flexGrow: 1, flexBasis: '45%', minHeight: DRIVE_TOUCH - 16, borderRadius: radius.pill, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 12 },
-  bigText: { fontSize: 22, fontWeight: '800', textAlign: 'center', flexShrink: 1 },
+  bigText: { fontSize: 20, fontWeight: '800', textAlign: 'center', flexShrink: 1 },
 });

@@ -38,9 +38,16 @@ export function DetailCard({ item, onClose, onVote, voteState = 'idle' }: Props)
           <Icon name="close" size={20} color={theme.text} />
         </Pressable>
       </View>
-      <Text style={[type.body, { color: theme.text }]}>
-        {t('detail.confirmed', { count: item.confirmCount })} · {t('detail.denied', { count: item.denyCount })}
-      </Text>
+      <View style={styles.counts}>
+        <View style={[styles.count, { backgroundColor: theme.surfaceAlt }]}>
+          <Icon name="checkmark-circle" size={16} color={theme.success} />
+          <Text style={[type.caption, { color: theme.text }]}>{t('detail.confirmed', { count: item.confirmCount })}</Text>
+        </View>
+        <View style={[styles.count, { backgroundColor: theme.surfaceAlt }]}>
+          <Icon name="close-circle" size={16} color={theme.danger} />
+          <Text style={[type.caption, { color: theme.text }]}>{t('detail.denied', { count: item.denyCount })}</Text>
+        </View>
+      </View>
       <Text style={[type.caption, { color: theme.textSecondary }]}>{t('detail.validUntil', { time: formatDateTime(item.expiresAt) })}</Text>
       <Text style={[type.caption, { color: theme.textSecondary }]}>{t('detail.distance', { meters: Math.round(item.distanceMeters) })}</Text>
       {item.pending ? <Text style={[type.caption, { color: theme.warn }]}>{t('detail.pending')}</Text> : null}
@@ -79,6 +86,8 @@ const styles = StyleSheet.create({
   badge: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   title: { flex: 1 },
   close: { width: MIN_TOUCH - 8, height: MIN_TOUCH - 8, borderRadius: (MIN_TOUCH - 8) / 2, alignItems: 'center', justifyContent: 'center' },
+  counts: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 4 },
+  count: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.pill },
   vote: { gap: 8, marginTop: 10 },
   question: { fontSize: 15, fontWeight: '700' },
   voteRow: { flexDirection: 'row', gap: 8 },

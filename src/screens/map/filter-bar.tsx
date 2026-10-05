@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { Icon } from '@/components/icon';
 import { MIN_TOUCH } from '@/components/ui';
 import { t } from '@/i18n';
+import { hazardColor } from '@/map/colors';
 import { hazardIcon } from '@/map/hazard-icons';
 import { hazardLabel } from '@/map/hazard-labels';
 import { elevation, radius, useTheme } from '@/theme';
@@ -14,7 +15,7 @@ type Props = {
   onToggle: (type: string) => void;
 };
 
-/** Filter chips: filled when the type is shown, outlined-quiet when hidden. */
+/** Filter chips: white with the category colour when the type is shown, muted with a crossed-out eye when hidden. */
 export function FilterBar({ types, hidden, onToggle }: Props) {
   const theme = useTheme();
   if (types.length === 0) return null;
@@ -22,7 +23,7 @@ export function FilterBar({ types, hidden, onToggle }: Props) {
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll} contentContainerStyle={styles.row} accessibilityLabel={t('map.filter.title')}>
       {types.map((type) => {
         const on = !hidden.includes(type);
-        const foreground = on ? theme.onTint : theme.text;
+        const foreground = on ? theme.text : theme.textSecondary;
         return (
           <Pressable
             key={type}
@@ -30,8 +31,8 @@ export function FilterBar({ types, hidden, onToggle }: Props) {
             accessibilityLabel={t('map.filter.toggle', { type: hazardLabel(type) })}
             accessibilityState={{ checked: on }}
             onPress={() => onToggle(type)}
-            style={[styles.chip, elevation(theme), { backgroundColor: on ? theme.tint : theme.surface }]}>
-            <Icon name={hazardIcon(type)} size={16} color={foreground} />
+            style={[styles.chip, on ? elevation(theme) : null, { backgroundColor: on ? theme.surface : theme.surfaceAlt, opacity: on ? 1 : 0.85 }]}>
+            <Icon name={on ? hazardIcon(type) : 'eye-off-outline'} size={16} color={on ? hazardColor(type) : foreground} />
             <Text style={[styles.chipText, { color: foreground }]}>{hazardLabel(type)}</Text>
           </Pressable>
         );
