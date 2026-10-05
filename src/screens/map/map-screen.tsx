@@ -6,7 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, type IconName } from '@/components/icon';
 import { Button } from '@/components/ui';
-import { interimCatalog } from '@/report/catalog';
+import { mapReportTypes } from '@/report/catalog';
+import { useCameraPolicy } from '@/state/camera-policy';
 import { pendingText, rejectedText } from '@/report/pending';
 import { submitHazard, voteOnReport } from '@/report/submit';
 import { MAP_ATTRIBUTION, MAP_STYLE_URL } from '@/config';
@@ -14,7 +15,7 @@ import { t } from '@/i18n';
 import { hazardTypesIn, toMapData } from '@/map/geojson';
 import { settingsStore, useSettings } from '@/settings';
 import { useTn, type TnState } from '@/state/tn-provider';
-import { elevation, radius, TAB_BAR_CLEARANCE, type, useTheme } from '@/theme';
+import { elevation, radius, squircle, TAB_BAR_CLEARANCE, type, useTheme } from '@/theme';
 
 import { DetailCard, type VoteState } from './detail-card';
 import { FilterBar } from './filter-bar';
@@ -46,7 +47,8 @@ export function MapScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const tn = useTn();
-  const { hiddenHazardTypes } = useSettings();
+  const { hiddenHazardTypes, camerasEnabled } = useSettings();
+  const policy = useCameraPolicy(tn.service, tn.dataVersion);
   const cameraRef = useRef<CameraRef | null>(null);
 
   const [viewport, setViewport] = useState<Viewport | null>(null);
@@ -207,7 +209,7 @@ export function MapScreen() {
         <View pointerEvents="box-none" style={[styles.top, { paddingTop: insets.top + 8 }]}>
           <FilterBar types={filterTypes} hidden={hiddenHazardTypes} onToggle={toggleType} />
           {notes.map((note) => (
-            <View key={note.key} accessibilityRole="alert" style={[styles.note, styles.noteRow, elevation(theme), { backgroundColor: theme.surface }]}>
+            <View key={note.key} accessibilityRole="alert" style={[styles.note, styles.noteRow, squircle, elevation(theme), { backgroundColor: theme.surface }]}>
               <Icon name={note.icon} size={18} color={note.tone === 'warn' ? theme.warn : note.tone === 'ok' ? theme.success : theme.textSecondary} />
               <Text style={[type.caption, styles.noteText, { color: note.tone === 'warn' ? theme.warn : theme.textSecondary }]}>{note.text}</Text>
             </View>
@@ -242,7 +244,7 @@ export function MapScreen() {
           {detail}
           {reporting ? (
             <ReportSheet
-              types={interimCatalog.types()}
+              types={mapReportTypes(camerasEnabled && policy?.active === true, policy?.maxLevel ?? null)}
               location={reportLocation}
               locating={locating}
               message={reportMessage}

@@ -4,7 +4,7 @@
 
 ## Stand
 
-- Es ist **keine** Quelle eingebaut. `MAP_STYLE_URL` (`src/config.ts`, aus `EXPO_PUBLIC_MAP_STYLE_URL`) hat keinen Standardwert. Ohne Wert zeigt die Karte die Daten des Trafficnetworks auf einfachem Hintergrund und sagt das auf dem Bildschirm.
+- Es ist **keine** Quelle eingebaut. `MAP_STYLE_URL` (`src/config.ts`, aus `EXPO_PUBLIC_MAP_STYLE_URL`) hat keinen Standardwert. Ohne Wert zeigt die Karte die Daten des Trafficnetworks auf einfachem Hintergrund und sagt das auf dem Bildschirm. Für das dunkle Erscheinungsbild gibt es optional `EXPO_PUBLIC_MAP_STYLE_URL_DARK` (zweiter Stil); ohne ihn gilt der eine Stil auch im Dunkelmodus. Ein heller Kartenstil im Dunkelmodus blendet — die eigene PMTiles-Quelle sollte beide Stile liefern.
 - Die Namensnennung „© OpenStreetMap contributors" steht immer sichtbar auf der Karte und im Bereich „Quellen und Lizenzen".
 
 ## Geprüfte Kandidaten

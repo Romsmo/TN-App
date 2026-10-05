@@ -12,3 +12,13 @@ export interface ReportCatalog {
 export const interimCatalog: ReportCatalog = {
   types: () => ['traffic', 'accident', 'construction', 'ice', 'breakdown', 'obstacle'],
 };
+
+/**
+ * What the report sheet on the map offers: the common hazards, plus the mobile speed camera only where the user has
+ * switched cameras on and the country policy allows them in full (never under `zones` or `off`).
+ */
+export function mapReportTypes(camerasActive: boolean, maxLevel: 'off' | 'zones' | 'full' | null): string[] {
+  const types = [...interimCatalog.types()];
+  if (camerasActive && maxLevel === 'full') types.push('mobileSpeedCamera');
+  return types;
+}

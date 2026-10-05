@@ -8,7 +8,7 @@ import { hazardColor } from '@/map/colors';
 import { hazardIcon } from '@/map/hazard-icons';
 import { hazardLabel } from '@/map/hazard-labels';
 import type { HazardItem } from '@/tn/types';
-import { elevation, radius, type, useTheme } from '@/theme';
+import { elevation, radius, squircle, type, useTheme } from '@/theme';
 
 export type VoteState = 'idle' | 'saved' | 'failed';
 
@@ -25,7 +25,7 @@ export function DetailCard({ item, onClose, onVote, voteState = 'idle' }: Props)
   const theme = useTheme();
   const color = hazardColor(item.hazardType);
   return (
-    <View accessibilityViewIsModal style={[styles.card, elevation(theme, 2), { backgroundColor: theme.surface }]}>
+    <View accessibilityViewIsModal style={[styles.card, squircle, elevation(theme, 2), { backgroundColor: theme.surface }]}>
       <View style={[styles.grabber, { backgroundColor: theme.border }]} />
       <View style={styles.header}>
         <View style={[styles.badge, { backgroundColor: color }]}>
@@ -61,10 +61,10 @@ export function DetailCard({ item, onClose, onVote, voteState = 'idle' }: Props)
           ) : (
             <View style={styles.voteRow}>
               <View style={styles.voteButton}>
-                <Button icon="checkmark-circle" label={t('vote.still')} onPress={() => onVote(true)} />
+                <Button label={t('vote.still')} onPress={() => onVote(true)} />
               </View>
               <View style={styles.voteButton}>
-                <Button kind="plain" icon="close-circle" label={t('vote.gone')} onPress={() => onVote(false)} />
+                <Button kind="plain" label={t('vote.gone')} onPress={() => onVote(false)} />
               </View>
             </View>
           )}

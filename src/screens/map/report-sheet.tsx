@@ -7,7 +7,7 @@ import { hazardColor } from '@/map/colors';
 import { hazardIcon } from '@/map/hazard-icons';
 import { hazardLabel } from '@/map/hazard-labels';
 import type { Position } from '@/report/submit';
-import { elevation, radius, type, useTheme } from '@/theme';
+import { elevation, radius, squircle, type, useTheme } from '@/theme';
 
 export type ReportLocation = (Position & { source: 'device' | 'map' }) | null;
 
@@ -27,7 +27,7 @@ export function ReportSheet({ types, location, locating, message, onPick, onCanc
   const theme = useTheme();
   const where = location ? (location.source === 'map' ? t('report.atMap') : t('report.atDevice')) : locating ? t('report.locating') : t('report.noLocation');
   return (
-    <View accessibilityViewIsModal style={[styles.sheet, elevation(theme, 2), { backgroundColor: theme.surface }]}>
+    <View accessibilityViewIsModal style={[styles.sheet, squircle, elevation(theme, 2), { backgroundColor: theme.surface }]}>
       <View style={[styles.grabber, { backgroundColor: theme.border }]} />
       <Text accessibilityRole="header" style={[type.heading, { color: theme.text }]}>
         {t('report.title')}

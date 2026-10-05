@@ -20,7 +20,7 @@ export function LockSwitch({ enabled, onChange }: Props) {
   return (
     <View>
       <View style={styles.row}>
-        <RowIcon name="lock-closed" />
+        <RowIcon name="lock-closed" color="#8E8E93" />
         <View style={styles.flex}>
           <Body>{t('lockSwitch.label')}</Body>
         </View>

@@ -1,7 +1,7 @@
 import { Camera, GeoJSONSource, Layer, Map, UserLocation, type CameraRef, type StyleSpecification } from '@maplibre/maplibre-react-native';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 
-import { MAP_STYLE_URL } from '@/config';
+import { MAP_STYLE_URL, MAP_STYLE_URL_DARK } from '@/config';
 import { hazardColorExpression } from '@/map/colors';
 import type { MapData } from '@/map/geojson';
 import { radiusFor, type Viewport } from './use-nearby';
@@ -32,10 +32,12 @@ type Props = {
  * Zones are drawn as areas only; there is deliberately no point layer for them.
  */
 export function MapView({ data, background, showUserLocation, onViewport, onSelectHazard, onMapPress, draft, cameraRef }: Props) {
+  const dark = useColorScheme() === 'dark';
+  const styleUrl = (dark ? MAP_STYLE_URL_DARK : undefined) ?? MAP_STYLE_URL;
   return (
     <Map
       style={styles.map}
-      mapStyle={MAP_STYLE_URL ?? plainStyle(background)}
+      mapStyle={styleUrl ?? plainStyle(background)}
       attribution={false}
       logo={false}
       onPress={(event) => {

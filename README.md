@@ -48,4 +48,4 @@ Regeln für die Arbeit an der App stehen in [`CLAUDE.md`](CLAUDE.md), offene Pun
 - [`docs/privacy-mapping.md`](docs/privacy-mapping.md) — App-Datenschutz-Angaben aus den echten Datenflüssen; [`docs/privacy-policy-draft.md`](docs/privacy-policy-draft.md) — Entwurf der Erklärung
 - [`docs/store-risks.md`](docs/store-risks.md) — Risiken und Empfehlungen vor der Einreichung; [`docs/review-notes.md`](docs/review-notes.md) — Standort-Begründung und Hinweise für den Prüfer; [`docs/store-listing.md`](docs/store-listing.md) — Store-Texte
 - [`docs/map-sources.md`](docs/map-sources.md) — Kartenquelle; [`.maestro/`](.maestro/README.md) — Ende-zu-Ende-Abläufe (nicht ausgeführt)
-- Build-Schalter: `EXPO_PUBLIC_ALLOW_DISABLE_DRIVE_LOCK=false` (Fahrsperre immer an), `EXPO_PUBLIC_MAP_STYLE_URL` (Kartenstil), `EXPO_PUBLIC_TN_NETWORK_ROOT_KEY` (Wurzelschlüssel des Netzwerks)
+- Build-Schalter: `EXPO_PUBLIC_ALLOW_DISABLE_DRIVE_LOCK=false` (Fahrsperre immer an), `EXPO_PUBLIC_MAP_STYLE_URL` (Kartenstil), `EXPO_PUBLIC_MAP_STYLE_URL_DARK` (optional, Kartenstil für den Dunkelmodus), `EXPO_PUBLIC_TN_NETWORK_ROOT_KEY` (Wurzelschlüssel des Netzwerks)

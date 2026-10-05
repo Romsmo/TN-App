@@ -19,6 +19,8 @@ export const NETWORK_ROOT_KEY: string | undefined = process.env.EXPO_PUBLIC_TN_N
  * data on a plain background.
  */
 export const MAP_STYLE_URL: string | undefined = process.env.EXPO_PUBLIC_MAP_STYLE_URL || undefined;
+/** Optional second style for the dark appearance; without it the one style is used in both. */
+export const MAP_STYLE_URL_DARK: string | undefined = process.env.EXPO_PUBLIC_MAP_STYLE_URL_DARK || undefined;
 
 /** Attribution text shown on the map and in the info area. */
 export const MAP_ATTRIBUTION = '© OpenStreetMap contributors';

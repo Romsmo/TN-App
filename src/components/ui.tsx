@@ -1,7 +1,8 @@
+import { Children, isValidElement } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View, type PressableProps, type SwitchProps } from 'react-native';
 
 import { Icon, type IconName } from '@/components/icon';
-import { elevation, radius, type, useTheme } from '@/theme';
+import { elevation, radius, squircle, type, useTheme } from '@/theme';
 
 /** Minimum touch target in points: larger than the platform minimum of 44. */
 export const MIN_TOUCH = 52;
@@ -40,25 +41,86 @@ export function Section({ title, children }: { title?: string; children: React.R
           {title}
         </Text>
       ) : null}
-      <View style={[styles.sectionBody, elevation(theme), { backgroundColor: theme.surface }]}>{children}</View>
+      <View style={[styles.sectionBody, squircle, elevation(theme), { backgroundColor: theme.surface }]}>{children}</View>
     </View>
   );
 }
 
-/** The app's switch: the confident blue when on, a quiet grey track when off. */
+/** The app's switch, in the system look: green track when on, grey when off, white thumb. */
 export function Toggle(props: SwitchProps) {
   const theme = useTheme();
+  const on = theme.background === '#000000' ? '#30D158' : '#34C759';
   // `activeThumbColor` is react-native-web's (the browser preview); native ignores it
   const web = { activeThumbColor: '#FFFFFF' } as object;
-  return <Switch trackColor={{ true: theme.tint, false: theme.border }} thumbColor="#FFFFFF" ios_backgroundColor={theme.border} {...web} {...props} />;
+  return <Switch trackColor={{ true: on, false: theme.surfaceAlt }} thumbColor="#FFFFFF" ios_backgroundColor={theme.surfaceAlt} {...web} {...props} />;
 }
 
-/** A small round badge with an icon, the leading mark of a settings row. */
-export function RowIcon({ name }: { name: IconName }) {
+/**
+ * An inset grouped list, as in the iOS Settings app: one rounded surface, rows separated by hairlines that start after
+ * the leading icon. Every child is one row.
+ */
+export function Group({ title, footer, children }: { title?: string; footer?: string; children: React.ReactNode }) {
+  const theme = useTheme();
+  const rows = Children.toArray(children).filter(isValidElement);
+  return (
+    <View style={styles.group}>
+      {title ? (
+        <Text accessibilityRole="header" style={[type.label, styles.groupTitle, { color: theme.textSecondary }]}>
+          {title}
+        </Text>
+      ) : null}
+      <View style={[styles.groupBody, squircle, { backgroundColor: theme.surface }]}>
+        {rows.map((row, index) => (
+          <View key={row.key ?? index} style={[styles.cell, index > 0 ? { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border } : null]}>
+            {row}
+          </View>
+        ))}
+      </View>
+      {footer ? <Text style={[type.caption, styles.groupFooter, { color: theme.textSecondary }]}>{footer}</Text> : null}
+    </View>
+  );
+}
+
+/** iOS-style segmented control: a grey track with a raised white (dark: lighter grey) segment for the selection. */
+export function Segmented<T extends string | number>({ label, options, value, onChange }: { label: string; options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+  const theme = useTheme();
+  const dark = theme.background === '#000000';
+  return (
+    <View accessibilityRole="radiogroup" accessibilityLabel={label} style={[styles.segmented, { backgroundColor: theme.surfaceAlt }]}>
+      {options.map((o) => {
+        const selected = o.value === value;
+        return (
+          <Pressable
+            key={String(o.value)}
+            accessibilityRole="button"
+            accessibilityLabel={o.label}
+            accessibilityState={{ selected }}
+            onPress={() => onChange(o.value)}
+            style={[styles.segment, selected ? [elevation(theme), { backgroundColor: dark ? '#636366' : '#FFFFFF' }] : null]}>
+            <Text style={[styles.segmentText, { color: theme.text, fontWeight: selected ? '700' : '500' }]}>{o.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/** The big screen title of the iOS design; it scrolls away with the content. */
+export function LargeTitle({ children }: { children: string }) {
   const theme = useTheme();
   return (
-    <View style={[styles.rowIcon, { backgroundColor: theme.tintSoft }]}>
-      <Icon name={name} size={18} color={theme.tint} />
+    <Text accessibilityRole="header" style={[type.title, styles.largeTitle, { color: theme.text }]}>
+      {children}
+    </Text>
+  );
+}
+
+/** The leading mark of a settings row: a coloured rounded square with a white glyph, as in iOS Settings. */
+export function RowIcon({ name, color }: { name: IconName; color?: string }) {
+  const theme = useTheme();
+  return (
+    <View style={[styles.rowIcon, squircle, { backgroundColor: color ?? theme.tint }]}>
+      <Icon name={name} size={18} color="#FFFFFF" />
     </View>
   );
 }
@@ -73,6 +135,15 @@ const styles = StyleSheet.create({
   buttonText: { fontSize: 17, fontWeight: '700', textAlign: 'center', flexShrink: 1 },
   section: { gap: 8 },
   sectionTitle: { marginLeft: 8 },
-  rowIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  sectionBody: { borderRadius: radius.lg, padding: 18, gap: 12 },
+  rowIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  group: { gap: 6 },
+  groupTitle: { marginLeft: 16 },
+  groupBody: { borderRadius: radius.md, overflow: 'hidden' },
+  groupFooter: { marginHorizontal: 16 },
+  cell: { paddingHorizontal: 16, paddingVertical: 11, minHeight: 48, justifyContent: 'center', gap: 6 },
+  segmented: { flexDirection: 'row', borderRadius: 10, padding: 2 },
+  segment: { flex: 1, minHeight: 36, borderRadius: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8, ...squircle },
+  segmentText: { fontSize: 15 },
+  largeTitle: { marginBottom: 4 },
+  sectionBody: { borderRadius: radius.md, padding: 16, gap: 12 },
 });

@@ -1,7 +1,7 @@
 import { setLanguage } from '@/i18n';
 import { TnError, type TnService } from '@/tn/service';
 
-import { interimCatalog } from './catalog';
+import { interimCatalog, mapReportTypes } from './catalog';
 import { pendingText, rejectedText } from './pending';
 import { isPlausiblePosition, submitHazard, voteOnReport } from './submit';
 
@@ -89,5 +89,20 @@ describe('pending and rejected texts', () => {
     expect(rejectedText(0)).toBeNull();
     expect(rejectedText(2)).toMatch(/did not accept/);
     expect(rejectedText(2)).not.toMatch(/failed|could not/i);
+  });
+});
+
+describe('mapReportTypes: the speed camera is offered only where it is on and allowed in full', () => {
+  it.each([
+    [false, 'full'],
+    [true, 'zones'],
+    [true, 'off'],
+    [true, null],
+  ] as const)('cameras active=%s, level=%s: no camera type', (active, level) => {
+    expect(mapReportTypes(active, level)).toEqual(interimCatalog.types());
+  });
+
+  it('on and allowed in full: the mobile speed camera is added', () => {
+    expect(mapReportTypes(true, 'full')).toEqual([...interimCatalog.types(), 'mobileSpeedCamera']);
   });
 });

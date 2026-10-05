@@ -38,10 +38,11 @@ Nur, was wirklich offen ist.
 ## Entwicklung
 
 - [x] M2 Bibliothek eingebunden, Karte, Ansehen, „Server verbinden", Datenpakete — **nur Typen, Tests und Bundles geprüft, nicht auf einem Gerät**
-- [ ] Aus M2 offen: **Blitzer-Kategorie, Blitzer-Filter und Rechtshinweis (M4)** — die Karte zeigt Kameras/Zonen nur, wenn die Bibliothek sie liefert (`cameraNamespaceEnabled` bleibt aus)
+- [x] Aus M2: Blitzer-Option (aus, Länderpolitik, Rechtshinweis) erledigt in M4; die Karte zeigt Kameras/Zonen nur, wenn die Option an ist (`cameraNamespaceEnabled`) **und** die Bibliothek sie liefert — nie gegen einen echten Server mit Blitzer-Daten geprüft
 - [ ] „Lokale Daten löschen" und „Geräteidentität zurücksetzen" (Einstellungen, M5)
 - [x] M3 Melden, Bestätigen, Offline-Puffer, Hinweise zu Wartezustand und Begrenzungen — **nur Typen, Tests und Bundles geprüft, nicht auf einem Gerät**
-- [ ] Aus M3 offen: Melden von **Blitzer-Arten** (gehört zur Blitzer-Behandlung in M4: Schalter, Länderpolitik, Rechtshinweis); Haptik/Ton als Rückmeldung (M4); Maestro-Abläufe (M5/M6)
+- [x] Melden einer Blitzer-Art: im Fahrmodus (Ein-Tipp) und auf der Karte nur „Blitzer (mobil)", nur bei Option an und Länderpolitik `full`; Arten und Wertebereich des Servers für feste Blitzer, Anhänger, Rotlicht und Abstand nicht geklärt (nur `mobileSpeedCamera` ist angeschlossen) — **offen**
+- [ ] Aus M3 offen: Maestro-Abläufe ausführen (M5/M6)
 - [x] M4 Fahrmodus, Simulationsfahrt, Blitzer-Option und Hinweise, Fahrsperre — **nur Tests und Bundles, nicht auf einem Gerät**
 - [x] M5 Politur: Icon/Splash, Lizenzen, Listenansicht, Kontrast, Datenschutz-Zuordnung und -Entwurf, Store-Texte, Review-Hinweise, Risiken
 - [ ] Aus M5 offen: VoiceOver/TalkBack **nicht mit einem Screenreader geprüft** (nur Beschriftungen und Tests); Schriftskalierung nicht auf dem Gerät geprüft; Screenshots; Datenschutz-URL in der App erreichbar machen (kommt mit der URL); `ITSAppUsesNonExemptEncryption` (siehe `docs/store-risks.md` #9); Entscheidung zur Fahrsperre-Option im Review-Build; **Akkuverbrauch einer Stunde Fahrmodus nicht gemessen**; Übersetzungen: die englischen Rechtstexte sind meine Übersetzung der deutschen Vorgaben und brauchen Freigabe

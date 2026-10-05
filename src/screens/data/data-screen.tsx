@@ -43,7 +43,7 @@ export function DataScreen() {
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
       <Section>
         <View style={styles.switchRow}>
-          <RowIcon name="wifi" />
+          <RowIcon name="wifi" color="#007AFF" />
           <View style={styles.flex}>
             <Body>{t('data.wifiOnly')}</Body>
           </View>

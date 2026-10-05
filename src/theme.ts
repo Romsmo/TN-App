@@ -1,39 +1,40 @@
 import { Platform, useColorScheme, type ViewStyle } from 'react-native';
 
 /**
- * Design tokens. A calm, light-and-airy look: soft grounded surfaces, white cards with big radii and gentle shadows,
- * one confident blue for actions, status colours only for status. Dark mode keeps the same structure on a deep navy.
+ * Design tokens, following Apple's design language: grouped backgrounds (#F2F2F7 / true black), white or elevated-grey
+ * grouped surfaces, hairline separators, one system blue for actions, status colours only for status. The dark scheme
+ * follows the system setting. Contrast is checked in theme-contrast.test.ts.
  */
 export const colors = {
   light: {
-    text: '#0E1A27',
-    textSecondary: '#566474',
-    background: '#F2F5F9',
+    text: '#0A0A0C',
+    textSecondary: '#6C6C70',
+    background: '#F2F2F7',
     surface: '#FFFFFF',
-    surfaceAlt: '#E8EEF5',
-    border: '#DCE3EC',
-    tint: '#1D4ED8',
-    tintSoft: '#E4ECFF',
+    surfaceAlt: '#E9E9EE',
+    border: '#D1D1D6',
+    tint: '#0062E0',
+    tintSoft: '#E3EEFF',
     onTint: '#FFFFFF',
-    danger: '#C62828',
-    warn: '#B45309',
-    success: '#15803D',
-    overlay: 'rgba(14, 26, 39, 0.45)',
-    shadow: '#0E1A27',
+    danger: '#D70015',
+    warn: '#B25000',
+    success: '#1E7B34',
+    overlay: 'rgba(0, 0, 0, 0.4)',
+    shadow: '#000000',
   },
   dark: {
-    text: '#EAF0F7',
-    textSecondary: '#9FB0C2',
-    background: '#0A121C',
-    surface: '#121D2A',
-    surfaceAlt: '#1A2A3B',
-    border: '#223244',
-    tint: '#6AA3FF',
-    tintSoft: '#182A4D',
-    onTint: '#06142B',
-    danger: '#FF8A80',
-    warn: '#F6B25C',
-    success: '#6EE7A0',
+    text: '#FFFFFF',
+    textSecondary: '#A1A1A6',
+    background: '#000000',
+    surface: '#1C1C1E',
+    surfaceAlt: '#2C2C2E',
+    border: '#38383A',
+    tint: '#4DA3FF',
+    tintSoft: '#10294A',
+    onTint: '#001A38',
+    danger: '#FF6961',
+    warn: '#FF9F0A',
+    success: '#30D158',
     overlay: 'rgba(0, 0, 0, 0.6)',
     shadow: '#000000',
   },
@@ -44,6 +45,9 @@ export type Theme = (typeof colors)[keyof typeof colors];
 export function useTheme(): Theme {
   return useColorScheme() === 'dark' ? colors.dark : colors.light;
 }
+
+/** iOS "continuous" (squircle) corners; ignored elsewhere. Spread into any rounded surface. */
+export const squircle = { borderCurve: 'continuous' } as const;
 
 /** Corner radii. Big on purpose: cards 24, sheets 28, pills fully round. */
 export const radius = { sm: 12, md: 18, lg: 24, sheet: 28, pill: 999 } as const;

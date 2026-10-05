@@ -41,7 +41,7 @@ export function CamerasSwitch({ enabled, onChange, maxLevel, noticeSeen, serverN
   return (
     <View>
       <View style={styles.row}>
-        <RowIcon name="camera" />
+        <RowIcon name="camera" color="#862E9C" />
         <View style={styles.flex}>
           <Body>{t('cameras.label')}</Body>
         </View>

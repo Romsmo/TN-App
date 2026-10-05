@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
-import type { ColorValue } from 'react-native';
+import { Platform, StyleSheet, type ColorValue } from 'react-native';
 
 import { Icon, type IconName } from '@/components/icon';
 import { DriveProvider, useDriveSnapshot } from '@/drive/drive-provider';
@@ -10,7 +11,7 @@ import { t } from '@/i18n';
 import { createNativeClient, credentialsStore, isOnWifi, maintenance } from '@/state/app-wiring';
 import { createAppDriveHost, setDriveService } from '@/state/drive-wiring';
 import { TnProvider, useTn } from '@/state/tn-provider';
-import { elevation, radius, useTheme } from '@/theme';
+import { elevation, radius, squircle, useTheme } from '@/theme';
 
 // The OS may wake the app for a location update: the task has to exist before any screen does.
 defineDriveLocationTask();
@@ -31,6 +32,21 @@ const tabIcon = (name: string) => {
   render.displayName = `TabIcon(${name})`;
   return render;
 };
+
+/**
+ * The tab bar's material: on iOS a blurred, translucent system material that follows light/dark (the map shines through),
+ * elsewhere a plain surface. expo-blur is loaded only on iOS.
+ */
+function TabBarMaterial({ dark }: { dark: boolean }) {
+  if (Platform.OS === 'ios' || Platform.OS === 'web') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { BlurView } = require('expo-blur') as typeof import('expo-blur');
+    return <BlurView tint={dark ? 'systemChromeMaterialDark' : 'systemChromeMaterial'} intensity={80} style={[StyleSheet.absoluteFill, styles.material]} />;
+  }
+  return null;
+}
+
+const styles = StyleSheet.create({ material: { borderRadius: radius.pill, overflow: 'hidden' } });
 
 function TabsView() {
   const theme = useTheme();
@@ -57,9 +73,12 @@ function TabsView() {
           paddingBottom: 8,
           borderRadius: radius.pill,
           borderTopWidth: 0,
-          backgroundColor: bar,
+          backgroundColor: driving || Platform.OS === 'android' ? bar : 'transparent',
+          ...squircle,
           ...elevation(theme, 2),
         },
+        // while driving the bar is a solid dark tile (no bright or see-through bar at night)
+        tabBarBackground: driving ? undefined : () => <TabBarMaterial dark={theme.background === '#000000'} />,
         tabBarItemStyle: { borderRadius: radius.pill },
         headerStyle: { backgroundColor: theme.background },
         headerShadowVisible: false,
@@ -73,7 +92,7 @@ function TabsView() {
         name="drive"
         options={{ title: t('tabs.drive'), tabBarIcon: tabIcon('drive'), headerShown: false, sceneStyle: { backgroundColor: driving ? drivePalette.background : theme.background } }}
       />
-      <Tabs.Screen name="settings" options={{ title: t('tabs.settings'), tabBarIcon: tabIcon('settings') }} />
+      <Tabs.Screen name="settings" options={{ title: t('tabs.settings'), tabBarIcon: tabIcon('settings'), headerShown: false }} />
       <Tabs.Screen name="server" options={{ href: null, title: t('server.title') }} />
       <Tabs.Screen name="data" options={{ href: null, title: t('data.title') }} />
       <Tabs.Screen name="info" options={{ href: null, title: t('info.title') }} />
@@ -90,6 +109,7 @@ function Tabbed() {
 
   return (
     <DriveProvider host={host}>
+      <StatusBar style="auto" />
       <TabsView />
     </DriveProvider>
   );
