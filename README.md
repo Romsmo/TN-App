@@ -2,7 +2,7 @@
 
 Mobile App (iOS + Android, Expo) für das [Trafficnetwork](https://github.com/Romsmo/Trafficnetwork): Karte ansehen, Gefahren melden und ein Fahrmodus mit Warnungen — ohne Navigation. Apache License 2.0.
 
-**Stand: `0.1.0`, Stufe M3 (Melden).** Die Client-Bibliothek ist eingebunden, die Karte zeigt Meldungen mit Filter und Detailkarte, „Server verbinden" und „Datenpakete" gibt es. Melden (am Standort oder per Tipp auf die Karte), Bestätigen/Widerlegen und ein sichtbarer Wartezustand für noch nicht gesendete Meldungen sind da. Der Fahrmodus ist noch ein Platzhalter (M4). **Nichts davon wurde auf einem Gerät oder Emulator ausgeführt** (siehe unten).
+**Stand: `0.1.0`, Stufe M5 (Politur) — noch kein Build.** Die Client-Bibliothek ist eingebunden, die Karte zeigt Meldungen mit Filter und Detailkarte, „Server verbinden" und „Datenpakete" gibt es. Melden, Bestätigen, Fahrmodus mit Warnungen, Fahrsperre, Simulationsfahrt, Blitzer-Option (aus), Einstellungen, Quellen und Lizenzen. **Nichts davon wurde auf einem Gerät oder Emulator ausgeführt** (siehe unten).
 
 ## Entwickeln
 
@@ -27,6 +27,8 @@ Bundle-ID und Android-Paketname: `info.trafficnetwork.tnviewer`.
 - `src/tn/` — alles rund um die Bibliothek. Nur `native.ts` importiert `@trafficnetwork/react-native`; der Rest spricht mit `RawClient`/`TnService` und lässt sich mit einer Attrappe testen: SecureStore-Adapter, typisierte Aufrufe, Optionen, Adress- und Sync-Regeln.
 - `src/state/` — `TnConnection` (Verbindungsablauf als Klasse) und `TnProvider` (bindet sie an React).
 - `src/map/`, `src/screens/` — Kartendaten (GeoJSON, Farben, Beschriftung) und Bildschirme.
+- `src/drive/` — Fahrmodus: Warn-Engine (Voraus-Filter, Vorwarnzeiten, Entprellen), Fahrsperre, Steuerung (`DriveSession`), Host, Simulation (`sim/`), native Anbindung (Standort-Task, Töne, Sprache, Haptik).
+- `src/legal/` — Rechtstexte (Wortlaut fest, Test gegen Abweichung) und Lizenzliste.
 - `src/settings/` — lokale Einstellungen in einer App-Datei (nicht im Keychain).
 - `src/config.ts` — Domain, Seeds und Karten-Schalter an einer Stelle.
 
@@ -40,3 +42,10 @@ Geprüft (Linux-Container, nicht Windows): `npm run check` grün (Lint, Typen, T
 ## Rahmen
 
 Regeln für die Arbeit an der App stehen in [`CLAUDE.md`](CLAUDE.md), offene Punkte in [`docs/todo.md`](docs/todo.md), Änderungen im [`CHANGELOG.md`](CHANGELOG.md).
+
+## Weitere Unterlagen
+
+- [`docs/privacy-mapping.md`](docs/privacy-mapping.md) — App-Datenschutz-Angaben aus den echten Datenflüssen; [`docs/privacy-policy-draft.md`](docs/privacy-policy-draft.md) — Entwurf der Erklärung
+- [`docs/store-risks.md`](docs/store-risks.md) — Risiken und Empfehlungen vor der Einreichung; [`docs/review-notes.md`](docs/review-notes.md) — Standort-Begründung und Hinweise für den Prüfer; [`docs/store-listing.md`](docs/store-listing.md) — Store-Texte
+- [`docs/map-sources.md`](docs/map-sources.md) — Kartenquelle; [`.maestro/`](.maestro/README.md) — Ende-zu-Ende-Abläufe (nicht ausgeführt)
+- Build-Schalter: `EXPO_PUBLIC_ALLOW_DISABLE_DRIVE_LOCK=false` (Fahrsperre immer an), `EXPO_PUBLIC_MAP_STYLE_URL` (Kartenstil), `EXPO_PUBLIC_TN_NETWORK_ROOT_KEY` (Wurzelschlüssel des Netzwerks)

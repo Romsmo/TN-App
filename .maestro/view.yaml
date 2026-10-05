@@ -1,0 +1,13 @@
+appId: info.trafficnetwork.tnviewer
+name: Ansehen — Karte, Liste, Filter
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Map"
+- tapOn: "Show as list"
+- assertVisible: "Show map"
+- tapOn: "Show map"
+- assertVisible: "Report"
+- tapOn: "Settings"
+- tapOn: "Data packages, Size and \"Wi-Fi only\""
+- assertVisible: "Load on Wi-Fi only"

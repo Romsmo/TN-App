@@ -1,0 +1,13 @@
+appId: info.trafficnetwork.tnviewer
+name: Melden — an einer markierten Stelle
+---
+# Voraussetzung: Server und Zugang sind unter Settings → Connect to server eingetragen.
+- launchApp
+- assertVisible: "Map"
+- tapOn: "Report"
+- assertVisible: "What do you want to report?"
+- tapOn:
+    point: "50%,45%"      # eine Stelle auf der Karte markieren
+- assertVisible: "At the marked spot"
+- tapOn: "Report Ice"
+- assertVisible: "Saved. The report is sent as soon as possible."

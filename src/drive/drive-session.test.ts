@@ -96,6 +96,21 @@ describe('DriveSession basics', () => {
   });
 });
 
+describe('DriveSession after the end', () => {
+  it('does not come back to life when a late answer arrives', async () => {
+    const { session, data, at } = setup([], { limitValue: 50 });
+    let release: (v: SpeedLimitAnswer | null) => void = () => {};
+    (data.speedLimit as jest.Mock).mockImplementationOnce(() => new Promise((resolve) => (release = resolve)));
+    session.start();
+    session.onFix(at(0, 40));
+    session.stop();
+    release(limit(50));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(session.getSnapshot()).toMatchObject({ active: false, limit: null });
+  });
+});
+
 describe('DriveSession warnings', () => {
   it('warns early and again shortly before, with a tone and a sentence each time', async () => {
     const { session, feedback, drive } = setup([hazard(3000)]);

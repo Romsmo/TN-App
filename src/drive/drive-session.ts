@@ -244,6 +244,7 @@ export class DriveSession {
       this.limitAt = { lat: fix.lat, lng: fix.lng, at: now };
       try {
         const answer = await this.deps.data.speedLimit(fix.lat, fix.lng, fix.heading);
+        if (!this.snap.active) return; // the drive ended while the answer was on its way
         const limit = answer ? { value: answer.value, unit: answer.unit } : null;
         this.set({ limit, speedState: speedState(this.snap.speedKmh, limit) });
       } catch {

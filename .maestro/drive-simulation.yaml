@@ -1,0 +1,24 @@
+appId: info.trafficnetwork.tnviewer
+name: Fahrmodus — Simulationsfahrt
+---
+- launchApp:
+    clearState: true
+- tapOn: "Drive mode"
+- tapOn: "Simulate a drive (4× faster)"
+- assertVisible: "Before you start"        # Rechtshinweis beim ersten Start
+- tapOn: "Understood"
+- assertVisible: "SIMULATION – not a real drive"
+- assertVisible: "Report Accident"
+- extendedWaitUntil:
+    visible: "Accident"                     # Warnung voraus (erfundene Strecke)
+    timeout: 120000
+- tapOn: "Report Traffic jam"
+- assertVisible: "Reported"
+- tapOn: "Mute"
+- assertVisible: "Sound on"
+# Fahrsperre: während der Simulation sind die Einstellungen gesperrt
+- tapOn: "Settings"
+- assertVisible: "Locked while driving"
+- tapOn: "Drive mode"
+- tapOn: "End"
+- assertVisible: "Start driving"
