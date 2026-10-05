@@ -6,7 +6,7 @@ Recherche am 2026-10-05. Die Richtlinientexte stammen aus einem Abruf von <https
 
 | # | Thema | Richtlinie | Risiko | Empfehlung |
 |---|---|---|---|---|
-| 1 | Blitzer-Warnungen | 1.4.4 (nur DUI-Kontrollen eingeschränkt) | niedrig–mittel | Es gibt Vorbilder im deutschen Store (Blitzer.de, SpeedCam, CamerAlert; Suchtreffer 2026-10-05). Keine Meldeart „Polizeikontrolle"/„Alkoholkontrolle" anbieten (gibt es nicht). Länderpolitik und Rechtshinweis sind eingebaut. |
+| 1 | Blitzer-Warnungen | 1.4.4 (nur DUI-Kontrollen eingeschränkt) | niedrig–mittel | Es gibt Vorbilder im deutschen Store (Blitzer.de, SpeedCam, CamerAlert; Suchtreffer 2026-10-05). Keine Meldeart „Polizeikontrolle"/„Alkoholkontrolle" anbieten (gibt es nicht); angeboten werden nur die fünf Kameraarten des Servers (fest, mobil, Anhänger, Rotlicht, Abstand). Länderpolitik und Rechtshinweis sind eingebaut. |
 | 2 | Bedienung beim Fahren / abschaltbare Fahrsperre | 1.4.5 („Geräte so nutzen, dass Schaden droht") | **mittel** | siehe unten |
 | 3 | Hintergrund-Standort | 2.5.4, 5.1.5 | mittel | „Beim Verwenden" statt „Immer", nur im laufenden Fahrmodus, sichtbare Anzeige; ehrliche Begründung (`docs/review-notes.md`). `UIBackgroundModes` nur `location` und `audio`. |
 | 4 | Nutzergenerierte Inhalte | 1.2 | niedrig–mittel | Meldungen sind vorgegebene Arten mit Koordinate: kein Text, kein Bild, kein Profil. Apple verlangt bei UGC Filter, Meldeweg, Sperrmöglichkeit und Kontaktangabe. Hier: Widerlegen („Nicht mehr da") ist der Weg gegen falsche Meldungen; Support-E-Mail öffentlich angeben. Einen Weg, **Nutzer zu blockieren,** gibt es nicht (Nutzer sind nicht sichtbar). Ob Apple das genügt, ist offen; Antwort bereithalten. |

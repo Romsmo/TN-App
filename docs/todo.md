@@ -41,7 +41,8 @@ Nur, was wirklich offen ist.
 - [x] Aus M2: Blitzer-Option (aus, Länderpolitik, Rechtshinweis) erledigt in M4; die Karte zeigt Kameras/Zonen nur, wenn die Option an ist (`cameraNamespaceEnabled`) **und** die Bibliothek sie liefert — nie gegen einen echten Server mit Blitzer-Daten geprüft
 - [ ] „Lokale Daten löschen" und „Geräteidentität zurücksetzen" (Einstellungen, M5)
 - [x] M3 Melden, Bestätigen, Offline-Puffer, Hinweise zu Wartezustand und Begrenzungen — **nur Typen, Tests und Bundles geprüft, nicht auf einem Gerät**
-- [x] Melden einer Blitzer-Art: im Fahrmodus (Ein-Tipp) und auf der Karte nur „Blitzer (mobil)", nur bei Option an und Länderpolitik `full`; Arten und Wertebereich des Servers für feste Blitzer, Anhänger, Rotlicht und Abstand nicht geklärt (nur `mobileSpeedCamera` ist angeschlossen) — **offen**
+- [x] Melden aller fünf Blitzerarten (Karte, Fahrmodus), nur bei Option an und Länderpolitik `full`; die echte Bibliothek (1.1.0, lokal gebaut) nimmt alle elf Arten an und lehnt unbekannte ab. **Offen:** unter `zones` wird nicht gemeldet (Entscheidung beim Betreiber; der Server nähme es an und antwortet dort neutral mit 202).
+- [x] Notmodus (Erstinstallation ohne Server/Zugang) — gegen die echte Bibliothek offline gemessen, nicht auf einem Gerät
 - [ ] Aus M3 offen: Maestro-Abläufe ausführen (M5/M6)
 - [x] M4 Fahrmodus, Simulationsfahrt, Blitzer-Option und Hinweise, Fahrsperre — **nur Tests und Bundles, nicht auf einem Gerät**
 - [x] M5 Politur: Icon/Splash, Lizenzen, Listenansicht, Kontrast, Datenschutz-Zuordnung und -Entwurf, Store-Texte, Review-Hinweise, Risiken
