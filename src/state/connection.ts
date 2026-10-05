@@ -25,6 +25,9 @@ type Deps = {
   tickIntervalMs: number;
 };
 
+/** How often an "all static data loaded" is verified again. */
+const STATIC_RECHECK_MS = 10 * 60 * 1000;
+
 const INITIAL: ConnectionSnapshot = {
   phase: 'starting',
   error: null,
@@ -47,6 +50,8 @@ export class TnConnection {
   private timer: ReturnType<typeof setInterval> | undefined;
   private bumpTimer: ReturnType<typeof setTimeout> | undefined;
   private staticComplete = false;
+  private staticCheckedAt = 0;
+  private current: Promise<void> | null = null;
   private busy = false;
   private stopped = false;
   private wifiOnly = true;
@@ -68,7 +73,11 @@ export class TnConnection {
   dismissRejected = (): void => this.set({ rejectedWrites: 0 });
 
   /** Sync now. `ignoreWifi` is for an explicit tap on "load anyway". */
-  syncNow = (options?: { ignoreWifi?: boolean }): Promise<void> => this.run(true, options?.ignoreWifi ?? false);
+  /** Waits for a pass that is already running, then runs: an explicit tap must not be dropped. */
+  syncNow = async (options?: { ignoreWifi?: boolean }): Promise<void> => {
+    while (this.busy && this.current) await this.current.catch(() => undefined);
+    await this.run(true, options?.ignoreWifi ?? false);
+  };
 
   start(): void {
     this.stopped = false;
@@ -80,7 +89,8 @@ export class TnConnection {
     }
     const client = this.client;
     client.onEvents((event) => {
-      if (event.type === 'dataChanged' || event.type === 'syncCompleted') this.bump();
+      if (event.type === 'dataChanged') this.bump();
+      else if (event.type === 'bootstrapProgress' && event.partitionsDone >= event.partitionsTotal) this.bump();
     });
     this.set({ service: client });
     client.startRealtime();
@@ -107,16 +117,26 @@ export class TnConnection {
     this.bumpTimer = setTimeout(() => this.set({ dataVersion: this.snap.dataVersion + 1 }), 400);
   }
 
-  private async run(force: boolean, ignoreWifi: boolean): Promise<void> {
+  private run(force: boolean, ignoreWifi: boolean): Promise<void> {
+    if (this.busy) return this.current ?? Promise.resolve();
+    const pass = this.pass(force, ignoreWifi);
+    this.current = pass;
+    return pass;
+  }
+
+  private async pass(force: boolean, ignoreWifi: boolean): Promise<void> {
     const client = this.client;
     if (!client || this.busy || this.stopped) return;
     this.busy = true;
     try {
+      // "Complete" is not forever: the server publishes new static data, so look again now and then (the manifest is a few KB).
+      if (this.staticComplete && Date.now() - this.staticCheckedAt > STATIC_RECHECK_MS) this.staticComplete = false;
       let bytesPending: number | null = this.staticComplete ? 0 : null;
       if (!this.staticComplete) {
         try {
           bytesPending = (await client.planBootstrap()).bytesPending;
           this.staticComplete = bytesPending === 0;
+          this.staticCheckedAt = Date.now();
         } catch {
           bytesPending = null; // offline or no access: the sync below reports it
         }
@@ -127,10 +147,13 @@ export class TnConnection {
       if (allowed) {
         const report = force ? await client.sync() : (await client.tick()).report;
         if (report && report.rejected > 0) this.set({ rejectedWrites: this.snap.rejectedWrites + report.rejected });
-        this.bump();
+        // Screens re-read only when something changed: the library tells (dataChanged), or this pass sent something.
+        if (report && report.submitted > 0) this.bump();
       }
       const [sync, network] = await Promise.all([client.getSyncStatus(), client.getNetworkStatus()]);
+      const firstReady = this.snap.phase !== 'ready';
       this.set({ sync, network, phase: 'ready', error: null });
+      if (firstReady) this.bump(); // the first successful pass: whatever it loaded is new to the screens
     } catch (e) {
       if (e instanceof TnError && e.code === 'notConfigured') this.set({ phase: 'noCredentials', error: null });
       else this.set({ phase: 'error', error: e instanceof Error ? e.message : String(e) });

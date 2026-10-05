@@ -69,6 +69,7 @@ const PROMPT_SHOWN_MS = 8_000;
 const PROMPT_MIN_GAP_MS = 30_000;
 const SPEECH_MIN_GAP_MS = 2_500;
 const GPS_LOST_AFTER_MS = 10_000;
+const MAX_REPORT_FIX_AGE_MS = 15_000;
 const REFRESH_MOVED_M = 200;
 const REFRESH_AFTER_MS = 10_000;
 
@@ -154,6 +155,9 @@ export class DriveSession {
     this.deps.feedback.silence();
     this.engine.reset();
     this.lock.reset();
+    this.lastFix = null;
+    this.previous = null;
+    this.items = [];
     this.set({ ...INITIAL, active: false });
   }
 
@@ -207,7 +211,13 @@ export class DriveSession {
     const speedLocked = this.lock.tick(now);
     const stillLocked = speedLocked && this.deps.getSettings().lockEnabled;
     const gpsLost = now - this.lastFixAtMs > GPS_LOST_AFTER_MS;
-    if (warnings.length !== this.snap.warnings.length || prompt !== this.snap.prompt || stillLocked !== this.snap.locked || gpsLost !== this.snap.gpsLost) {
+    if (
+      warnings.length !== this.snap.warnings.length ||
+      prompt !== this.snap.prompt ||
+      stillLocked !== this.snap.locked ||
+      speedLocked !== this.snap.speedLocked ||
+      gpsLost !== this.snap.gpsLost
+    ) {
       this.set({ warnings, prompt, locked: stillLocked, speedLocked, gpsLost });
     }
   }
@@ -301,7 +311,8 @@ export class DriveSession {
   /** One-tap report at the current position. Returns false when there is no position yet or storing failed. */
   async report(type: string): Promise<boolean> {
     const fix = this.lastFix;
-    if (!fix) return false;
+    // No report at an old position: not before the first fix, not after the drive, not with the GPS lost.
+    if (!this.snap.active || !fix || this.deps.now() - this.lastFixAtMs > MAX_REPORT_FIX_AGE_MS) return false;
     const ok = await this.deps.submitReport(type, { lat: fix.lat, lng: fix.lng });
     if (ok) this.deps.feedback.confirm({ sound: this.deps.getSettings().sound && !this.snap.muted });
     return ok;

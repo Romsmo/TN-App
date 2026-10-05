@@ -55,8 +55,8 @@ function Probe() {
       <Text>{`${phase}|${waitingForWifi ? 'wifi' : 'go'}|${error ?? ''}`}</Text>
       <Text>{`rejected:${rejectedWrites}`}</Text>
       <Text onPress={dismissRejected}>dismiss</Text>
-      <Text onPress={() => void resetLocalData()}>reset-data</Text>
-      <Text onPress={() => void resetDeviceIdentity()}>reset-identity</Text>
+      <Text onPress={() => void resetLocalData().catch(() => undefined)}>reset-data</Text>
+      <Text onPress={() => void resetDeviceIdentity().catch(() => undefined)}>reset-identity</Text>
     </>
   );
 }
@@ -208,6 +208,13 @@ describe('TnProvider resets', () => {
     await act(async () => screen.getByText('reset-data').props.onPress());
     expect(order).toEqual(['close', 'delete-data']);
     expect(maintenance.wipeSecrets).not.toHaveBeenCalled();
+    expect(createClient).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts a fresh client even when deleting the data fails', async () => {
+    const { maintenance, createClient } = await mountWithMaintenance();
+    maintenance.deleteLocalData.mockRejectedValueOnce(new Error('file locked'));
+    await act(async () => screen.getByText('reset-data').props.onPress());
     expect(createClient).toHaveBeenCalledTimes(2);
   });
 

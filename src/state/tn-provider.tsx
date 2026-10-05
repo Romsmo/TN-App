@@ -70,15 +70,21 @@ export function TnProvider({ children, createClient, credentialsStore, isOnWifi,
 
   const resetLocalData = useCallback(async () => {
     connection.stop(); // closes the client, so its database files can be removed
-    await maintenance?.deleteLocalData();
-    setGeneration((g) => g + 1);
+    try {
+      await maintenance?.deleteLocalData();
+    } finally {
+      setGeneration((g) => g + 1); // a failed deletion must not leave the app without a client
+    }
   }, [connection, maintenance]);
 
   const resetDeviceIdentity = useCallback(async () => {
     connection.stop();
-    await maintenance?.wipeSecrets();
-    await maintenance?.deleteLocalData();
-    setGeneration((g) => g + 1);
+    try {
+      await maintenance?.wipeSecrets();
+      await maintenance?.deleteLocalData();
+    } finally {
+      setGeneration((g) => g + 1);
+    }
   }, [connection, maintenance]);
 
   const snapshot = useSyncExternalStore(connection.subscribe, connection.getSnapshot);

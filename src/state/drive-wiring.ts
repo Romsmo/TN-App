@@ -1,16 +1,15 @@
 /** Builds the drive host for the app: library data on a real drive, invented data in the simulation. Not loaded by unit tests. */
 import { DriveHost } from '@/drive/drive-host';
 import { DriveSession, type DriveSettings } from '@/drive/drive-session';
-import { libraryDataSource, type DriveDataSource } from '@/drive/data-source';
+import { libraryDataSource } from '@/drive/data-source';
 import { createNativeFeedback } from '@/drive/feedback-native';
+import { expoLocationBackend } from '@/drive/location-backend';
 import { createLocationSource } from '@/drive/location-source';
 import { createSimSource, demoRoute } from '@/drive/sim/sim-source';
 import { createSimDataSource } from '@/drive/sim/sim-data';
 import { submitHazard, voteOnReport } from '@/report/submit';
 import { settingsStore } from '@/settings';
 import type { TnService } from '@/tn/service';
-
-const emptyData: DriveDataSource = { nearby: async () => [], speedLimit: async () => null };
 
 function driveSettings(): DriveSettings {
   const s = settingsStore.get();
@@ -28,8 +27,7 @@ export function createAppDriveHost(getService: () => TnService | null = () => cu
   const feedback = createNativeFeedback();
   return new DriveHost({
     createSession: (simulated) => {
-      const service = getService();
-      const data = simulated ? createSimDataSource(demoRoute, { camerasEnabled: settingsStore.get().camerasEnabled }) : service ? libraryDataSource(service) : emptyData;
+      const data = simulated ? createSimDataSource(demoRoute, { camerasEnabled: settingsStore.get().camerasEnabled }) : libraryDataSource(getService);
       return new DriveSession({
         data,
         feedback,
@@ -49,7 +47,7 @@ export function createAppDriveHost(getService: () => TnService | null = () => cu
         },
       });
     },
-    realSource: createLocationSource,
+    realSource: () => createLocationSource(expoLocationBackend),
     simSource: (speedup) => createSimSource(speedup),
     setInterval: (fn, ms) => setInterval(fn, ms),
     clearInterval: (handle) => clearInterval(handle as ReturnType<typeof setInterval>),

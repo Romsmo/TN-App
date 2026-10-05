@@ -27,6 +27,8 @@ export class DriveHost {
   private session: DriveSession | null = null;
   private source: PositionSource | null = null;
   private heartbeat: unknown = null;
+  /** Counts starts: an old start that finishes after a stop or a newer start must not touch the current drive. */
+  private token = 0;
   private unsubscribe: (() => void) | null = null;
   private snap: DriveSnapshot | null = null;
   private readonly listeners = new Set<() => void>();
@@ -54,6 +56,7 @@ export class DriveHost {
 
   async start(mode: DriveMode, options: { speedup?: number } = {}): Promise<void> {
     if (this.session) this.stop();
+    const token = ++this.token;
     const session = this.deps.createSession(mode === 'simulation');
     const source = mode === 'simulation' ? this.deps.simSource(options.speedup ?? 1) : this.deps.realSource();
     this.session = session;
@@ -64,15 +67,24 @@ export class DriveHost {
     });
     session.start();
     try {
-      await source.start((fix) => session.onFix(fix));
+      await source.start((fix) => {
+        if (token === this.token) session.onFix(fix);
+      });
     } catch (error) {
-      this.stop();
+      if (token === this.token) this.stop();
+      else source.stop(); // an outdated start that failed: only its own source needs cleaning up
       throw error;
+    }
+    if (token !== this.token) {
+      // stopped or replaced while the source was starting (e.g. during the permission dialog)
+      source.stop();
+      return;
     }
     this.heartbeat = this.deps.setInterval(() => session.tick(), 1000);
   }
 
   stop(): void {
+    this.token++; // invalidates a start that is still waiting
     if (this.heartbeat !== null) this.deps.clearInterval(this.heartbeat);
     this.heartbeat = null;
     this.source?.stop();

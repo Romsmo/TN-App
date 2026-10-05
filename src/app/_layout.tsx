@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 
 import { DriveProvider } from '@/drive/drive-provider';
-import { defineDriveLocationTask } from '@/drive/location-source';
+import { defineDriveLocationTask } from '@/drive/location-backend';
 import { t } from '@/i18n';
 import { createNativeClient, credentialsStore, isOnWifi, maintenance } from '@/state/app-wiring';
 import { createAppDriveHost, setDriveService } from '@/state/drive-wiring';

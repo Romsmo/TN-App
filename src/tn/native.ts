@@ -6,7 +6,8 @@ import { libraryVersion, TrafficNetworkClient } from '@trafficnetwork/react-nati
 import { Directory, Paths } from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
 
-import { createSecureStore, type LibrarySecureStore } from './secure-store';
+import { CREDENTIALS_KEY } from './credentials';
+import { createSecureStore, keysToWipe, type LibrarySecureStore } from './secure-store';
 import type { RawClient } from './service';
 import type { ClientOptions } from './types';
 
@@ -20,7 +21,8 @@ export const secureStore: ReturnType<typeof createSecureStore> = createSecureSto
 
 /** Removes everything the library stored in the Keychain/Keystore (device credential and signing key). */
 export async function wipeLibrarySecrets(): Promise<void> {
-  for (const key of secureStore.keys()) {
+  // The access data the user typed (app key) is not part of the device identity and stays.
+  for (const key of keysToWipe(secureStore.keys(), [CREDENTIALS_KEY])) {
     await SecureStore.deleteItemAsync(key, { keychainService: KEYCHAIN_SERVICE });
   }
 }

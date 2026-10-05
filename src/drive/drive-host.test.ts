@@ -110,6 +110,34 @@ describe('DriveHost', () => {
     expect(timers).toHaveLength(0);
   });
 
+  it('does not leave a heartbeat behind when the drive is stopped while the source is still starting', async () => {
+    const { host, real, timers } = setup();
+    let finishStart: () => void = () => {};
+    real.start.mockImplementationOnce(() => new Promise<void>((resolve) => (finishStart = resolve)));
+    const starting = host.start('real');
+    host.stop(); // the user ends it during the permission dialog
+    finishStart();
+    await starting;
+    expect(timers).toHaveLength(0);
+    expect(real.stop).toHaveBeenCalled();
+    expect(host.isActive).toBe(false);
+  });
+
+  it('ignores positions of a start that was replaced, and a failing old start does not stop the new drive', async () => {
+    const { host, sessions, real, sim } = setup();
+    let failFirst: (e: Error) => void = () => {};
+    real.start.mockImplementationOnce(() => new Promise<void>((_, reject) => (failFirst = reject)));
+    const first = host.start('real');
+    const second = host.start('simulation');
+    await second;
+    failFirst(new Error('permission denied'));
+    await expect(first).rejects.toThrow('permission denied');
+    expect(host.isActive).toBe(true); // the second drive is still on
+    expect(sessions[1]!.stop).not.toHaveBeenCalled();
+    sim.push(fix);
+    expect(sessions[1]!.onFix).toHaveBeenCalledWith(fix);
+  });
+
   it('replaces a running drive when started again', async () => {
     const { host, sessions } = setup();
     await host.start('real');

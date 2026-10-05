@@ -55,3 +55,9 @@ export function createSecureStore(backend: SyncSecretBackend): LibrarySecureStor
     keys: readIndex,
   };
 }
+
+/** The Keychain keys a "reset device identity" removes: everything the library wrote, but none of the `keep` entries (e.g. the access data the user typed). */
+export function keysToWipe(allKeys: readonly string[], keep: readonly string[]): string[] {
+  const kept = new Set(keep.map(sanitizeKey));
+  return allKeys.filter((key) => key !== INDEX_KEY && !kept.has(key));
+}

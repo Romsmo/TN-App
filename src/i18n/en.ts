@@ -144,6 +144,7 @@ export const en: Record<TextKey, string> = {
   'map.listEmpty': 'No reports in this area.',
   'map.listRow': '{type}, {meters} m away, {count} confirmations',
   'info.components': 'Open-source components',
+  'settings.failed': 'That did not work. Please try again.',
   'settings.version': 'Version {version}',
   'settings.server': 'Connect to server',
   'settings.serverHint': 'Address, status and nodes',

@@ -55,6 +55,7 @@ export function SettingsScreen() {
   const policy = useCameraPolicy(tn.service, tn.dataVersion);
   const [confirm, setConfirm] = useState<'data' | 'identity' | null>(null);
   const [done, setDone] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const set = (patch: Partial<Settings>) => settingsStore.update(patch);
   const warnTypes = [...interimCatalog.types(), ...(settings.camerasEnabled ? ['cameras'] : [])];
@@ -68,14 +69,20 @@ export function SettingsScreen() {
   const runConfirmed = async () => {
     const what = confirm;
     setConfirm(null);
-    if (what === 'data') {
-      await tn.resetLocalData();
-      settingsStore.reset();
-    } else if (what === 'identity') {
-      await tn.resetDeviceIdentity();
-      set({ driveLockEnabled: true }); // after a reset the lock is on again, whatever it was
+    setDone(false);
+    setFailed(false);
+    try {
+      if (what === 'data') {
+        await tn.resetLocalData();
+        settingsStore.reset();
+      } else if (what === 'identity') {
+        await tn.resetDeviceIdentity();
+        set({ driveLockEnabled: true }); // after a reset the lock is on again, whatever it was
+      }
+      setDone(true);
+    } catch {
+      setFailed(true);
     }
-    setDone(true);
   };
 
   return (
@@ -137,6 +144,7 @@ export function SettingsScreen() {
         <Body secondary>{t('settings.resetIdentityHint')}</Body>
         <Button kind="plain" label={t('settings.resetIdentity')} onPress={() => setConfirm('identity')} />
         {done ? <Body secondary>{t('settings.done')}</Body> : null}
+        {failed ? <Body secondary>{t('settings.failed')}</Body> : null}
       </Section>
 
       <Text style={[styles.version, { color: theme.textSecondary }]}>{t('settings.version', { version: Constants.expoConfig?.version ?? '?' })}</Text>

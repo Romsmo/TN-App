@@ -338,6 +338,34 @@ describe('DriveSession one-tap report', () => {
   });
 });
 
+describe('DriveSession stale positions', () => {
+  it('does not report at an old position (GPS lost) or after the drive', async () => {
+    const { session, at, flush, submitReport, advance } = setup();
+    session.start();
+    session.onFix(at(100, 70));
+    await flush();
+    advance(20_000);
+    await expect(session.report('traffic')).resolves.toBe(false);
+    session.onFix(at(200, 70));
+    await flush();
+    await expect(session.report('traffic')).resolves.toBe(true);
+    session.stop();
+    await expect(session.report('traffic')).resolves.toBe(false);
+    expect(submitReport).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates the raw speed lock when a stale lock is released, also with the lock setting off', async () => {
+    const { session, at, flush, advance } = setup([], { settings: { lockEnabled: false } });
+    session.start();
+    session.onFix(at(0, 80));
+    await flush();
+    expect(session.getSnapshot().speedLocked).toBe(true);
+    advance(61_000);
+    session.tick();
+    expect(session.getSnapshot().speedLocked).toBe(false);
+  });
+});
+
 describe('DriveSession heading', () => {
   it('derives the heading from the movement when the receiver gives none', async () => {
     const { session, feedback, at, flush, advance } = setup([hazard(3000)]);

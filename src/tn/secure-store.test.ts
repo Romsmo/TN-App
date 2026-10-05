@@ -1,4 +1,4 @@
-import { createSecureStore, sanitizeKey, type SyncSecretBackend } from './secure-store';
+import { createSecureStore, keysToWipe, sanitizeKey, type SyncSecretBackend } from './secure-store';
 
 function memoryBackend(): SyncSecretBackend & { data: Map<string, string> } {
   const data = new Map<string, string>();
@@ -51,5 +51,19 @@ describe('secure store adapter', () => {
     const store = createSecureStore(backend);
     store.set('a', '1');
     expect(store.keys()).toEqual(['tn.a']);
+  });
+});
+
+describe('keysToWipe', () => {
+  it('removes what the library stored but keeps the access data the user typed', () => {
+    const store = createSecureStore(memoryBackend());
+    store.set('device_credential', 'x');
+    store.set('signing_key', 'y');
+    store.set('app_access', 'z');
+    expect(keysToWipe(store.keys(), ['app_access'])).toEqual(['tn.device_credential', 'tn.signing_key']);
+  });
+
+  it('never lists the index itself', () => {
+    expect(keysToWipe(['tn.index', 'tn.a'], [])).toEqual(['tn.a']);
   });
 });

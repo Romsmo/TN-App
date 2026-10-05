@@ -7,10 +7,14 @@ export interface DriveDataSource {
   speedLimit(lat: number, lng: number, heading: number | null): Promise<SpeedLimitAnswer | null>;
 }
 
-/** Local reads only: the library answers both from its store without touching the network. */
-export function libraryDataSource(service: TnService): DriveDataSource {
+/**
+ * Local reads only: the library answers both from its store without touching the network.
+ * The client is looked up at every call: it is rebuilt when server, access or camera settings change, and a drive
+ * that is on must not keep talking to a closed one.
+ */
+export function libraryDataSource(getService: () => TnService | null): DriveDataSource {
   return {
-    nearby: (lat, lng, radiusM) => service.getNearby(lat, lng, radiusM),
-    speedLimit: (lat, lng, heading) => service.getSpeedLimitAt(lat, lng, heading ?? undefined),
+    nearby: async (lat, lng, radiusM) => (await getService()?.getNearby(lat, lng, radiusM)) ?? [],
+    speedLimit: async (lat, lng, heading) => (await getService()?.getSpeedLimitAt(lat, lng, heading ?? undefined)) ?? null,
   };
 }

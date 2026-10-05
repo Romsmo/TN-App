@@ -142,6 +142,7 @@ export const de = {
   'map.listEmpty': 'Keine Meldungen in diesem Ausschnitt.',
   'map.listRow': '{type}, {meters} m entfernt, {count} Bestätigungen',
   'info.components': 'Open-Source-Komponenten',
+  'settings.failed': 'Das hat nicht geklappt. Bitte versuche es noch einmal.',
   'settings.version': 'Version {version}',
   'settings.server': 'Server verbinden',
   'settings.serverHint': 'Adresse, Status und Knoten',
