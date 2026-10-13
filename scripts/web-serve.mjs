@@ -2,6 +2,7 @@
 //   node scripts/web-serve.mjs dist-web [port] [subpath]
 // For local trials and the Playwright tests; not a deployment tool.
 import { createServer } from 'node:http';
+import { gzipSync } from 'node:zlib';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 
@@ -34,6 +35,10 @@ createServer((req, res) => {
   // like GitHub Pages: an unknown path answers with 404.html (which is the app)
   const found = existsSync(file);
   const target = found ? file : join(dist, '404.html');
-  res.writeHead(found ? 200 : 404, { 'content-type': TYPES[extname(target)] ?? 'application/octet-stream', 'cache-control': 'no-cache' });
-  res.end(readFileSync(target));
+  const type = TYPES[extname(target)] ?? 'application/octet-stream';
+  const body = readFileSync(target);
+  // like GitHub Pages: text and WebAssembly go out compressed to browsers that accept it
+  const compress = /gzip/.test(String(req.headers['accept-encoding'] ?? '')) && /^(text|application\/(json|manifest|wasm))/.test(type) && body.length > 1024;
+  res.writeHead(found ? 200 : 404, { 'content-type': type, 'cache-control': 'no-cache', ...(compress ? { 'content-encoding': 'gzip' } : {}) });
+  res.end(compress ? gzipSync(body) : body);
 }).listen(port, () => console.log(`http://localhost:${port}${sub}/`));
