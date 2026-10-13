@@ -171,8 +171,8 @@ function addLayers(map: MapLibreMap) {
   map.addLayer({ id: 'zones-line', type: 'line', source: 'zones', paint: { 'line-color': '#862E9C', 'line-width': 2, 'line-dasharray': [2, 2] } });
   map.addLayer({ id: 'signs-circle', type: 'circle', source: 'signs', paint: { 'circle-radius': 4, 'circle-color': '#495057', 'circle-stroke-width': 1, 'circle-stroke-color': '#FFFFFF' } });
   map.addLayer({ id: 'draft-ring', type: 'circle', source: 'draft', paint: { 'circle-radius': 14, 'circle-color': '#FFFFFF', 'circle-opacity': 0, 'circle-stroke-width': 4, 'circle-stroke-color': '#C92A2A' } });
-  map.addLayer({ id: 'hazards-circle', type: 'circle', source: 'hazards', paint: { 'circle-radius': 10, 'circle-color': hazardColorExpression() as never, 'circle-stroke-width': 2.5, 'circle-stroke-color': '#FFFFFF' } });
   map.addLayer({ id: 'me-dot', type: 'circle', source: 'me', paint: { 'circle-radius': 8, 'circle-color': '#0A84FF', 'circle-stroke-width': 3, 'circle-stroke-color': '#FFFFFF' } });
+  map.addLayer({ id: 'hazards-circle', type: 'circle', source: 'hazards', paint: { 'circle-radius': 10, 'circle-color': hazardColorExpression() as never, 'circle-stroke-width': 2.5, 'circle-stroke-color': '#FFFFFF' } });
 }
 
 const styles = StyleSheet.create({ box: { flex: 1 } });
