@@ -56,3 +56,12 @@ Nur, was wirklich offen ist.
 - Widgets
 - Apple Watch
 - Play-Store-Upload (Android wird gebaut und getestet, nicht hochgeladen)
+
+## Nachtrag E (2026-10-13): neue Funktionen und Web-Testapp
+
+Plan, Fakten und offene Fragen: `docs/web/v0-machbarkeit.md`. Stand: nur V0 (Machbarkeit); **kein Code, keine Veröffentlichung.**
+
+- [ ] P0 Umstieg auf client-lib 1.2.0 (Achtung: ohne Position lädt 1.2.0 keine Statikdaten)
+- [ ] Teil 1: Pfeil/Zentrieren, Ablaufzeit beim Melden, Tempolimit nachreichen, Offline-Bereich, neue Verfallszeiten, Datenschutz-Zuordnung, Tests
+- [ ] Web-Testapp V1–V5 (nach Entscheidung A/B, `main`, Pages, HTTPS-Weg)
+- [ ] Entscheidungen des Betreibers: siehe Abschnitt 10 in `docs/web/v0-machbarkeit.md`
