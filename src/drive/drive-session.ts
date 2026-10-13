@@ -42,6 +42,8 @@ export type DriveSnapshot = {
   /** The direction of travel in degrees from north (0..360), or null while it is not known. */
   heading: number | null;
   limit: { value: number; unit: SpeedUnit } | null;
+  /** There is no limit shown because the offline data does not cover this spot (not because none is on record). */
+  limitUnavailable: boolean;
   speedState: SpeedState;
   warnings: ActiveWarning[];
   prompt: Prompt | null;
@@ -81,6 +83,7 @@ const INITIAL: DriveSnapshot = {
   speedKmh: null,
   heading: null,
   limit: null,
+  limitUnavailable: false,
   speedState: 'ok',
   warnings: [],
   prompt: null,
@@ -260,9 +263,11 @@ export class DriveSession {
         const answer = await this.deps.data.speedLimit(fix.lat, fix.lng, fix.heading);
         if (!this.snap.active) return; // the drive ended while the answer was on its way
         const limit = answer ? { value: answer.value, unit: answer.unit } : null;
-        this.set({ limit, speedState: speedState(this.snap.speedKmh, limit) });
+        const unavailable = limit === null ? !(await this.deps.data.limitCovered(fix.lat, fix.lng)) : false;
+        if (!this.snap.active) return;
+        this.set({ limit, limitUnavailable: unavailable, speedState: speedState(this.snap.speedKmh, limit) });
       } catch {
-        // no limit shown rather than a wrong one
+        // no limit shown rather than a wrong one, and no claim about coverage that could not be read
       }
     }
   }

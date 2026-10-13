@@ -39,7 +39,7 @@ let mockPolicy: unknown = null;
 jest.mock('@/state/camera-policy', () => ({ useCameraPolicy: () => mockPolicy }));
 
 const snapshot = (over: Partial<DriveSnapshot> = {}): DriveSnapshot => ({
-  active: true, simulated: false, speedKmh: 50, heading: null, limit: null, speedState: 'ok', warnings: [], prompt: null, muted: false,
+  active: true, simulated: false, speedKmh: 50, heading: null, limit: null, limitUnavailable: false, speedState: 'ok', warnings: [], prompt: null, muted: false,
   locked: true, speedLocked: true, gpsLost: false, ...over,
 });
 

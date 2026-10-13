@@ -28,7 +28,7 @@ let mockPolicy: { active: boolean; maxLevel: 'off' | 'zones' | 'full' } | null =
 jest.mock('@/state/camera-policy', () => ({ useCameraPolicy: () => mockPolicy }));
 
 const running: DriveSnapshot = {
-  active: true, simulated: false, speedKmh: 62, heading: null, limit: { value: 50, unit: 'kmh' }, speedState: 'over', warnings: [], prompt: null,
+  active: true, simulated: false, speedKmh: 62, heading: null, limit: { value: 50, unit: 'kmh' }, limitUnavailable: false, speedState: 'over', warnings: [], prompt: null,
   muted: false, locked: true, speedLocked: true, gpsLost: false,
 };
 
@@ -262,5 +262,25 @@ describe('DriveView in the emergency mode', () => {
   it('shows no emergency chip normally', async () => {
     await render(<DriveView {...base} />);
     expect(screen.queryByText(/Emergency mode/)).toBeNull();
+  });
+});
+
+describe('DriveView outside the offline area', () => {
+  const base = {
+    snapshot: { ...running, limit: null, limitUnavailable: true }, unit: 'kmh' as const, lockEnabled: true, reportTypes: ['traffic'], toast: null,
+    onReport: jest.fn(), onAnswer: jest.fn(), onMute: jest.fn(), onStop: jest.fn(), onEnableLock: jest.fn(),
+  };
+
+  it('says calmly that the speed limit is not available here', async () => {
+    await render(<DriveView {...base} />);
+    expect(screen.getByText('Speed limit not available here')).toBeTruthy();
+    expect(screen.getByText('62')).toBeTruthy();
+  });
+
+  it('says nothing about it where the data covers the spot, or in the emergency mode (which has its own message)', async () => {
+    const { rerender } = await render(<DriveView {...base} snapshot={{ ...base.snapshot, limitUnavailable: false }} />);
+    expect(screen.queryByText(/not available here/)).toBeNull();
+    await rerender(<DriveView {...base} emergency />);
+    expect(screen.queryByText(/not available here/)).toBeNull();
   });
 });

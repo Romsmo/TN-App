@@ -20,6 +20,12 @@ describe('libraryDataSource', () => {
     await expect(source.speedLimit(1, 2, 90)).resolves.toBeNull();
   });
 
+  it('reads the coverage locally, and cannot answer without a client', async () => {
+    const service = { getCoverage: jest.fn().mockResolvedValue({ covered: false, tile: null, state: 'outside', usesNetwork: true }) } as unknown as TnService;
+    await expect(libraryDataSource(() => service).limitCovered(1, 2)).resolves.toBe(false);
+    await expect(libraryDataSource(() => null).limitCovered(1, 2)).rejects.toThrow();
+  });
+
   it('passes the heading on, and leaves it out when unknown', async () => {
     const service = { getNearby: jest.fn(), getSpeedLimitAt: jest.fn().mockResolvedValue(null) } as unknown as TnService;
     const source = libraryDataSource(() => service);

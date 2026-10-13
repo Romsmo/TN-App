@@ -160,6 +160,7 @@ export const en: Record<TextKey, string> = {
   'compass.5': 'SW',
   'compass.6': 'W',
   'compass.7': 'NW',
+  'drive.limitUnavailable': 'Speed limit not available here',
   'drive.heading': 'Heading {point}',
   'drive.noGps': 'No GPS signal',
   'drive.waiting': 'Waiting for position …',

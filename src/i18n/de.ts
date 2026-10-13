@@ -158,6 +158,7 @@ export const de = {
   'compass.5': 'SW',
   'compass.6': 'W',
   'compass.7': 'NW',
+  'drive.limitUnavailable': 'Tempolimit hier nicht verfügbar',
   'drive.heading': 'Fahrtrichtung {point}',
   'drive.noGps': 'Kein GPS-Signal',
   'drive.waiting': 'Warte auf Position …',

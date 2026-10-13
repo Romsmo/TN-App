@@ -78,6 +78,7 @@ export function createSimDataSource(route: Route, options: { camerasEnabled: boo
       items
         .map((item) => (item.kind === 'hazard' ? { ...item, distanceMeters: distanceMeters({ lat, lng }, item) } : item))
         .filter((item) => item.kind === 'cameraZone' || item.distanceMeters <= radiusM),
+    limitCovered: async () => true,
     speedLimit: async (lat, lng): Promise<SpeedLimitAnswer> => ({
       value: simLimitAt(distanceAlong(lat, lng)),
       unit: 'kmh',

@@ -26,13 +26,14 @@ function zone(entryM: number): NearbyItem {
 
 const limit = (value: number): SpeedLimitAnswer => ({ value, unit: 'kmh', segmentId: 's', segmentKey: null, distanceMeters: 0, origin: { kind: 'imported' }, importedValue: null });
 
-function setup(items: NearbyItem[] = [], opts: { limitValue?: number | null; settings?: Partial<DriveSettings> } = {}) {
+function setup(items: NearbyItem[] = [], opts: { limitValue?: number | null; covered?: boolean; settings?: Partial<DriveSettings> } = {}) {
   setLanguage('en');
   let now = 1_000_000;
   const feedback: jest.Mocked<Feedback> = { warn: jest.fn(), confirm: jest.fn(), prompt: jest.fn(), silence: jest.fn() };
   const data: DriveDataSource = {
     nearby: jest.fn(async () => items),
     speedLimit: jest.fn(async () => (opts.limitValue === null ? null : limit(opts.limitValue ?? 100))),
+    limitCovered: jest.fn(async () => opts.covered ?? true),
   };
   const submitReport = jest.fn(async () => true);
   const vote = jest.fn(async () => true);
@@ -92,7 +93,31 @@ describe('DriveSession basics', () => {
     session.onFix(at(0, 200));
     await flush();
     session.onFix(at(60, 200));
-    expect(session.getSnapshot()).toMatchObject({ limit: null, speedState: 'ok' });
+    expect(session.getSnapshot()).toMatchObject({ limit: null, limitUnavailable: false, speedState: 'ok' }); // covered: "no limit on record", not "not available"
+  });
+
+  it('says the limit is not available outside the offline area, never a silent "no limit"', async () => {
+    const { session, at, flush, data } = setup([], { limitValue: null, covered: false });
+    session.start();
+    session.onFix(at(0, 80));
+    await flush();
+    expect(session.getSnapshot()).toMatchObject({ limit: null, limitUnavailable: true });
+    expect(data.limitCovered).toHaveBeenCalled();
+  });
+
+  it('does not claim "not available" when the coverage cannot be read, and not where a limit is known', async () => {
+    const a = setup([], { limitValue: null });
+    (a.data.limitCovered as jest.Mock).mockRejectedValue(new Error('no client'));
+    a.session.start();
+    a.session.onFix(a.at(0, 80));
+    await a.flush();
+    expect(a.session.getSnapshot()).toMatchObject({ limit: null, limitUnavailable: false });
+    const b = setup([], { limitValue: 50, covered: false });
+    b.session.start();
+    b.session.onFix(b.at(0, 80));
+    await b.flush();
+    expect(b.session.getSnapshot()).toMatchObject({ limit: { value: 50 }, limitUnavailable: false });
+    expect(b.data.limitCovered).not.toHaveBeenCalled();
   });
 });
 
