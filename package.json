@@ -12,7 +12,11 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "check": "npm run lint && npm run typecheck && npm test",
-    "preview:web": "TN_PREVIEW=1 expo export --platform web --output-dir dist-preview"
+    "preview:web": "TN_PREVIEW=1 expo export --platform web --output-dir dist-preview",
+    "web:build": "node scripts/web-build.mjs",
+    "web:serve": "node scripts/web-serve.mjs dist-web",
+    "e2e:build": "node scripts/e2e-build.mjs",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
@@ -50,8 +54,12 @@
     "react-native-worklets": "^0.10.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.56.1",
     "@testing-library/react-native": "^14.0.1",
+    "@trafficnetwork/client-web": "https://github.com/Romsmo/Trafficnetwork/releases/download/client-lib-v1.2.0/trafficnetwork-client-web-1.2.0.tgz",
     "@types/jest": "^29.5.14",
+    "@types/node": "^22.20.5",
     "@types/react": "~19.2.2",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~57.0.2",

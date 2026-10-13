@@ -1,0 +1,61 @@
+name: web-pages
+
+# Builds TNViewer Web (the installable browser app) and publishes it with GitHub Pages.
+# Publishing happens only after a merge into main (made by a person) and needs Pages switched on in the repository settings
+# (Settings -> Pages -> Source: GitHub Actions) and `main` as the default branch.
+#
+# Configuration comes from repository VARIABLES (Settings -> Secrets and variables -> Actions -> Variables), not from the code:
+#   TN_WEB_NODE             the server the app starts with (default https://trafficnetwork.link)
+#   TN_WEB_APP_CLIENT_ID    the public app key (scope device-registration) of the test app, optional
+#   TN_WEB_APP_CLIENT_SECRET   ...and its secret. Both end up in the page: they are public by nature, use a key made for this.
+#   TN_NETWORK_ROOT_KEY     the network's root key (public), optional
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: web-pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build the web app
+        run: npm run web:build
+        env:
+          CI: "1"
+          EXPO_BASE_URL: /${{ github.event.repository.name }}
+          EXPO_PUBLIC_TN_DEFAULT_NODE: ${{ vars.TN_WEB_NODE || 'https://trafficnetwork.link' }}
+          EXPO_PUBLIC_TN_APP_CLIENT_ID: ${{ vars.TN_WEB_APP_CLIENT_ID }}
+          EXPO_PUBLIC_TN_APP_CLIENT_SECRET: ${{ vars.TN_WEB_APP_CLIENT_SECRET }}
+          EXPO_PUBLIC_TN_NETWORK_ROOT_KEY: ${{ vars.TN_NETWORK_ROOT_KEY }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

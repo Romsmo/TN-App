@@ -14,7 +14,7 @@ function plainStyle(background: string): StyleSpecification {
   return { version: 8, sources: {}, layers: [{ id: 'background', type: 'background', paint: { 'background-color': background } }] };
 }
 
-type Props = {
+export type MapViewProps = {
   data: MapData;
   background: string;
   showUserLocation: boolean;
@@ -31,7 +31,7 @@ type Props = {
  * The MapLibre map. Native code: this file is not covered by the unit tests, the data it draws is (map/geojson.ts).
  * Zones are drawn as areas only; there is deliberately no point layer for them.
  */
-export function MapView({ data, background, showUserLocation, onViewport, onSelectHazard, onMapPress, draft, cameraRef }: Props) {
+export function MapView({ data, background, showUserLocation, onViewport, onSelectHazard, onMapPress, draft, cameraRef }: MapViewProps) {
   const dark = useColorScheme() === 'dark';
   const styleUrl = (dark ? MAP_STYLE_URL_DARK : undefined) ?? MAP_STYLE_URL;
   return (

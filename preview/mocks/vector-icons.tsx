@@ -19,3 +19,4 @@ export function Ionicons({ name, size = 22, color = '#000' }: { name: string; si
   const code = GLYPHS[name];
   return <Text style={{ fontFamily: 'IoniconsInline', fontSize: size, color, lineHeight: size + 2 }}>{code ? String.fromCodePoint(code) : '?'}</Text>;
 }
+export default Ionicons;

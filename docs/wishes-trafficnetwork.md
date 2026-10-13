@@ -1,0 +1,7 @@
+# Wünsche an das Trafficnetwork-Repo (Lieferant; hier wird dort nichts geändert)
+
+Gefunden beim Bauen der Web-Testapp, mit der Bibliothek **client-web 1.2.0**. Weitergabe an die Instanz, die das Repo pflegt.
+
+1. **WebAssembly: Fehlerereignis des WebSocket stürzt in der Hülle ab.** Schlägt der WebSocket-Aufbau fehl (z. B. der Server antwortet auf `…/v1/ws` mit 404), wirft `__wbg_message_…` in `pkg/trafficnetwork_wasm.js` ein `TypeError: Cannot read properties of undefined (reading 'length')` (`passStringToWasm0` bekommt `undefined`, weil ein `ErrorEvent`/`Event` des WebSocket keine `message` hat). Der Fehler erscheint als unbehandelte Ausnahme im Browser; der Abgleich per HTTP läuft weiter. Erwartet: ein leerer String oder die Fehlerart statt `undefined`. Reproduktion: die Web-App gegen den Mock-Server `client-lib/conformance/mock-server.mjs` starten (der hat keinen WebSocket-Endpunkt).
+2. **WebAssembly: `using deprecated parameters for the initialization function; pass a single object instead`.** Bei jedem Start eine Browser-Warnung aus der wasm-bindgen-Hülle (`init(input)` statt `init({ module_or_path })`). Betrifft nur die Ausgabe in der Konsole.
+3. **Kein Wunsch, aber eine Feststellung:** `lastSyncedAtUnixMs` ist der Zeitpunkt des letzten *Versuchs*, nicht des letzten Erfolgs (gemessen offline, 1.1.0 und 1.2.0). Für „noch nie Daten geladen“ taugt `staticDataVersion == null`. Wenn das so gewollt ist, wäre ein Satz in `api.md` hilfreich; wenn nicht, wäre ein eigenes Feld (`lastSuccessAtUnixMs`) schöner.

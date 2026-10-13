@@ -33,3 +33,8 @@ jobs:
         run: npx expo export --platform android --platform ios --output-dir "$RUNNER_TEMP/export"
         env:
           CI: "1"
+      - name: The web app builds (as it is built for GitHub Pages)
+        run: npm run web:build
+        env:
+          CI: "1"
+          EXPO_BASE_URL: /TN-App
