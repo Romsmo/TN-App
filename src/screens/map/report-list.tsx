@@ -25,8 +25,8 @@ export function ReportList({ items, onSelect }: Props) {
         const meters = Math.round(item.distanceMeters);
         const kind = pointType(item);
         return (
+          <View key={item.id} role="listitem">
           <Pressable
-            key={item.id}
             accessibilityRole="button"
             accessibilityLabel={item.kind === 'hazard' ? t('map.listRow', { type: hazardLabel(kind), meters, count: item.confirmCount }) : t('map.listRowCamera', { type: hazardLabel(kind), meters })}
             onPress={() => onSelect(item.id)}
@@ -40,6 +40,7 @@ export function ReportList({ items, onSelect }: Props) {
             </View>
             <Icon name="chevron-forward" size={20} color={theme.textSecondary} />
           </Pressable>
+          </View>
         );
       })}
     </View>
