@@ -6,7 +6,8 @@ import { expect, test, type Page } from '@playwright/test';
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 async function audit(page: Page) {
-  const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+  // axe brings its own copy of the Playwright types; the page object is the same
+  const results = await new AxeBuilder({ page: page as never }).withTags(TAGS).analyze();
   return results.violations.map((v) => `${v.id} (${v.impact}): ${v.help} — ${v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(', ')}`);
 }
 
