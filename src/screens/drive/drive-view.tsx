@@ -23,6 +23,8 @@ type Props = {
   lockEnabled: boolean;
   /** The emergency mode: no data has ever been loaded, so there is no limit and no warning, only the speed. */
   emergency?: boolean;
+  /** The screen could not be kept on (a browser that lets go of the lock, or has none): say so, the drive needs the screen. */
+  screenMayDim?: boolean;
   reportTypes: readonly string[];
   /** Short feedback line after a report ("Gemeldet"), or null. */
   toast: string | null;
@@ -38,7 +40,7 @@ type Props = {
  * The drive-mode screen: only what is needed. Speed and limit, warnings ahead, one-tap reports, the "still there?" card.
  * Everything is large and high-contrast; there is no menu and no text input.
  */
-export function DriveView({ snapshot, unit, lockEnabled, emergency = false, reportTypes, toast, onReport, onAnswer, onMute, onStop, onEnableLock }: Props) {
+export function DriveView({ snapshot, unit, lockEnabled, emergency = false, screenMayDim = false, reportTypes, toast, onReport, onAnswer, onMute, onStop, onEnableLock }: Props) {
   const speed = displaySpeed(snapshot.speedKmh, unit);
   const limit = snapshot.limit ? displayLimit(snapshot.limit.value, snapshot.limit.unit, unit) : null;
   const over = snapshot.speedState === 'over';
@@ -58,6 +60,12 @@ export function DriveView({ snapshot, unit, lockEnabled, emergency = false, repo
           <View accessibilityRole="alert" style={[styles.chip, { backgroundColor: c.tint }]}>
             <Icon name="flask" size={16} color={c.onTint} />
             <Text style={[styles.chipText, { color: c.onTint }]}>{t('drive.simulated')}</Text>
+          </View>
+        ) : null}
+        {screenMayDim ? (
+          <View accessibilityRole="alert" style={[styles.chip, { backgroundColor: c.badge }]}>
+            <Icon name="sunny" size={16} color={c.text} />
+            <Text style={[styles.chipText, { color: c.text }]}>{t('drive.screenMayDim')}</Text>
           </View>
         ) : null}
         {emergency ? (

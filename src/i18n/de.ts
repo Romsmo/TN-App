@@ -133,6 +133,7 @@ export const de = {
   'drive.stop': 'Beenden',
   'drive.mute': 'Stumm',
   'drive.unmute': 'Ton an',
+  'drive.screenMayDim': 'Bildschirm bleibt nicht von selbst an',
   'drive.noGps': 'Kein GPS-Signal',
   'drive.waiting': 'Warte auf Position …',
   'drive.watching': 'Ich beobachte die Strecke voraus',
