@@ -8,6 +8,12 @@ async function openApp(page: Page) {
   await expect(TAB(page, 'Karte')).toBeVisible();
 }
 
+/** The install hint (phones) sits over the top of the map until it is dismissed; tests that use the map dismiss it first. */
+async function dismissInstallHint(page: Page) {
+  const later = page.getByRole('button', { name: 'Später' });
+  if (await later.isVisible()) await later.click();
+}
+
 test.describe('the installable web app', () => {
   test.beforeEach(async ({ context }) => {
     await context.grantPermissions(['geolocation']);
@@ -114,3 +120,42 @@ test.describe('install hint', () => {
     await expect(page.getByText(text)).toBeVisible();
   });
 });
+
+test.describe('the map', () => {
+  test.beforeEach(async ({ context }) => {
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 52.0, longitude: 13.0, accuracy: 10 });
+  });
+
+  test('draws a report the user makes, and opens its details on a tap', async ({ page }) => {
+    await openApp(page);
+    await dismissInstallHint(page);
+    await page.waitForFunction(() => Boolean((window as unknown as { __tnMap?: unknown }).__tnMap));
+    await page.getByRole('button', { name: 'Melden', exact: true }).click();
+    await expect(page.getByText('An deinem Standort')).toBeVisible({ timeout: 20_000 });
+    await page.getByRole('button', { name: 'Stau melden' }).click();
+    await expect(page.getByText(/Gespeichert/)).toBeVisible();
+
+    type Probe = { __tnMap: { queryRenderedFeatures(o: object): { properties: { type: string } }[]; project(c: [number, number]): { x: number; y: number }; getCanvas(): HTMLCanvasElement } };
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as Probe).__tnMap.queryRenderedFeatures({ layers: ['hazards-circle'] }).map((f) => f.properties.type)), { timeout: 20_000 })
+      .toContain('traffic');
+    const where = await page.evaluate(() => {
+      const map = (window as unknown as Probe).__tnMap;
+      const rect = map.getCanvas().getBoundingClientRect();
+      const p = map.project([13.0, 52.0]);
+      return { x: rect.left + p.x, y: rect.top + p.y };
+    });
+    await page.mouse.click(where.x, where.y);
+    await expect(page.getByRole('heading', { name: 'Stau' })).toBeVisible();
+  });
+
+  test('moves to the position of the device when it is known', async ({ page }) => {
+    await openApp(page);
+    await page.waitForFunction(() => Boolean((window as unknown as { __tnMap?: unknown }).__tnMap));
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { __tnMap: { getCenter(): { lat: number } } }).__tnMap.getCenter().lat), { timeout: 20_000 })
+      .toBeCloseTo(52.0, 1);
+  });
+});
+
