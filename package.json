@@ -76,6 +76,13 @@
     ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
-    }
+    },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/e2e/",
+      "/dist-web/",
+      "/dist-e2e/",
+      "/dist-preview/"
+    ]
   }
 }
