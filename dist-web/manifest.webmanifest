@@ -1,0 +1,37 @@
+{
+  "id": "/TN-App/",
+  "name": "TNViewer",
+  "short_name": "TNViewer",
+  "description": "Verkehrsmeldungen und Tempolimits des Trafficnetwork (Testversion)",
+  "lang": "de",
+  "start_url": "/TN-App/",
+  "scope": "/TN-App/",
+  "display": "standalone",
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
+  "orientation": "any",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "icons": [
+    {
+      "src": "/TN-App/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/TN-App/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/TN-App/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
