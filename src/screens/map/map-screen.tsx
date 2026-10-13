@@ -11,6 +11,8 @@ import { Button } from '@/components/ui';
 import { mapReportTypes } from '@/report/catalog';
 import { useCameraPolicy } from '@/state/camera-policy';
 import { pendingText, rejectedText } from '@/report/pending';
+import type { DurationChoice } from '@/report/duration';
+import { submitErrorText } from '@/report/messages';
 import { reportCameraGone, submitHazard, voteOnReport } from '@/report/submit';
 import { MAP_ATTRIBUTION, MAP_STYLE_URL } from '@/config';
 import { t } from '@/i18n';
@@ -159,15 +161,15 @@ export function MapScreen() {
   };
   const reportLocation: ReportLocation = draft ? { ...draft, source: 'map' } : position ? { lat: position.lat, lng: position.lng, source: 'device' } : null;
 
-  const pickType = async (type: string) => {
+  const pickType = async (type: string, choice: DurationChoice) => {
     if (!service || !reportLocation) return;
-    const outcome = await submitHazard(service, type, reportLocation);
+    const outcome = await submitHazard(service, type, reportLocation, choice);
     if (!outcome.ok) {
-      setReportMessage(t(`report.error.${outcome.reason}`));
+      setReportMessage(submitErrorText(outcome));
       return;
     }
     closeReport();
-    setNotice(t('report.saved'));
+    setNotice(outcome.durationHonoured === false ? t('report.savedDefaultDuration') : t('report.saved'));
     setLocalChanges((n) => n + 1);
     void tn.syncNow(); // sends right away when allowed; otherwise the pending note explains the wait
   };
@@ -300,7 +302,7 @@ export function MapScreen() {
               location={reportLocation}
               locating={locating}
               message={reportMessage}
-              onPick={(reportType) => void pickType(reportType)}
+              onPick={(reportType, choice) => void pickType(reportType, choice)}
               onCancel={closeReport}
             />
           ) : null}

@@ -106,3 +106,48 @@ describe('mapReportTypes: the speed camera is offered only where it is on and al
     expect(mapReportTypes(true, 'full')).toEqual([...interimCatalog.types(), 'fixedSpeedCamera', 'mobileSpeedCamera', 'trailerCamera', 'redLightCamera', 'distanceControl']);
   });
 });
+
+describe('duration choice', () => {
+  const limits = { supported: true, defaultSeconds: 7200, minSeconds: 600, maxSeconds: 86400 };
+  const withLimits = (extra: Record<string, jest.Mock>) => ({ ...(service({}) as object), ...extra }) as unknown as TnService;
+
+  it('sends no duration for "Standard" and never asks for limits', async () => {
+    const submit = jest.fn().mockResolvedValue('l1');
+    const getReportLimits = jest.fn();
+    const submitReportFor = jest.fn();
+    await submitHazard(withLimits({ submitReport: submit, getReportLimits, submitReportFor }), 'ice', { lat: 52.5, lng: 13.4 });
+    expect(submit).toHaveBeenCalledWith('ice', 52.5, 13.4);
+    expect(getReportLimits).not.toHaveBeenCalled();
+    expect(submitReportFor).not.toHaveBeenCalled();
+  });
+
+  it('sends a custom duration inside the announced limits and passes on whether the server honoured it', async () => {
+    const submitReportFor = jest.fn().mockResolvedValue({ localId: 'l2', durationHonoured: false });
+    const outcome = await submitHazard(withLimits({ getReportLimits: jest.fn().mockResolvedValue(limits), submitReportFor }), 'ice', { lat: 52.5, lng: 13.4 }, { kind: 'custom', seconds: 3600 });
+    expect(outcome).toEqual({ ok: true, localId: 'l2', durationHonoured: false });
+    expect(submitReportFor).toHaveBeenCalledWith('ice', 52.5, 13.4, { ttlSeconds: 3600 });
+  });
+
+  it.each([
+    [300, 'ttlOutOfRange'],
+    [200000, 'ttlOutOfRange'],
+  ])('refuses %d s without queueing anything', async (seconds, reason) => {
+    const submitReportFor = jest.fn();
+    const outcome = await submitHazard(withLimits({ getReportLimits: jest.fn().mockResolvedValue(limits), submitReportFor }), 'ice', { lat: 52.5, lng: 13.4 }, { kind: 'custom', seconds });
+    expect(outcome).toEqual({ ok: false, reason, minSeconds: 600, maxSeconds: 86400 });
+    expect(submitReportFor).not.toHaveBeenCalled();
+  });
+
+  it('does not guess before the first sync (limits unsupported) or when the limits cannot be read', async () => {
+    const submitReportFor = jest.fn();
+    const unsupported = { supported: false, defaultSeconds: null, minSeconds: null, maxSeconds: null };
+    await expect(submitHazard(withLimits({ getReportLimits: jest.fn().mockResolvedValue(unsupported), submitReportFor }), 'ice', { lat: 52.5, lng: 13.4 }, { kind: 'custom', seconds: 3600 })).resolves.toEqual({ ok: false, reason: 'ttlUnsupported' });
+    await expect(submitHazard(withLimits({ getReportLimits: jest.fn().mockRejectedValue(new TnError('network', 'x')), submitReportFor }), 'ice', { lat: 52.5, lng: 13.4 }, { kind: 'custom', seconds: 3600 })).resolves.toEqual({ ok: false, reason: 'ttlUnsupported' });
+    expect(submitReportFor).not.toHaveBeenCalled();
+  });
+
+  it('maps the library error ttlOutOfRange', async () => {
+    const outcome = await submitHazard(withLimits({ getReportLimits: jest.fn().mockResolvedValue(limits), submitReportFor: jest.fn().mockRejectedValue(new TnError('ttlOutOfRange', 'x')) }), 'ice', { lat: 52.5, lng: 13.4 }, { kind: 'custom', seconds: 3600 });
+    expect(outcome).toEqual({ ok: false, reason: 'ttlOutOfRange', minSeconds: null, maxSeconds: null });
+  });
+});

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon } from '@/components/icon';
@@ -8,6 +9,7 @@ import { hazardColor } from '@/map/colors';
 import { hazardIcon } from '@/map/hazard-icons';
 import { hazardLabel } from '@/map/hazard-labels';
 import { pointType, type PointItem } from '@/map/geojson';
+import { formatDuration, remainingSeconds } from '@/report/duration';
 import { elevation, radius, squircle, type, useTheme } from '@/theme';
 
 export type VoteState = 'idle' | 'saved' | 'failed';
@@ -22,11 +24,23 @@ type Props = {
   voteState?: VoteState;
 };
 
+/** The current time, refreshed once a minute while the card is shown (for the remaining lifetime). */
+function useMinuteClock(): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+  return now;
+}
+
 /** A bottom sheet with the details of one report: kind, how sure the community is, how long it stays. */
 export function DetailCard({ item, onClose, onVote, onRemoveCamera, voteState = 'idle' }: Props) {
   const theme = useTheme();
   const kind = pointType(item);
   const color = hazardColor(kind);
+  const now = useMinuteClock();
+  const left = item.kind === 'camera' ? null : remainingSeconds(item.expiresAt, now);
   return (
     <View accessibilityViewIsModal style={[styles.card, squircle, elevation(theme, 2), { backgroundColor: theme.surface }]}>
       <View style={[styles.grabber, { backgroundColor: theme.border }]} />
@@ -76,6 +90,7 @@ export function DetailCard({ item, onClose, onVote, onRemoveCamera, voteState = 
         </View>
       </View>
       {item.expiresAt ? <Text style={[type.caption, { color: theme.textSecondary }]}>{t('detail.validUntil', { time: formatDateTime(item.expiresAt) })}</Text> : null}
+      {left !== null ? <Text style={[type.caption, { color: theme.textSecondary }]}>{t('detail.remaining', { time: formatDuration(left) })}</Text> : null}
       <Text style={[type.caption, { color: theme.textSecondary }]}>{t('detail.distance', { meters: Math.round(item.distanceMeters) })}</Text>
       {item.pending ? <Text style={[type.caption, { color: theme.warn }]}>{t('detail.pending')}</Text> : null}
       {onVote && !item.pending ? (
