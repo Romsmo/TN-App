@@ -28,7 +28,7 @@ let mockPolicy: { active: boolean; maxLevel: 'off' | 'zones' | 'full' } | null =
 jest.mock('@/state/camera-policy', () => ({ useCameraPolicy: () => mockPolicy }));
 
 const running: DriveSnapshot = {
-  active: true, simulated: false, speedKmh: 62, limit: { value: 50, unit: 'kmh' }, speedState: 'over', warnings: [], prompt: null,
+  active: true, simulated: false, speedKmh: 62, heading: null, limit: { value: 50, unit: 'kmh' }, speedState: 'over', warnings: [], prompt: null,
   muted: false, locked: true, speedLocked: true, gpsLost: false,
 };
 
@@ -246,6 +246,17 @@ describe('DriveView in the emergency mode', () => {
     expect(screen.queryByText('Watching the road ahead')).toBeNull();
     expect(screen.getByText('62')).toBeTruthy();
     expect(screen.getByRole('button', { name: /Report Traffic jam/ })).toBeTruthy();
+  });
+
+  it('shows the direction of travel as a compass point, when it is known', async () => {
+    await render(<DriveView {...base} snapshot={{ ...running, heading: 92 }} />);
+    expect(screen.getByLabelText('Heading E')).toBeTruthy();
+    expect(screen.getByText('E')).toBeTruthy();
+  });
+
+  it('shows no compass while the heading is unknown', async () => {
+    await render(<DriveView {...base} snapshot={{ ...running, heading: null }} />);
+    expect(screen.queryByLabelText(/Heading/)).toBeNull();
   });
 
   it('shows no emergency chip normally', async () => {

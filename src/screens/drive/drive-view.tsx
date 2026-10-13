@@ -6,6 +6,7 @@ import { MIN_TOUCH } from '@/components/ui';
 import { drivePalette as c } from '@/drive/palette';
 import type { DriveSnapshot } from '@/drive/drive-session';
 import { displayLimit, displaySpeed, unitLabel } from '@/drive/units';
+import { cardinalIndex } from '@/drive/compass';
 import { t, type TextKey } from '@/i18n';
 import { isCameraType } from '@/map/camera-types';
 import { hazardColor } from '@/map/colors';
@@ -87,6 +88,8 @@ export function DriveView({ snapshot, unit, lockEnabled, emergency = false, scre
           </Pressable>
         ) : null}
       </View>
+
+      {snapshot.heading !== null ? <Compass heading={snapshot.heading} /> : null}
 
       <View style={styles.top}>
         <View accessible accessibilityLabel={`${speed ?? '—'} ${unitLabel(unit)}${over ? ', ' + t('drive.overLimit') : ''}`} style={styles.speedBox}>
@@ -183,6 +186,21 @@ export function DriveView({ snapshot, unit, lockEnabled, emergency = false, scre
   );
 }
 
+/** The direction of travel: an arrow that turns with the heading, and the point of the compass in words. */
+function Compass({ heading }: { heading: number }) {
+  const point = t(`compass.${cardinalIndex(heading)}` as TextKey);
+  return (
+    <View accessible accessibilityLabel={t('drive.heading', { point })} style={styles.compass}>
+      <View style={[styles.compassDisc, { backgroundColor: c.tile }]}>
+        <View style={{ transform: [{ rotate: `${Math.round(heading)}deg` }] }}>
+          <Icon name="arrow-up-circle" size={30} color={c.tint} />
+        </View>
+      </View>
+      <Text style={[styles.compassText, { color: c.textSecondary }]}>{point}</Text>
+    </View>
+  );
+}
+
 /** One report button. `short` is the camera panel: five kinds side by side need one-word labels (the spoken label stays full). */
 function ReportTile({ type, onPress, short = false }: { type: string; onPress: () => void; short?: boolean }) {
   const key = `drive.camera.${type}` as TextKey;
@@ -241,6 +259,9 @@ const styles = StyleSheet.create({
   prompt: { borderRadius: radius.lg, padding: 14, gap: 10 },
   promptTitle: { fontSize: 26, fontWeight: '800' },
   toast: { textAlign: 'center', fontSize: 20, fontWeight: '700', paddingVertical: 10, borderRadius: radius.md, overflow: 'hidden' },
+  compass: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 },
+  compassDisc: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  compassText: { fontSize: 18, fontWeight: '800' },
   panelTitle: { width: '100%', fontSize: 20, fontWeight: '800', paddingHorizontal: 4 },
   reports: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   tile: { flexGrow: 1, flexBasis: '45%', minHeight: DRIVE_TOUCH, borderRadius: radius.lg, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14 },

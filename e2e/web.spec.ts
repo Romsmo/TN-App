@@ -159,3 +159,58 @@ test.describe('the map', () => {
   });
 });
 
+test.describe('the arrow and "follows me"', () => {
+  type Probe = {
+    __tnMap: {
+      queryRenderedFeatures(o: object): { properties: Record<string, unknown> }[];
+      getCenter(): { lat: number; lng: number };
+      getCanvas(): HTMLCanvasElement;
+    };
+  };
+  test.beforeEach(async ({ context }) => {
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 52.0, longitude: 13.0, accuracy: 5 });
+  });
+
+  test('draws an arrow in the direction of travel (worked out from the positions) and an accuracy circle', async ({ page, context }) => {
+    await openApp(page);
+    await dismissInstallHint(page);
+    await page.waitForFunction(() => Boolean((window as unknown as { __tnMap?: unknown }).__tnMap));
+    // a first request for the position (the report button asks for permission and starts the live position)
+    await page.getByRole('button', { name: 'Auf mich zentrieren' }).click();
+    // 15 m per second to the east
+    for (let i = 1; i <= 6; i++) {
+      await context.setGeolocation({ latitude: 52.0, longitude: 13.0 + i * 0.00022, accuracy: 5 });
+      await page.waitForTimeout(1100);
+    }
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as Probe).__tnMap.queryRenderedFeatures({ layers: ['me-arrow'] })[0]?.properties.heading), { timeout: 15_000 })
+      .toBeGreaterThan(80);
+    const heading = await page.evaluate(() => Number((window as unknown as Probe).__tnMap.queryRenderedFeatures({ layers: ['me-arrow'] })[0]?.properties.heading));
+    expect(heading).toBeLessThan(100);
+    expect(await page.evaluate(() => (window as unknown as Probe).__tnMap.queryRenderedFeatures({ layers: ['me-accuracy'] }).length)).toBeGreaterThan(0);
+  });
+
+  test('cycles centre, follow, off; follows the position while on; a finger on the map ends it', async ({ page, context }) => {
+    await openApp(page);
+    await dismissInstallHint(page);
+    await page.waitForFunction(() => Boolean((window as unknown as { __tnMap?: unknown }).__tnMap));
+    const centre = () => page.evaluate(() => (window as unknown as Probe).__tnMap.getCenter());
+    await page.getByRole('button', { name: 'Auf mich zentrieren' }).click(); // first press: permission, then centred
+    await expect(page.getByRole('button', { name: 'Zentriert, tippen zum Folgen' })).toBeVisible();
+    await page.getByRole('button', { name: 'Zentriert, tippen zum Folgen' }).click();
+    await expect(page.getByRole('button', { name: 'Folgt dir, tippen zum Beenden' })).toBeVisible();
+
+    await context.setGeolocation({ latitude: 52.003, longitude: 13.003, accuracy: 5 });
+    await expect.poll(async () => (await centre()).lat, { timeout: 15_000 }).toBeCloseTo(52.003, 3);
+
+    // a finger on the map: drag
+    const box = (await page.locator('[role="application"]').boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2 + 60, { steps: 8 });
+    await page.mouse.up();
+    await expect(page.getByRole('button', { name: 'Auf mich zentrieren' })).toBeVisible();
+  });
+});
+
