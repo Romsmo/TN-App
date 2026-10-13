@@ -49,3 +49,15 @@ Regeln für die Arbeit an der App stehen in [`CLAUDE.md`](CLAUDE.md), offene Pun
 - [`docs/store-risks.md`](docs/store-risks.md) — Risiken und Empfehlungen vor der Einreichung; [`docs/review-notes.md`](docs/review-notes.md) — Standort-Begründung und Hinweise für den Prüfer; [`docs/store-listing.md`](docs/store-listing.md) — Store-Texte
 - [`docs/map-sources.md`](docs/map-sources.md) — Kartenquelle; [`.maestro/`](.maestro/README.md) — Ende-zu-Ende-Abläufe (nicht ausgeführt)
 - Build-Schalter: `EXPO_PUBLIC_ALLOW_DISABLE_DRIVE_LOCK=false` (Fahrsperre immer an), `EXPO_PUBLIC_MAP_STYLE_URL` (Kartenstil), `EXPO_PUBLIC_MAP_STYLE_URL_DARK` (optional, Kartenstil für den Dunkelmodus), `EXPO_PUBLIC_TN_NETWORK_ROOT_KEY` (Wurzelschlüssel des Netzwerks)
+
+## TNViewer Web (Testversion im Browser)
+
+Dieselbe App als installierbare Web-App („PWA“), für den schnellen Probelauf auf dem Handy ohne Store und ohne Build-Dienst. Sie benutzt die Client-Bibliothek 1.2.0 als WebAssembly und kein anderes Verbindungs-Gerüst. Grenzen des Browsers: `docs/web-limits.md`; Gerätetest und Messwerte: `docs/web-geraetetest.md`; Plan und Entscheidungen: `docs/web/v0-machbarkeit.md`.
+
+```bash
+npm run web:build         # Expo-Export + PWA-Teile nach dist-web/ (EXPO_BASE_URL=/TN-App für GitHub Pages)
+npm run web:serve         # dist-web/ unter http://localhost:4173/TN-App/
+npm run e2e:build && npm run e2e   # Browser-Tests (Playwright) gegen den Mock-Server der Bibliothek (TRAFFICNETWORK_DIR)
+```
+
+Die Veröffentlichung läuft über `.github/workflows/web-pages.yml` (nur nach einem Merge nach `main`; Pages in den Repo-Einstellungen auf „GitHub Actions“ stellen). Einstellungen des Builds als **Repository-Variablen**: `TN_WEB_NODE` (Standard `https://trafficnetwork.link`), `TN_WEB_APP_CLIENT_ID` und `TN_WEB_APP_CLIENT_SECRET` (der öffentliche App-Schlüssel für die offene Registrierung, siehe `docs/web-limits.md`), `TN_NETWORK_ROOT_KEY`.
