@@ -75,6 +75,12 @@ export function DriveView({ snapshot, unit, lockEnabled, emergency = false, scre
             <Text style={[styles.chipText, { color: c.text }]}>{t('emergency.driveChip')}</Text>
           </View>
         ) : null}
+        {snapshot.limitUnavailable && !emergency ? (
+          <View accessibilityRole="alert" style={[styles.chip, { backgroundColor: c.badge }]}>
+            <Icon name="cloud-offline" size={16} color={c.text} />
+            <Text style={[styles.chipText, { color: c.text }]}>{t('drive.limitUnavailable')}</Text>
+          </View>
+        ) : null}
         {snapshot.gpsLost ? (
           <View accessibilityRole="alert" style={[styles.chip, { backgroundColor: c.badge }]}>
             <Icon name="cellular" size={16} color={c.text} />

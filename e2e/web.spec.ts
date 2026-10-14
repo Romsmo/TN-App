@@ -214,3 +214,75 @@ test.describe('the arrow and "follows me"', () => {
   });
 });
 
+
+test.describe('speed limit and offline data', () => {
+  type Probe = { __tnMap: { jumpTo(o: object): void; project(c: [number, number]): { x: number; y: number }; getCanvas(): HTMLCanvasElement } };
+  test.beforeEach(async ({ context }) => {
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 52.0, longitude: 13.0, accuracy: 10 });
+  });
+
+  async function tapAt(page: Page, lng: number, lat: number) {
+    const where = await page.evaluate(
+      ([x, y]: [number, number]) => {
+        const map = (window as unknown as Probe).__tnMap;
+        map.jumpTo({ center: [x, y], zoom: 14 });
+        return null;
+      },
+      [lng, lat] as [number, number],
+    );
+    expect(where).toBeNull();
+    await page.waitForTimeout(500);
+    const point = await page.evaluate(
+      ([x, y]: [number, number]) => {
+        const map = (window as unknown as Probe).__tnMap;
+        const rect = map.getCanvas().getBoundingClientRect();
+        const p = map.project([x, y]);
+        return { x: rect.left + p.x, y: rect.top + p.y };
+      },
+      [lng, lat] as [number, number],
+    );
+    await page.mouse.click(point.x, point.y);
+  }
+
+  test('shows the limit of a tapped road from the offline data, and lets a stationary user correct it', async ({ page }) => {
+    await openApp(page);
+    await dismissInstallHint(page);
+    await page.waitForFunction(() => Boolean((window as unknown as { __tnMap?: unknown }).__tnMap));
+    await expect(page.getByRole('heading', { name: 'Notmodus' })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Tempolimit', exact: true }).click();
+    await expect(page.getByText(/Tippe auf eine Straße/)).toBeVisible();
+    await tapAt(page, 13.005, 52.0);
+    await expect(page.getByLabel('Tempolimit 50 km/h')).toBeVisible({ timeout: 20_000 });
+    await page.getByRole('button', { name: 'Stimmt nicht?' }).click();
+    await expect(page.getByText('Nur eintragen, was die Beschilderung vor Ort zeigt.')).toBeVisible();
+  });
+
+  test('outside the offline area it asks the server (and the exact coordinate is what goes out)', async ({ page }) => {
+    const asked: string[] = [];
+    page.on('request', (r) => {
+      if (r.url().includes('/v1/speed-limit?')) asked.push(new URL(r.url()).search);
+    });
+    await openApp(page);
+    await dismissInstallHint(page);
+    await page.waitForFunction(() => Boolean((window as unknown as { __tnMap?: unknown }).__tnMap));
+    await expect(page.getByRole('heading', { name: 'Notmodus' })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Tempolimit', exact: true }).click();
+    await tapAt(page, 10.0, 45.0);
+    await expect(page.getByLabel('Tempolimit 80 km/h')).toBeVisible({ timeout: 20_000 });
+    expect(asked.length).toBeGreaterThan(0);
+    expect(asked[0]).toMatch(/lat=45(\.\d+)?&lng=10(\.\d+)?/);
+  });
+
+  test('the offline data screen lists the regions with their size and the note about online-only', async ({ page }) => {
+    await openApp(page);
+    await dismissInstallHint(page);
+    await expect(page.getByRole('heading', { name: 'Notmodus' })).toHaveCount(0);
+    await TAB(page, 'Einstellungen').click();
+    await page.getByRole('link', { name: /Offline-Daten/ }).click();
+    await expect(page.getByText('Automatisch', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(/Belegt auf diesem Gerät/)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Außerhalb des Offline-Bereichs gibt es Tempolimits nur online/)).toBeVisible();
+    await expect(page.getByText('Deutschland').first()).toBeVisible({ timeout: 20_000 });
+  });
+});

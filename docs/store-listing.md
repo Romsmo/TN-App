@@ -19,8 +19,9 @@ TNViewer zeigt dir Verkehrsmeldungen aus dem offenen Trafficnetwork: Gefahren, B
 
 KARTE UND MELDEN
 • Meldungen in deiner Umgebung auf der Karte oder als Liste, mit Filter nach Art
-• Eine Gefahr an deinem Standort oder an einer markierten Stelle melden, andere Meldungen bestätigen oder widerlegen
-• Funktioniert auch offline: die Daten liegen auf deinem Gerät, Meldungen werden nachgereicht
+• Eine Gefahr an deinem Standort oder an einer markierten Stelle melden, auf Wunsch mit eigener Gültigkeitsdauer, andere Meldungen bestätigen oder widerlegen
+• Tempolimit einer Straße ansehen und nachreichen oder korrigieren (nur im Stand)
+• Funktioniert auch offline: die Daten liegen auf deinem Gerät, Meldungen werden nachgereicht; den Offline-Bereich wählst du selbst (Einstellungen → Offline-Daten). Außerhalb davon gibt es Tempolimits nur online
 
 FAHRMODUS
 • Große, ruhige Anzeige: aktuelle Geschwindigkeit und geltendes Tempolimit
@@ -31,7 +32,7 @@ FAHRMODUS
 
 DATENSCHUTZ
 • Kein Konto, keine Werbung, keine Analyse
-• Dein Standort verlässt das Gerät nur grob (Kartenzellen) — genau nur für eine Meldung, die du selbst absetzt
+• Dein Standort verlässt das Gerät nur grob (Kartenzellen) — genau nur für eine Meldung oder einen Tempolimit-Vorschlag, die du selbst absetzt, und für die Abfrage einer Straße, auf die du außerhalb des Offline-Bereichs tippst
 • Server kann jeder betreiben; du kannst einen eigenen Server eintragen
 
 BLITZER-WARNUNGEN
@@ -45,8 +46,9 @@ TNViewer shows traffic reports from the open Trafficnetwork: hazards, roadworks,
 
 MAP AND REPORTING
 • Reports around you on a map or as a list, filtered by type
-• Report a hazard at your location or at a marked spot; confirm or deny other reports
-• Works offline: the data is on your device, reports are sent later
+• Report a hazard at your location or at a marked spot, optionally with your own duration; confirm or deny other reports
+• Look up a road's speed limit and submit or correct it (only while standing)
+• Works offline: the data is on your device, reports are sent later; you choose the offline area yourself (Settings → Offline data). Outside it, speed limits are available online only
 
 DRIVE MODE
 • A large, calm display: current speed and the speed limit
@@ -57,7 +59,7 @@ DRIVE MODE
 
 PRIVACY
 • No account, no ads, no analytics
-• Your location leaves the device only roughly (map cells) — exactly only for a report you submit yourself
+• Your location leaves the device only roughly (map cells) — exactly only for a report or a speed-limit proposal you submit yourself, and for the lookup of a road you tap outside the offline area
 • Anyone can run a server; you can enter your own server
 
 SPEED-CAMERA WARNINGS

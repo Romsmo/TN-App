@@ -19,6 +19,8 @@ import { t } from '@/i18n';
 import { isTypeHidden } from '@/map/camera-types';
 import { afterUserMove, CENTER_ZOOM, nextFollowMode, shouldMoveWithPosition, type FollowMode } from '@/map/follow-mode';
 import { hazardTypesIn, toMapData, type PointItem } from '@/map/geojson';
+import { useLockActive } from '@/drive/drive-provider';
+import { entryLocked, type Spot } from '@/limits/speed-limit';
 import { settingsStore, useSettings } from '@/settings';
 import { useTn, type TnState } from '@/state/tn-provider';
 import { elevation, radius, squircle, TAB_BAR_CLEARANCE, type, useTheme } from '@/theme';
@@ -28,6 +30,7 @@ import { FilterBar } from './filter-bar';
 import { MapView } from './map-view';
 import { ReportList } from './report-list';
 import { ReportSheet, type ReportLocation } from './report-sheet';
+import { SpeedLimitCard } from './speed-limit-card';
 import { useDevicePosition } from './use-device-position';
 import { useNearby, type Viewport } from './use-nearby';
 
@@ -57,7 +60,8 @@ export function MapScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const tn = useTn();
-  const { hiddenHazardTypes, camerasEnabled } = useSettings();
+  const { hiddenHazardTypes, camerasEnabled, speedUnit, driveLockEnabled } = useSettings();
+  const lockActive = useLockActive();
   const policy = useCameraPolicy(tn.service, tn.dataVersion);
   const cameraRef = useRef<CameraRef | null>(null);
 
@@ -69,6 +73,9 @@ export function MapScreen() {
   const [followMode, setFollowMode] = useState<FollowMode>('off');
   const focused = useIsFocused();
   const [reporting, setReporting] = useState(false);
+  // "Speed limit" mode: tap a road to see its limit, or add or correct it (only when not driving).
+  const [limitMode, setLimitMode] = useState(false);
+  const [limitSpot, setLimitSpot] = useState<Spot | null>(null);
   const [locating, setLocating] = useState(false);
   const [draft, setDraft] = useState<Position | null>(null);
   const [reportMessage, setReportMessage] = useState<string | null>(null);
@@ -93,7 +100,7 @@ export function MapScreen() {
   const service = tn.service;
   // The live position (arrow, "follows me") once the first position is known; until then the one from the first request.
   const live = useDevicePosition(located && focused);
-  const position = useMemo(() => live ?? (devicePosition ? { ...devicePosition, heading: null, accuracy: null } : null), [live, devicePosition]);
+  const position = useMemo(() => live ?? (devicePosition ? { ...devicePosition, heading: null, accuracy: null, speedKmh: null } : null), [live, devicePosition]);
   const moveTo = (position: Position) => {
     setLocated(true);
     setDevicePosition(position);
@@ -141,7 +148,22 @@ export function MapScreen() {
     if (next !== 'off') cameraRef.current?.flyTo({ center: [position.lng, position.lat], zoom: CENTER_ZOOM, duration: 600 });
   };
 
+  const openLimit = () => {
+    setReporting(false);
+    setDraft(null);
+    setSelectedId(null);
+    setNotice(null);
+    setLimitSpot(null);
+    setLimitMode(true);
+  };
+  const closeLimit = () => {
+    setLimitMode(false);
+    setLimitSpot(null);
+  };
+  const limitLocked = entryLocked({ lockActive, lockEnabled: driveLockEnabled, deviceSpeedKmh: position?.speedKmh ?? null });
+
   const openReport = () => {
+    closeLimit();
     setReporting(true);
     setSelectedId(null);
     setReportMessage(null);
@@ -196,6 +218,7 @@ export function MapScreen() {
 
   const onMapPress = (position: Position) => {
     if (reporting) setDraft(position);
+    else if (limitMode) setLimitSpot(position);
     else setSelectedId(null);
   };
 
@@ -217,7 +240,7 @@ export function MapScreen() {
   if (!MAP_STYLE_URL) notes.push({ key: 'nomap', text: t('map.noBackground'), icon: 'map-outline' });
 
   const detail =
-    selected && !reporting ? (
+    selected && !reporting && !limitMode ? (
       <DetailCard
         item={selected}
         onClose={() => setSelectedId(null)}
@@ -238,10 +261,10 @@ export function MapScreen() {
           onUserMove={() => setFollowMode(afterUserMove)}
           onViewport={setViewport}
           onSelectHazard={(id) => {
-            if (!reporting) setSelectedId(id);
+            if (!reporting && !limitMode) setSelectedId(id);
           }}
           onMapPress={onMapPress}
-          draft={reporting ? draft : null}
+          draft={reporting ? draft : limitMode ? limitSpot : null}
           cameraRef={cameraRef}
         />
       </View>
@@ -272,7 +295,7 @@ export function MapScreen() {
         </View>
 
         <View pointerEvents="box-none" style={styles.bottom}>
-          {!reporting ? (
+          {!reporting && !limitMode ? (
             <View style={styles.fabs}>
               <Pressable
                 accessibilityRole="button"
@@ -289,6 +312,9 @@ export function MapScreen() {
                 style={[styles.fabRound, elevation(theme, 2), { backgroundColor: followMode === 'follow' ? theme.tint : theme.surface }]}>
                 <Icon name={followMode === 'off' ? 'locate-outline' : followMode === 'centered' ? 'locate' : 'navigate'} size={24} color={followMode === 'follow' ? theme.onTint : theme.tint} />
               </Pressable>
+              <Pressable accessibilityRole="button" accessibilityLabel={t('limit.fab')} onPress={openLimit} style={[styles.fabRound, elevation(theme, 2), { backgroundColor: theme.surface }]}>
+                <Icon name="speedometer" size={24} color={theme.tint} />
+              </Pressable>
               <Pressable accessibilityRole="button" accessibilityLabel={t('report.open')} onPress={openReport} style={[styles.fabReport, elevation(theme, 2), { backgroundColor: theme.tint }]}>
                 <Icon name="add" size={26} color={theme.onTint} />
                 <Text style={[styles.fabReportText, { color: theme.onTint }]}>{t('report.open')}</Text>
@@ -296,6 +322,20 @@ export function MapScreen() {
             </View>
           ) : null}
           {detail}
+          {limitMode ? (
+            <SpeedLimitCard
+              key={limitSpot ? `${limitSpot.lat},${limitSpot.lng}` : 'none'}
+              service={service}
+              spot={limitSpot}
+              unit={speedUnit}
+              locked={limitLocked}
+              onSaved={() => {
+                setLocalChanges((n) => n + 1);
+                void tn.syncNow();
+              }}
+              onClose={closeLimit}
+            />
+          ) : null}
           {reporting ? (
             <ReportSheet
               types={mapReportTypes(camerasEnabled && policy?.active === true, policy?.maxLevel ?? null)}

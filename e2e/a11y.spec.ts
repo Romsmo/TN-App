@@ -48,7 +48,7 @@ test('the settings', async ({ page }) => {
 
 for (const [link, heading] of [
   ['Server verbinden', 'Server verbinden'],
-  ['Datenpakete', 'Datenpakete'],
+  ['Offline-Daten', 'Offline-Daten'],
   ['Quellen und Lizenzen', 'Quellen und Lizenzen'],
 ] as const) {
   test(`the screen "${link}"`, async ({ page }) => {
