@@ -22,6 +22,7 @@ if (process.env.TN_PREVIEW === '1') {
     'expo-haptics': 'haptics',
     'expo-network': 'network',
     '@expo/vector-icons': 'vector-icons',
+    '@expo/vector-icons/Ionicons': 'vector-icons',
     'expo-blur': 'blur',
   };
   const original = config.resolver.resolveRequest;

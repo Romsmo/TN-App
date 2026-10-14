@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Animated, Image, StyleSheet, useColorScheme, View } from 'react-native';
+import { Animated, Image, Platform, StyleSheet, useColorScheme, View } from 'react-native';
 
 /** The overlay uses the splash colours of app.json (white / black), not the app's grouped background, so nothing jumps. */
 /** Same size as the native splash image (app.json, `imageWidth`), so the hand-over from the system splash is seamless. */
@@ -40,7 +40,7 @@ export function StartupGate({ ready, minMs = 900, maxMs = 3000, children }: Prop
 
   useEffect(() => {
     if (!done) return;
-    Animated.timing(opacity, { toValue: 0, duration: FADE_MS, useNativeDriver: true }).start(() => setGone(true));
+    Animated.timing(opacity, { toValue: 0, duration: FADE_MS, useNativeDriver: Platform.OS !== 'web' }).start(() => setGone(true));
   }, [done, opacity]);
 
   return (

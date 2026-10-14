@@ -13,11 +13,25 @@ const jobs = [
   ['splash.svg', 'splash-icon.png', true],
   ['splash-dark.svg', 'splash-icon-dark.png', true],
 ];
+// the browser app: [source, file in assets/pwa/, pixel size]
+const pwa = [
+  ['icon.svg', 'icon-192.png', 192],
+  ['icon.svg', 'icon-512.png', 512],
+  ['icon.svg', 'icon-maskable-512.png', 512], // the logo sits well inside the 80 % safe zone, so the same artwork serves
+  ['icon.svg', 'apple-touch-icon-180.png', 180],
+  ['icon.svg', 'favicon-32.png', 32],
+];
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 const page = await browser.newPage({ viewport: { width: 1024, height: 1024 } });
 for (const [from, to, transparent] of jobs) {
   const svg = readFileSync(new URL(`../assets/icon-src/${from}`, import.meta.url), 'utf8');
   await page.setContent(`<html><body style="margin:0;background:transparent">${svg}</body></html>`);
   await page.screenshot({ path: new URL(`../assets/images/${to}`, import.meta.url).pathname, omitBackground: transparent });
+}
+for (const [from, to, size] of pwa) {
+  const svg = readFileSync(new URL(`../assets/icon-src/${from}`, import.meta.url), 'utf8').replace('width="1024" height="1024"', `width="${size}" height="${size}"`);
+  await page.setViewportSize({ width: size, height: size });
+  await page.setContent(`<html><body style="margin:0">${svg}</body></html>`);
+  await page.screenshot({ path: new URL(`../assets/pwa/${to}`, import.meta.url).pathname });
 }
 await browser.close();

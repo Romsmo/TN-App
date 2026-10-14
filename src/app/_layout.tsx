@@ -12,6 +12,7 @@ import { t } from '@/i18n';
 import { createNativeClient, credentialsStore, isOnWifi, maintenance } from '@/state/app-wiring';
 import { createAppDriveHost, setDriveService } from '@/state/drive-wiring';
 import { TnProvider, useTn } from '@/state/tn-provider';
+import { WebShell } from '@/web/web-shell';
 import { elevation, radius, squircle, useTheme } from '@/theme';
 
 // The OS may wake the app for a location update: the task has to exist before any screen does.
@@ -120,8 +121,10 @@ function Tabbed() {
 
 export default function RootLayout() {
   return (
-    <TnProvider createClient={createNativeClient} credentialsStore={credentialsStore} isOnWifi={isOnWifi} maintenance={maintenance}>
-      <Tabbed />
-    </TnProvider>
+    <WebShell>
+      <TnProvider createClient={createNativeClient} credentialsStore={credentialsStore} isOnWifi={isOnWifi} maintenance={maintenance}>
+        <Tabbed />
+      </TnProvider>
+    </WebShell>
   );
 }

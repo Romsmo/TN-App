@@ -9,6 +9,23 @@ export const TN_DOMAIN = 'trafficnetwork.info';
 /** Where a fresh install starts looking for servers (discovery). */
 export const SEED_SERVERS: readonly string[] = [`https://seed1.${TN_DOMAIN}`, `https://seed2.${TN_DOMAIN}`];
 
+/**
+ * A server the app tries first, besides the discovery from the seeds. Set by the build (`EXPO_PUBLIC_TN_DEFAULT_NODE`);
+ * the web test app uses it to find the operator's server. The user can still enter another address under "Server verbinden".
+ */
+export const DEFAULT_NODE: string | undefined = process.env.EXPO_PUBLIC_TN_DEFAULT_NODE || undefined;
+
+/**
+ * An app key of the network (scope `device-registration`) that lets a fresh install register itself, for builds that are
+ * open to everyone (the web test app). **It is public by nature:** it ends up in the bundle and anyone can read it, so it
+ * must be an app key of its own with the server's per-key daily cap (`DEVICE_REGISTRATION_RATE_LIMIT_MAX_PER_DAY`), never
+ * a personal credential. It is given to the build as a CI variable, never committed.
+ */
+export const PUBLIC_APP_KEY: { id: string; secret: string } | undefined =
+  process.env.EXPO_PUBLIC_TN_APP_CLIENT_ID && process.env.EXPO_PUBLIC_TN_APP_CLIENT_SECRET
+    ? { id: process.env.EXPO_PUBLIC_TN_APP_CLIENT_ID, secret: process.env.EXPO_PUBLIC_TN_APP_CLIENT_SECRET }
+    : undefined;
+
 /** Root key of the network (base64url public key). Without it a signed network configuration is ignored by the library. */
 export const NETWORK_ROOT_KEY: string | undefined = process.env.EXPO_PUBLIC_TN_NETWORK_ROOT_KEY || undefined;
 
