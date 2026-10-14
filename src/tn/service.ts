@@ -2,11 +2,23 @@ import type {
   ApiErrorCode,
   BootstrapPlan,
   CameraPolicy,
+  CorrectionReasonCode,
+  Coverage,
   NearbyCategory,
   NearbyItem,
   NetworkStatus,
+  OfflineMode,
+  OfflineRegion,
+  OfflineSettings,
   PositionUpdate,
+  Proposal,
+  ReportLimits,
   SpeedLimitAnswer,
+  SpeedLimitLookup,
+  SpeedUnit,
+  StoragePlan,
+  StorageUsage,
+  SubmittedReport,
   SyncReport,
   SyncStatus,
   TickResult,
@@ -98,7 +110,65 @@ export class TnService {
 
   /** Stores a report locally (queue) and returns its local id; it is sent with the next sync. */
   async submitReport(type: string, lat: number, lng: number, speedKmh?: number): Promise<string> {
-    return (await this.call<{ localId: string }>('submitReport', { type, lat, lng, speedKmh })).localId;
+    return (await this.submitReportFor(type, lat, lng, { speedKmh })).localId;
+  }
+
+  /**
+   * The same with a duration the reporter chose (`ttlSeconds`, within `getReportLimits`; 1.2.0). Out of range is
+   * `ttlOutOfRange` and nothing is queued. `durationHonoured: false` means the server ignored the request.
+   */
+  submitReportFor(type: string, lat: number, lng: number, extra: { speedKmh?: number; ttlSeconds?: number } = {}): Promise<SubmittedReport> {
+    return this.call('submitReport', { type, lat, lng, speedKmh: extra.speedKmh, ttlSeconds: extra.ttlSeconds });
+  }
+
+  /** Default, shortest and longest duration for a type (needs one successful sync; 1.2.0). */
+  getReportLimits(type: string): Promise<ReportLimits> {
+    return this.call('getReportLimits', { type });
+  }
+
+  /** The limit at a spot, with the honest third answer "outside the offline area" instead of a silent "none" (1.2.0). */
+  lookupSpeedLimit(lat: number, lng: number, heading?: number): Promise<SpeedLimitLookup> {
+    return this.call('lookupSpeedLimit', { lat, lng, heading });
+  }
+
+  /** "No limit on record here": proposes a value for a road without one. `roadAlreadyHasLimit` if there is one (1.2.0). */
+  reportMissingSpeedLimit(report: { lat: number; lng: number; value: number; unit: SpeedUnit; bearing?: number; reason?: CorrectionReasonCode }): Promise<Proposal> {
+    return this.call('reportMissingSpeedLimit', report);
+  }
+
+  /** "That limit is wrong": proposes another value for a road that has one. */
+  reportWrongSpeedLimit(report: { lat: number; lng: number; proposedValue: number; unit: SpeedUnit; reason?: CorrectionReasonCode }): Promise<Proposal> {
+    return this.call('reportWrongSpeedLimit', report);
+  }
+
+  getOfflineSettings(): Promise<OfflineSettings> {
+    return this.call('getOfflineSettings');
+  }
+
+  /** Chooses what is kept of the static data; applied with the next sync. `regions` without a mode switches to `regions`. */
+  setOfflineRegions(settings: { mode?: OfflineMode; regions?: string[] }): Promise<OfflineSettings> {
+    return this.call('setOfflineRegions', settings);
+  }
+
+  /** `maxBytes: null` removes the limit, leaving the key out keeps it. */
+  setStorageLimits(limits: { maxBytes?: number | null; wifiOnly?: boolean }): Promise<OfflineSettings> {
+    return this.call('setStorageLimits', limits);
+  }
+
+  async listOfflineRegions(): Promise<OfflineRegion[]> {
+    return (await this.call<{ regions: OfflineRegion[] }>('listOfflineRegions')).regions;
+  }
+
+  getStoragePlan(): Promise<StoragePlan> {
+    return this.call('getStoragePlan');
+  }
+
+  getStorageUsage(): Promise<StorageUsage> {
+    return this.call('getStorageUsage');
+  }
+
+  getCoverage(lat: number, lng: number): Promise<Coverage> {
+    return this.call('getCoverage', { lat, lng });
   }
 
   /** Votes on a report: still there (`true`) or gone (`false`). Queued like every write. */

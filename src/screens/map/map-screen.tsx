@@ -43,6 +43,7 @@ function bannerText(tn: TnState): string | null {
   if (tn.phase === 'noCredentials') return t('status.noCredentials');
   if (tn.phase === 'error') return t('status.error', { message: tn.error ?? t('common.unknown') });
   if (tn.waitingForWifi) return t('status.waitingForWifi');
+  if (tn.needsLocation) return t('status.needsLocation');
   if (tn.sync?.connection === 'offline') return t('status.offline');
   return null;
 }

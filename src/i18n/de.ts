@@ -32,6 +32,7 @@ export const de = {
   'emergency.driveCalm': 'Keine Warndaten, nur dein Tempo',
   'emergency.driveChip': 'Notmodus: keine Warndaten',
   'emergency.driveHint': 'Im Notmodus zeigt der Fahrmodus nur dein Tempo. Tempolimit und Warnungen kommen, sobald Daten geladen sind. Meldungen werden vorgemerkt.',
+  'status.needsLocation': 'Ohne Standort weiß die App nicht, welche Daten sie laden soll. Erlaube den Standort oder wähle eine Region.',
   'status.error': 'Fehler: {message}',
   'status.waitingForWifi': 'Die Kartendaten warten auf WLAN (Einstellung „Nur im WLAN laden“).',
   'status.offline': 'Offline: Es werden die zuletzt geladenen Daten angezeigt.',

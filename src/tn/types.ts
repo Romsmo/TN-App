@@ -1,4 +1,4 @@
-/** Shapes of what the client library returns, as documented in client-lib/docs/api.md (v1.1.0). */
+/** Shapes of what the client library returns, as documented in client-lib/docs/api.md (v1.2.0). */
 
 export type SpeedUnit = 'kmh' | 'mph';
 
@@ -52,6 +52,12 @@ export type SyncReport = {
   submitted: number;
   rejected: number;
   pendingWrites: number;
+  /** Offline area (1.2.0): packages fetched, let go of, and wanted but held back this time. */
+  offlineFetchedTiles?: number;
+  offlineRemovedTiles?: number;
+  offlineDeferredTiles?: number;
+  /** Automatic offline area and neither a position nor a home is known: nothing was selected (1.2.0). */
+  needsLocation?: boolean;
 };
 export type TickResult = { synced: boolean; report: SyncReport | null };
 export type PositionUpdate = { tiles: string[]; changed: boolean };
@@ -103,6 +109,65 @@ export type TnEvent =
   | { type: 'syncFailed'; code: string; message: string }
   | { type: 'storageFull' };
 
+/** What a report may ask for as its duration, per type (`getReportLimits`, 1.2.0; needs one successful sync). */
+export type ReportLimits = { supported: boolean; defaultSeconds: number | null; minSeconds: number | null; maxSeconds: number | null };
+
+/** What `submitReport` answers (1.2.0). */
+export type SubmittedReport = { localId: string; expiresInSeconds?: number | null; durationHonoured?: boolean; defaultSeconds?: number | null };
+
+/** `lookupSpeedLimit` (1.2.0): always an answer, never a bare "nothing". */
+export type SpeedLimitLookup =
+  | ({ status: 'found'; source: 'offline' | 'online' } & SpeedLimitAnswer)
+  | { status: 'notRecorded'; source: 'offline' | 'online' }
+  | { status: 'outsideOfflineArea' };
+
+export type CorrectionReasonCode = 'wrongValue' | 'limitLifted' | 'signMissingOrNew' | 'other' | 'missing';
+
+/** A speed-limit proposal of this device (`reportMissingSpeedLimit`, `reportWrongSpeedLimit`). */
+export type Proposal = { segmentKey: string; segmentId: string; value: number; unit: SpeedUnit; state: 'queued' | 'sent'; correctionId: string | null; confirmations: number };
+
+export type OfflineMode = 'auto' | 'regions' | 'all';
+export type OfflineSettings = {
+  mode: OfflineMode;
+  regions: string[];
+  /** `[lat, lng]`, once known. */
+  home: [number, number] | null;
+  maxBytes: number | null;
+  wifiOnly: boolean;
+};
+export type OfflineRegion = {
+  id: string;
+  /** ISO 3166-1 alpha-2, or null for a coarse area. */
+  country: string | null;
+  tileCount: number;
+  downloadBytes: number;
+  sizeBytes: number;
+  estimatedDeviceBytes: number;
+  /** false: the byte counts are lower bounds. */
+  complete: boolean;
+  bbox: [number, number, number, number];
+  selected: boolean;
+  storedTiles: number;
+  state: 'none' | 'partial' | 'complete';
+};
+export type StoragePlan = {
+  mode: OfflineMode;
+  needsLocation: boolean;
+  toFetchTiles: number;
+  toFetchBytes: number;
+  toFetchDeviceBytes: number;
+  toRemoveTiles: number;
+  deferredTiles: number;
+  deferredForLimit: number;
+  deferredForMetered: number;
+  maxBytes: number | null;
+  fits: boolean;
+  storedTiles: number;
+  storedDeviceBytes: number | null;
+};
+export type StorageUsage = { storedTiles: number; storeBytes: number | null; storedJsonBytes: number; estimatedDeviceBytes: number; maxBytes: number | null };
+export type Coverage = { covered: boolean; tile: string | null; state: 'stored' | 'wanted' | 'outside'; usesNetwork: boolean };
+
 export type ApiErrorCode =
   | 'invalidArgument'
   | 'notConfigured'
@@ -114,6 +179,8 @@ export type ApiErrorCode =
   | 'auth'
   | 'rejected'
   | 'unavailable'
+  | 'ttlOutOfRange'
+  | 'roadAlreadyHasLimit'
   | 'closed'
   | 'internal';
 

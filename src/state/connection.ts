@@ -8,7 +8,7 @@ export type Phase = 'starting' | 'ready' | 'noCredentials' | 'error';
  * The emergency mode: this install has never loaded any data from a server, and right now it cannot.
  * `noServer`: nothing was reachable; `noAccess`: no credentials were given. Reads answer from an empty store, writes are
  * queued on the device (the library stores every write locally first) and go out when a server answers.
- * Measured against the real library (client-lib 1.1.0, offline): `lastSyncedAtUnixMs` is the time of the last *attempt*,
+ * Measured against the real library (client-lib 1.1.0 and again 1.2.0, offline): `lastSyncedAtUnixMs` is the time of the last *attempt*,
  * so "never loaded anything" is told by `staticDataVersion` being null.
  */
 export type Emergency = 'noServer' | 'noAccess';
@@ -27,6 +27,8 @@ export type ConnectionSnapshot = {
   dataVersion: number;
   /** The emergency mode (see `Emergency`), or null. It ends by itself with the first successful sync. */
   emergency: Emergency | null;
+  /** Library 1.2.0: the offline area is automatic and no position or home is known, so nothing is selected to load. */
+  needsLocation: boolean;
 };
 
 /** Derived from the rest of the snapshot, so it can never disagree with it. */
@@ -59,6 +61,7 @@ const INITIAL: ConnectionSnapshot = {
   rejectedWrites: 0,
   dataVersion: 0,
   emergency: null,
+  needsLocation: false,
 };
 
 /**
@@ -183,6 +186,7 @@ export class TnConnection {
       if (allowed) {
         const report = await this.syncPass(client, force);
         if (report && report.rejected > 0) this.set({ rejectedWrites: this.snap.rejectedWrites + report.rejected });
+        if (report) this.set({ needsLocation: report.needsLocation === true });
         // Screens re-read only when something changed: the library tells (dataChanged), or this pass sent something.
         if (report && report.submitted > 0) this.bump();
       }

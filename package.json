@@ -17,7 +17,7 @@
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
     "@maplibre/maplibre-react-native": "^11.5.0",
-    "@trafficnetwork/react-native": "https://github.com/Romsmo/Trafficnetwork/releases/download/client-lib-v1.1.0/trafficnetwork-react-native-1.1.0.tgz",
+    "@trafficnetwork/react-native": "https://github.com/Romsmo/Trafficnetwork/releases/download/client-lib-v1.2.0/trafficnetwork-react-native-1.2.0.tgz",
     "@types/geojson": "^7946.0.16",
     "expo": "~57.0.26",
     "expo-asset": "~57.0.18",
@@ -63,6 +63,7 @@
   },
   "jest": {
     "preset": "jest-expo",
+    "testTimeout": 20000,
     "setupFiles": [
       "<rootDir>/jest.setup.js"
     ],

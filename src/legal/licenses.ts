@@ -10,7 +10,7 @@ export const LICENSES: readonly LicenseEntry[] = [
   },
   {
     "name": "@trafficnetwork/react-native",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "license": "Apache-2.0",
     "home": "https://github.com/Romsmo/Trafficnetwork#readme"
   },

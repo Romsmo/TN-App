@@ -34,6 +34,7 @@ export const en: Record<TextKey, string> = {
   'emergency.driveCalm': 'No warning data, only your speed',
   'emergency.driveChip': 'Emergency mode: no warning data',
   'emergency.driveHint': 'In the emergency mode the drive mode shows only your speed. The speed limit and warnings arrive once data has been loaded. Reports are queued.',
+  'status.needsLocation': 'Without a location the app does not know which data to load. Allow location or choose a region.',
   'status.error': 'Error: {message}',
   'status.waitingForWifi': 'Map data is waiting for Wi-Fi (setting "Load on Wi-Fi only").',
   'status.offline': 'Offline: showing the data loaded last.',
