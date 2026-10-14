@@ -39,6 +39,12 @@ describe('deriveFix', () => {
     expect(deriveFix(moving, at(52.000005, 13.0, 1000))).toMatchObject({ speedKmh: 0, heading: 270 });
   });
 
+  it('reads steps within the uncertainty of the position as standing still (GPS jitter is not walking)', () => {
+    // about 7 m in a second would be 25 km/h; with an accuracy of 20 m it is noise
+    expect(deriveFix(first, at(52.00006, 13.0, 1000), 20).speedKmh).toBe(0);
+    expect(deriveFix(first, at(52.00006, 13.0, 1000), 5).speedKmh).toBeGreaterThan(20);
+  });
+
   it('does not guess over a gap (a step after more than 15 seconds, or less than half a second)', () => {
     expect(deriveFix(first, at(52.01, 13.0, 60_000)).speedKmh).toBeNull();
     expect(deriveFix(first, at(52.0002, 13.0, 100)).speedKmh).toBeNull();

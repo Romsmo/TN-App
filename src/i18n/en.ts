@@ -135,6 +135,7 @@ export const en: Record<TextKey, string> = {
   'drive.stop': 'End',
   'drive.mute': 'Mute',
   'drive.unmute': 'Sound on',
+  'drive.screenMayDim': 'The screen does not stay on by itself',
   'drive.noGps': 'No GPS signal',
   'drive.waiting': 'Waiting for position …',
   'drive.watching': 'Watching the road ahead',

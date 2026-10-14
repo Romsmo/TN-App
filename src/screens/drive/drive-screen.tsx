@@ -1,4 +1,3 @@
-import { useKeepAwake } from 'expo-keep-awake';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -9,6 +8,7 @@ import type { DriveMode } from '@/drive/drive-host';
 import { getLanguage, t } from '@/i18n';
 import { CAMERA_NOTICE, DRIVE_NOTICE_EXTRA, type Segment } from '@/legal/texts';
 import { settingsStore, useSettings } from '@/settings';
+import { useDriveWakeLock } from '@/drive/use-keep-awake';
 import { CAMERA_TYPES } from '@/map/camera-types';
 import { useCameraPolicy } from '@/state/camera-policy';
 import { useTn } from '@/state/tn-provider';
@@ -24,7 +24,7 @@ export function driveReportTypes(camerasActive: boolean, maxLevel: 'off' | 'zone
 }
 
 function RunningDrive() {
-  useKeepAwake(); // the screen stays on while the drive mode runs
+  const wakeLock = useDriveWakeLock(); // the screen stays on while the drive mode runs
   const host = useDriveHost();
   const snapshot = useDriveSnapshot();
   const settings = useSettings();
@@ -50,6 +50,7 @@ function RunningDrive() {
       unit={settings.speedUnit}
       lockEnabled={settings.driveLockEnabled}
       emergency={tn.emergency !== null}
+      screenMayDim={wakeLock !== 'active'}
       reportTypes={driveReportTypes(settings.camerasEnabled && policy?.active === true, policy?.maxLevel ?? null)}
       toast={toast}
       onReport={(type) => void session?.report(type).then((ok) => showToast(ok ? t('drive.reported') : t('drive.reportFailed')))}
