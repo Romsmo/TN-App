@@ -39,6 +39,8 @@ export type DriveSnapshot = {
   active: boolean;
   simulated: boolean;
   speedKmh: number | null;
+  /** The direction of travel in degrees from north (0..360), or null while it is not known. */
+  heading: number | null;
   limit: { value: number; unit: SpeedUnit } | null;
   speedState: SpeedState;
   warnings: ActiveWarning[];
@@ -77,6 +79,7 @@ const INITIAL: DriveSnapshot = {
   active: false,
   simulated: false,
   speedKmh: null,
+  heading: null,
   limit: null,
   speedState: 'ok',
   warnings: [],
@@ -194,6 +197,7 @@ export class DriveSession {
 
     this.set({
       speedKmh: fix.speedKmh,
+      heading: fix.heading,
       speedState: speedState(fix.speedKmh, this.snap.limit),
       warnings,
       locked,

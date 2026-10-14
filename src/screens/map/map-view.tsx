@@ -19,6 +19,8 @@ export type MapViewProps = {
   background: string;
   showUserLocation: boolean;
   /** Where the device is, for a map that draws its own marker (the browser map); the native map has its own. */
+  /** The user moved the map with a finger (the "follows me" mode ends). */
+  onUserMove?: () => void;
   userPosition?: { lat: number; lng: number; heading?: number | null; accuracy?: number | null } | null;
   onViewport: (viewport: Viewport) => void;
   onSelectHazard: (id: string) => void;
@@ -33,7 +35,7 @@ export type MapViewProps = {
  * The MapLibre map. Native code: this file is not covered by the unit tests, the data it draws is (map/geojson.ts).
  * Zones are drawn as areas only; there is deliberately no point layer for them.
  */
-export function MapView({ data, background, showUserLocation, onViewport, onSelectHazard, onMapPress, draft, cameraRef }: MapViewProps) {
+export function MapView({ data, background, showUserLocation, onUserMove, onViewport, onSelectHazard, onMapPress, draft, cameraRef }: MapViewProps) {
   const dark = useColorScheme() === 'dark';
   const styleUrl = (dark ? MAP_STYLE_URL_DARK : undefined) ?? MAP_STYLE_URL;
   return (
@@ -47,13 +49,15 @@ export function MapView({ data, background, showUserLocation, onViewport, onSele
         onMapPress({ lat, lng });
       }}
       onRegionDidChange={(event) => {
+        if (event.nativeEvent.userInteraction) onUserMove?.();
         const { center, bounds } = event.nativeEvent;
         const [lng, lat] = center;
         const [, , east, north] = bounds;
         onViewport({ lat, lng, radiusMeters: radiusFor({ lat, lng }, { lat: north, lng: east }) });
       }}>
       <Camera ref={cameraRef} initialViewState={START} />
-      {showUserLocation ? <UserLocation /> : null}
+      {/* the arrow (heading from the course of travel) and the circle of the position's accuracy */}
+      {showUserLocation ? <UserLocation heading accuracy /> : null}
       <GeoJSONSource id="zones" data={data.zones}>
         <Layer id="zones-fill" type="fill" paint={{ 'fill-color': '#862E9C', 'fill-opacity': 0.22 }} />
         <Layer id="zones-line" type="line" paint={{ 'line-color': '#862E9C', 'line-width': 2, 'line-dasharray': [2, 2] }} />

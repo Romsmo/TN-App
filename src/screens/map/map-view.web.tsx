@@ -50,16 +50,16 @@ const EMPTY = { type: 'FeatureCollection', features: [] } as const;
  * areas only, the spot picked for a report — and the same events. Drawn with WebGL; where a device cannot, the screen
  * around it (list view, reports) still works.
  */
-export function MapView({ data, background, showUserLocation, userPosition, onViewport, onSelectHazard, onMapPress, draft, cameraRef }: MapViewProps) {
+export function MapView({ data, background, showUserLocation, userPosition, onUserMove, onViewport, onSelectHazard, onMapPress, draft, cameraRef }: MapViewProps) {
   const dark = useColorScheme() === 'dark';
   const styleUrl = (dark ? MAP_STYLE_URL_DARK : undefined) ?? MAP_STYLE_URL;
   const host = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [failed, setFailed] = useState(false);
   // the newest props, read by the map's event handlers (set after every render, never during one)
-  const handlers = useRef({ onViewport, onSelectHazard, onMapPress });
+  const handlers = useRef({ onViewport, onSelectHazard, onMapPress, onUserMove });
   useEffect(() => {
-    handlers.current = { onViewport, onSelectHazard, onMapPress };
+    handlers.current = { onViewport, onSelectHazard, onMapPress, onUserMove };
   });
 
   // create the map once; a changed style swaps it with setStyle below
@@ -81,12 +81,15 @@ export function MapView({ data, background, showUserLocation, userPosition, onVi
         created.touchZoomRotate.disableRotation();
         created.on('load', () => {
           if (!created) return;
+          addArrowImage(created);
           addLayers(created);
           setMap(created);
           (window as unknown as { __tnMap?: MapLibreMap }).__tnMap = created; // read by the browser tests
           reportViewport(created);
         });
         created.on('moveend', () => created && reportViewport(created));
+        // a finger on the map ends the "follows me" mode (flyTo from the app is not a drag)
+        created.on('dragstart', () => handlers.current.onUserMove?.());
         created.on('click', 'hazards-circle', (event) => {
           const id = event.features?.[0]?.properties?.id;
           if (typeof id === 'string') {
@@ -151,7 +154,17 @@ export function MapView({ data, background, showUserLocation, userPosition, onVi
 
   useEffect(() => {
     if (!map) return;
-    const features = showUserLocation && userPosition ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [userPosition.lng, userPosition.lat] } }] : [];
+    const features =
+      showUserLocation && userPosition
+        ? [
+            {
+              type: 'Feature',
+              // `k`: the accuracy circle's radius in pixels at zoom 0 (it doubles with every zoom step), so it stays true to the metres
+              properties: { heading: userPosition.heading ?? null, k: (userPosition.accuracy ?? 0) / (156543.03392 * Math.cos((userPosition.lat * Math.PI) / 180)) },
+              geometry: { type: 'Point', coordinates: [userPosition.lng, userPosition.lat] },
+            },
+          ]
+        : [];
     (map.getSource('me') as GeoJSONSourceLike | undefined)?.setData({ type: 'FeatureCollection', features } as never);
   }, [map, showUserLocation, userPosition]);
 
@@ -165,13 +178,57 @@ export function MapView({ data, background, showUserLocation, userPosition, onVi
 
 type GeoJSONSourceLike = { setData(data: unknown): void };
 
+/** The arrow: blue with a white outline, so it reads on a light and on a dark map. Pointing up = north; the layer turns it. */
+function addArrowImage(map: MapLibreMap) {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext('2d');
+  if (!context) return;
+  context.beginPath();
+  context.moveTo(32, 5);
+  context.lineTo(54, 56);
+  context.lineTo(32, 44);
+  context.lineTo(10, 56);
+  context.closePath();
+  context.fillStyle = '#0A84FF';
+  context.strokeStyle = '#FFFFFF';
+  context.lineWidth = 5;
+  context.lineJoin = 'round';
+  context.stroke();
+  context.fill();
+  map.addImage('me-arrow', context.getImageData(0, 0, size, size));
+}
+
 function addLayers(map: MapLibreMap) {
   for (const id of ['zones', 'signs', 'draft', 'hazards', 'me']) map.addSource(id, { type: 'geojson', data: EMPTY as never, promoteId: id === 'hazards' ? 'id' : undefined });
   map.addLayer({ id: 'zones-fill', type: 'fill', source: 'zones', paint: { 'fill-color': '#862E9C', 'fill-opacity': 0.22 } });
   map.addLayer({ id: 'zones-line', type: 'line', source: 'zones', paint: { 'line-color': '#862E9C', 'line-width': 2, 'line-dasharray': [2, 2] } });
   map.addLayer({ id: 'signs-circle', type: 'circle', source: 'signs', paint: { 'circle-radius': 4, 'circle-color': '#495057', 'circle-stroke-width': 1, 'circle-stroke-color': '#FFFFFF' } });
   map.addLayer({ id: 'draft-ring', type: 'circle', source: 'draft', paint: { 'circle-radius': 14, 'circle-color': '#FFFFFF', 'circle-opacity': 0, 'circle-stroke-width': 4, 'circle-stroke-color': '#C92A2A' } });
-  map.addLayer({ id: 'me-dot', type: 'circle', source: 'me', paint: { 'circle-radius': 8, 'circle-color': '#0A84FF', 'circle-stroke-width': 3, 'circle-stroke-color': '#FFFFFF' } });
+  // the device: the circle of its accuracy, a dot while the direction is unknown, an arrow in the direction of travel
+  map.addLayer({
+    id: 'me-accuracy',
+    type: 'circle',
+    source: 'me',
+    paint: {
+      'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 0, ['get', 'k'], 22, ['*', ['get', 'k'], 4194304]] as never,
+      'circle-color': '#0A84FF',
+      'circle-opacity': 0.14,
+      'circle-stroke-width': 1,
+      'circle-stroke-color': '#0A84FF',
+      'circle-stroke-opacity': 0.4,
+    },
+  });
+  map.addLayer({ id: 'me-dot', type: 'circle', source: 'me', filter: ['==', ['get', 'heading'], null] as never, paint: { 'circle-radius': 8, 'circle-color': '#0A84FF', 'circle-stroke-width': 3, 'circle-stroke-color': '#FFFFFF' } });
+  map.addLayer({
+    id: 'me-arrow',
+    type: 'symbol',
+    source: 'me',
+    filter: ['!=', ['get', 'heading'], null] as never,
+    layout: { 'icon-image': 'me-arrow', 'icon-rotate': ['get', 'heading'] as never, 'icon-rotation-alignment': 'map', 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-size': 0.7 },
+  });
   map.addLayer({ id: 'hazards-circle', type: 'circle', source: 'hazards', paint: { 'circle-radius': 10, 'circle-color': hazardColorExpression() as never, 'circle-stroke-width': 2.5, 'circle-stroke-color': '#FFFFFF' } });
 }
 

@@ -1,6 +1,6 @@
 import type { CameraRef } from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
-import { useRouter } from 'expo-router';
+import { useIsFocused, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +15,7 @@ import { reportCameraGone, submitHazard, voteOnReport } from '@/report/submit';
 import { MAP_ATTRIBUTION, MAP_STYLE_URL } from '@/config';
 import { t } from '@/i18n';
 import { isTypeHidden } from '@/map/camera-types';
+import { afterUserMove, CENTER_ZOOM, nextFollowMode, shouldMoveWithPosition, type FollowMode } from '@/map/follow-mode';
 import { hazardTypesIn, toMapData, type PointItem } from '@/map/geojson';
 import { settingsStore, useSettings } from '@/settings';
 import { useTn, type TnState } from '@/state/tn-provider';
@@ -25,6 +26,7 @@ import { FilterBar } from './filter-bar';
 import { MapView } from './map-view';
 import { ReportList } from './report-list';
 import { ReportSheet, type ReportLocation } from './report-sheet';
+import { useDevicePosition } from './use-device-position';
 import { useNearby, type Viewport } from './use-nearby';
 
 type Position = { lat: number; lng: number };
@@ -62,6 +64,8 @@ export function MapScreen() {
   const [located, setLocated] = useState(false);
   const [listMode, setListMode] = useState(false);
   const [devicePosition, setDevicePosition] = useState<Position | null>(null);
+  const [followMode, setFollowMode] = useState<FollowMode>('off');
+  const focused = useIsFocused();
   const [reporting, setReporting] = useState(false);
   const [locating, setLocating] = useState(false);
   const [draft, setDraft] = useState<Position | null>(null);
@@ -85,6 +89,9 @@ export function MapScreen() {
   }, [items, selectedId]);
 
   const service = tn.service;
+  // The live position (arrow, "follows me") once the first position is known; until then the one from the first request.
+  const live = useDevicePosition(located && focused);
+  const position = useMemo(() => live ?? (devicePosition ? { ...devicePosition, heading: null, accuracy: null } : null), [live, devicePosition]);
   const moveTo = (position: Position) => {
     setLocated(true);
     setDevicePosition(position);
@@ -117,6 +124,21 @@ export function MapScreen() {
     return () => clearTimeout(timer);
   }, [notice]);
 
+  // A following map moves with every new position (a centred one moved once, when the button was pressed).
+  useEffect(() => {
+    if (position && shouldMoveWithPosition(followMode)) cameraRef.current?.flyTo({ center: [position.lng, position.lat], zoom: CENTER_ZOOM, duration: 600 });
+  }, [position, followMode]);
+
+  const pressFollow = () => {
+    if (!position) {
+      void locate(true).then(() => setFollowMode('centered'));
+      return;
+    }
+    const next = nextFollowMode(followMode);
+    setFollowMode(next);
+    if (next !== 'off') cameraRef.current?.flyTo({ center: [position.lng, position.lat], zoom: CENTER_ZOOM, duration: 600 });
+  };
+
   const openReport = () => {
     setReporting(true);
     setSelectedId(null);
@@ -135,7 +157,7 @@ export function MapScreen() {
     setDraft(null);
     setReportMessage(null);
   };
-  const reportLocation: ReportLocation = draft ? { ...draft, source: 'map' } : devicePosition ? { ...devicePosition, source: 'device' } : null;
+  const reportLocation: ReportLocation = draft ? { ...draft, source: 'map' } : position ? { lat: position.lat, lng: position.lng, source: 'device' } : null;
 
   const pickType = async (type: string) => {
     if (!service || !reportLocation) return;
@@ -210,7 +232,8 @@ export function MapScreen() {
           data={data}
           background={theme.surfaceAlt}
           showUserLocation={located}
-          userPosition={devicePosition}
+          userPosition={position}
+          onUserMove={() => setFollowMode(afterUserMove)}
           onViewport={setViewport}
           onSelectHazard={(id) => {
             if (!reporting) setSelectedId(id);
@@ -256,8 +279,13 @@ export function MapScreen() {
                 style={[styles.fabRound, elevation(theme, 2), { backgroundColor: theme.surface }]}>
                 <Icon name={listMode ? 'map' : 'list'} size={24} color={theme.tint} />
               </Pressable>
-              <Pressable accessibilityRole="button" accessibilityLabel={t('map.locate')} onPress={() => void locate(true)} style={[styles.fabRound, elevation(theme, 2), { backgroundColor: theme.surface }]}>
-                <Icon name="locate" size={24} color={theme.tint} />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t(`map.follow.${followMode}`)}
+                accessibilityState={{ selected: followMode !== 'off' }}
+                onPress={pressFollow}
+                style={[styles.fabRound, elevation(theme, 2), { backgroundColor: followMode === 'follow' ? theme.tint : theme.surface }]}>
+                <Icon name={followMode === 'off' ? 'locate-outline' : followMode === 'centered' ? 'locate' : 'navigate'} size={24} color={followMode === 'follow' ? theme.onTint : theme.tint} />
               </Pressable>
               <Pressable accessibilityRole="button" accessibilityLabel={t('report.open')} onPress={openReport} style={[styles.fabReport, elevation(theme, 2), { backgroundColor: theme.tint }]}>
                 <Icon name="add" size={26} color={theme.onTint} />
