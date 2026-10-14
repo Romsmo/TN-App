@@ -35,6 +35,20 @@ describe('DetailCard', () => {
     expect(screen.queryByText(/1970/)).toBeNull();
   });
 
+  it('shows the time left from the server expiry (a mobile camera 3 h, a trailer 14 d), nothing hard-wired', async () => {
+    jest.useFakeTimers({ now: Date.parse('2026-10-13T12:00:00Z') });
+    try {
+      const { rerender } = await render(<DetailCard item={{ ...item, expiresAt: '2026-10-13T15:00:00Z' }} onClose={() => {}} />);
+      expect(screen.getByText('About 3 h left')).toBeTruthy();
+      await rerender(<DetailCard item={{ ...item, expiresAt: '2026-10-27T12:00:00Z' }} onClose={() => {}} />);
+      expect(screen.getByText('About 14 d left')).toBeTruthy();
+      await rerender(<DetailCard item={{ ...item, expiresAt: null }} onClose={() => {}} />);
+      expect(screen.queryByText(/left/)).toBeNull();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('omits the pending note for a delivered report', async () => {
     await render(<DetailCard item={{ ...item, pending: false }} onClose={() => {}} />);
     expect(screen.queryByText(/Not sent yet/)).toBeNull();
@@ -152,7 +166,36 @@ describe('ReportSheet', () => {
     await render(<ReportSheet types={types} location={{ lat: 1, lng: 2, source: 'device' }} locating={false} message={null} onPick={onPick} onCancel={() => {}} />);
     expect(screen.getByText('At your location')).toBeTruthy();
     await fireEvent.press(screen.getByRole('button', { name: 'Report Ice' }));
-    expect(onPick).toHaveBeenCalledWith('ice');
+    expect(onPick).toHaveBeenCalledWith('ice', { kind: 'default' }); // "Standard" is preselected
+  });
+
+  it('offers a custom duration: quick choice and free input, handed on with the pick', async () => {
+    const onPick = jest.fn();
+    await render(<ReportSheet types={types} location={{ lat: 1, lng: 2, source: 'device' }} locating={false} message={null} onPick={onPick} onCancel={() => {}} />);
+    expect(screen.getByRole('button', { name: 'Default' }).props.accessibilityState.selected).toBe(true);
+    expect(screen.queryByLabelText('Duration')).toBeNull(); // the input only appears with "Custom duration"
+    await fireEvent.press(screen.getByRole('button', { name: 'Custom duration' }));
+    await fireEvent.press(screen.getByRole('button', { name: '15 min' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Report Ice' }));
+    expect(onPick).toHaveBeenLastCalledWith('ice', { kind: 'custom', seconds: 900 });
+    await fireEvent.changeText(screen.getByLabelText('Duration'), '1,5');
+    await fireEvent.press(screen.getByRole('button', { name: 'Report Ice' }));
+    expect(onPick).toHaveBeenLastCalledWith('ice', { kind: 'custom', seconds: 5400 }); // 1.5 h (unit h is preselected)
+    await fireEvent.press(screen.getByRole('button', { name: 'days' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Report Ice' }));
+    expect(onPick).toHaveBeenLastCalledWith('ice', { kind: 'custom', seconds: 129600 });
+  });
+
+  it('does not report with an unreadable custom duration, and goes back to "Default"', async () => {
+    const onPick = jest.fn();
+    await render(<ReportSheet types={types} location={{ lat: 1, lng: 2, source: 'device' }} locating={false} message={null} onPick={onPick} onCancel={() => {}} />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Custom duration' }));
+    await fireEvent.changeText(screen.getByLabelText('Duration'), 'abc');
+    await fireEvent.press(screen.getByRole('button', { name: 'Report Ice' }));
+    expect(onPick).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByRole('button', { name: 'Default' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Report Ice' }));
+    expect(onPick).toHaveBeenCalledWith('ice', { kind: 'default' });
   });
 
   it('names the marked spot when the user tapped the map', async () => {
