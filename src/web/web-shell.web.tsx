@@ -115,8 +115,8 @@ function TestBadge() {
   return (
     <View pointerEvents="none" style={styles.badgeBox}>
       <View style={[styles.badge, { backgroundColor: theme.warn }]}>
-        <Icon name="flask" size={12} color="#FFFFFF" />
-        <Text style={styles.badgeText}>{t('web.testBadge')}</Text>
+        <Icon name="flask" size={12} color={theme.onTint} />
+        <Text style={[styles.badgeText, { color: theme.onTint }]}>{t('web.testBadge')}</Text>
       </View>
     </View>
   );
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 8 },
   badgeBox: { position: 'absolute', left: 0, right: 0, bottom: TAB_BAR_CLEARANCE - 8, alignItems: 'flex-end', paddingRight: 20, zIndex: 5 },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill },
-  badgeText: { color: '#FFFFFF', fontSize: 11, fontWeight: '800', letterSpacing: 0.4 },
+  badgeText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.4 },
   locked: { flex: 1, padding: 24, justifyContent: 'center', gap: 12 },
   reload: { minHeight: 52, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
   reloadText: { fontSize: 17, fontWeight: '700' },

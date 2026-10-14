@@ -30,6 +30,7 @@ export function FilterBar({ types, hidden, onToggle }: Props) {
             accessibilityRole="switch"
             accessibilityLabel={t('map.filter.toggle', { type: hazardLabel(type) })}
             accessibilityState={{ checked: on }}
+            aria-checked={on}
             onPress={() => onToggle(type)}
             style={[styles.chip, on ? elevation(theme) : null, { backgroundColor: on ? theme.surface : theme.surfaceAlt, opacity: on ? 1 : 0.85 }]}>
             <Icon name={on ? hazardIcon(type) : 'eye-off-outline'} size={16} color={on ? hazardColor(type) : foreground} />

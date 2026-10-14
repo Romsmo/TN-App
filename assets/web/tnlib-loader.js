@@ -17,8 +17,18 @@
     window.__tnWaiting = worker;
     window.dispatchEvent(new Event('tn-update-available'));
   }
-  navigator.serviceWorker
-    .register(base + 'sw.js', { scope: base })
+  // The worker downloads every file of the app once more to cache it: not while the first screen is still loading.
+  var registering = new Promise(function (resolve) {
+    function later() {
+      setTimeout(resolve, 3000);
+    }
+    if (document.readyState === 'complete') later();
+    else window.addEventListener('load', later);
+  });
+  registering
+    .then(function () {
+      return navigator.serviceWorker.register(base + 'sw.js', { scope: base });
+    })
     .then(function (registration) {
       if (registration.waiting && navigator.serviceWorker.controller) announce(registration.waiting);
       registration.addEventListener('updatefound', function () {
