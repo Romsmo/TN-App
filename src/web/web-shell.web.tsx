@@ -148,8 +148,6 @@ export function WebShell({ children }: { children: React.ReactNode }) {
       {children}
       <View pointerEvents="box-none" style={[styles.overlay, { top: insets.top + 8 }]}>
         <UpdateBanner />
-      </View>
-      <View pointerEvents="box-none" style={styles.bottomOverlay}>
         <InstallHint />
       </View>
       <TestBadge />
@@ -160,7 +158,6 @@ export function WebShell({ children }: { children: React.ReactNode }) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   overlay: { position: 'absolute', left: 0, right: 0, gap: 8, zIndex: 20 },
-  bottomOverlay: { position: 'absolute', left: 0, right: 0, bottom: TAB_BAR_CLEARANCE + 12, zIndex: 20 },
   card: { marginHorizontal: 16, borderRadius: radius.lg, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
   column: { flexDirection: 'column', alignItems: 'stretch', gap: 8 },
   row: { flexDirection: 'row', gap: 8 },

@@ -210,6 +210,7 @@ export function MapScreen() {
           data={data}
           background={theme.surfaceAlt}
           showUserLocation={located}
+          userPosition={devicePosition}
           onViewport={setViewport}
           onSelectHazard={(id) => {
             if (!reporting) setSelectedId(id);

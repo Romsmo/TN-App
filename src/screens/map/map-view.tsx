@@ -18,6 +18,8 @@ export type MapViewProps = {
   data: MapData;
   background: string;
   showUserLocation: boolean;
+  /** Where the device is, for a map that draws its own marker (the browser map); the native map has its own. */
+  userPosition?: { lat: number; lng: number; heading?: number | null; accuracy?: number | null } | null;
   onViewport: (viewport: Viewport) => void;
   onSelectHazard: (id: string) => void;
   /** A tap on empty map (not on a report). */

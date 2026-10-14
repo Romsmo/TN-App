@@ -10,6 +10,8 @@ import { CREDENTIALS_KEY } from './credentials';
 import { createSecureStore, keysToWipe } from './secure-store';
 import type { RawClient } from './service';
 import type { ClientOptions } from './types';
+import { appBase } from '@/web/base';
+
 import { createWebRawClient, type WebLibrary } from './web-client';
 
 /** Name of the IndexedDB database of the one client this browser profile has. */
@@ -39,12 +41,6 @@ export const secureStore = createSecureStore({
 
 declare global {
   var __tnLibReady: Promise<WebLibrary> | undefined;
-}
-
-/** Where the app is served from, ending in a slash (a sub-path on GitHub Pages). */
-function appBase(): string {
-  const configured = (globalThis as { __tnBase?: string }).__tnBase; // set by tnlib-loader.js from its own address
-  return (configured ?? new URL('./', globalThis.location?.href ?? 'http://localhost/').href).replace(/\/?$/, '/');
 }
 
 function loadLibrary(): Promise<WebLibrary> {

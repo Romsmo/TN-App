@@ -1,4 +1,5 @@
 import { getLanguage } from '@/i18n';
+import { appBase } from '@/web/base';
 
 import type { Feedback } from './feedback';
 
@@ -13,8 +14,7 @@ const SOURCES: Record<Tone, string> = {
 
 /** Folder of the tones next to the app (copied by `scripts/web-postbuild.mjs`). */
 function soundsBase(): string {
-  const base = (globalThis as { __tnBase?: string }).__tnBase ?? new URL('./', globalThis.location?.href ?? 'http://localhost/').href;
-  return `${base.replace(/\/?$/, '/')}sounds/`;
+  return `${appBase()}sounds/`;
 }
 
 /**

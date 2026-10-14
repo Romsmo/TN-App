@@ -29,6 +29,10 @@ for (const [from, to] of [
   mkdirSync(join(dist, to, '..'), { recursive: true });
   cpSync(join(lib, from), join(dist, to));
 }
+// the map library: loaded when the map first shows, not part of the main bundle
+mkdirSync(join(dist, 'maplibre'), { recursive: true });
+for (const file of ['maplibre-gl.js', 'maplibre-gl.css']) cpSync(join(root, 'node_modules/maplibre-gl/dist', file), join(dist, 'maplibre', file));
+cpSync(join(root, 'node_modules/maplibre-gl/LICENSE.txt'), join(dist, 'maplibre', 'LICENSE.txt'));
 cpSync(join(root, 'assets/web/tnlib-loader.js'), join(dist, 'tnlib-loader.js'));
 cpSync(join(root, 'assets/sounds'), join(dist, 'sounds'), { recursive: true });
 cpSync(join(root, 'assets/pwa'), join(dist, 'icons'), { recursive: true });
