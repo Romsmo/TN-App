@@ -26,3 +26,9 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+analyzer:
+  exclude:
+    # tn_core has its own package, analysis options and tests (dart analyze / dart test inside it);
+    # packages/dart and packages/flutter are the fetched client library
+    - packages/**
