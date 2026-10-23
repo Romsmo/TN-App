@@ -31,7 +31,7 @@ flutter analyze
 (cd packages/tn_core && dart test)
 flutter test --dart-define=TN_DEMO=true
 flutter build apk --release      # Android (needs the Android SDK)
-flutter build ios --release --no-codesign   # on macOS; see docs/ios-install.md for a Windows-only route
+flutter build ios --release --no-codesign   # on macOS (the workflow ios-unsigned.yml does it in the cloud); see docs/ios-install.md
 ```
 
 ### Configuration (`--dart-define`, nothing in the code)

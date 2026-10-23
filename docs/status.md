@@ -1,7 +1,7 @@
 # Status per function (as of 2026-10-23)
 
 Legend — **Code**: done / partial / open. **Test**: what exists. **Device**: always *never run on a device or simulator*
-(Windows, no Mac; Gate 0 — the way to get the app onto the iPhone — is not finished, see `ios-install.md`).
+(Windows, no Mac; Gate 0 — the way to get the app onto the iPhone — is not finished: macOS runner builds, xtool in WSL installs, see `ios-install.md`).
 "Browser" = Flutter web preview with the demo backend, looked at by hand.
 
 | Function | Code | Test | Notes |
@@ -26,7 +26,8 @@ Legend — **Code**: done / partial / open. **Test**: what exists. **Device**: a
 | Languages de/en | done | — | 6 new texts for the stretch flow are mine (see decisions) |
 | Accessibility | partial | semantics labels | **no VoiceOver/TalkBack test**, font scaling unchecked |
 | Web test PWA | not part of this job | — | |
-| iOS build / TestFlight | **open** | — | Gate 0 |
+| iOS build (cloud, unsigned `.ipa`) | **open** | workflow `ios-unsigned.yml` written, not yet run to the end | Gate 0 |
+| Signing and install with xtool (WSL) | **open** | — | nothing installed on the PC |
 | Android build | **open** | — | Android SDK on this PC lacks cmdline-tools and accepted licences |
 | Store submission | **open** | — | only after written approval |
 

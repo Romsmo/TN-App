@@ -13,7 +13,7 @@ go on. Each is easy to reverse; please confirm or change.
 | D-N4 | Map plugin | `maplibre_gl` 0.27.1 (has a SwiftPM manifest on iOS; works with the installed Flutter 3.38.7). `maplibre` 0.3.x needs Flutter ≥ 3.47. | revisit when the Flutter SDK is upgraded. |
 | D-N5 | Map background source | **none** (plain surface, only the network's data; "© OpenStreetMap contributors" always shown), as before. `MAP_STYLE_URL(_DARK)` takes a style as soon as one with usable terms exists (own PMTiles are the goal; whether MapLibre native reads `pmtiles://` is untested). | `tile.openstreetmap.org` does not allow app use. |
 | D-N6 | Web test PWA | not continued. The browser build in this repository is a development preview with a demo backend only. | |
-| D-N7 | Repo | local folder `D:\Recent\Projects\TNV\tnviewer`, **no git repository created, nothing pushed**. The default of the job (`Romsmo/TN-App`, branch `flutter`) needs your word. | |
+| D-N7 | Repo | `Romsmo/TN-App`, branch `flutter` (an orphan branch; no other branch touched), pushed with the owner's approval on 2026-10-23. A local clone lives in `D:\Recent\Projects\TNV	nviewer`. | pushes only after the owner's word |
 | D-N8 | Licence and English legal texts | Apache 2.0 kept as a draft (not confirmed); English wordings are carried over as an unapproved translation. | |
 | D-N9 | Where `Package.swift` lives | it is the library's (`client-lib-v1.2.1`, requested in wish 1 and delivered). The app contains none. | |
 
