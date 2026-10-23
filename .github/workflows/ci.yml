@@ -34,7 +34,7 @@ jobs:
           channel: stable
           cache: true
       - name: Fetch and verify the client library
-        run: tool/fetch_clientlib.sh
+        run: bash tool/fetch_clientlib.sh
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test --dart-define=TN_DEMO=true

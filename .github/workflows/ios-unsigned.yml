@@ -2,9 +2,14 @@
 # Path (b) of docs/ios-install.md: the .ipa is then signed and installed on the iPhone from Windows (xtool / Sideloadly style
 # tools, with the owner's own Apple ID, entered by the owner on their machine). Nothing is uploaded to TestFlight or the App Store.
 #
-# Manual start only (workflow_dispatch). macOS runner minutes are billed (about ten times Linux minutes).
+# Starts by hand (workflow_dispatch) or when this file changes on the branch flutter: a workflow that only has a manual
+# trigger is not registered by GitHub until it is on the default branch, which this repository keeps untouched.
+# Standard runners are free in a public repository.
 name: ios-unsigned
 on:
+  push:
+    branches: [flutter]
+    paths: [".github/workflows/ios-unsigned.yml"]
   workflow_dispatch:
     inputs:
       clientlib_version:
@@ -16,7 +21,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     env:
       GH_TOKEN: ${{ github.token }}
@@ -29,8 +34,8 @@ jobs:
           cache: true
       - name: Fetch and verify the client library
         env:
-          TN_CLIENTLIB_VERSION: ${{ inputs.clientlib_version }}
-        run: tool/fetch_clientlib.sh
+          TN_CLIENTLIB_VERSION: ${{ inputs.clientlib_version || '1.2.1' }}
+        run: bash tool/fetch_clientlib.sh
       - run: flutter pub get
       - name: Analyze and test
         run: |
