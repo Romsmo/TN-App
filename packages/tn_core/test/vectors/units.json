@@ -1,0 +1,160 @@
+{
+ "kmPerMph": 1.609344,
+ "toKmh": [
+  {
+   "value": 50,
+   "unit": "kmh",
+   "kmh": 50
+  },
+  {
+   "value": 50,
+   "unit": "mph",
+   "kmh": 80.4672
+  },
+  {
+   "value": 0,
+   "unit": "mph",
+   "kmh": 0
+  }
+ ],
+ "fromKmh": [
+  {
+   "kmh": 100,
+   "unit": "kmh",
+   "value": 100
+  },
+  {
+   "kmh": 100,
+   "unit": "mph",
+   "value": 62.13711922373339
+  },
+  {
+   "kmh": 50,
+   "unit": "mph",
+   "value": 31.068559611866696
+  }
+ ],
+ "displaySpeed": [
+  {
+   "kmh": null,
+   "unit": "kmh",
+   "shown": null
+  },
+  {
+   "kmh": 0,
+   "unit": "kmh",
+   "shown": 0
+  },
+  {
+   "kmh": -4,
+   "unit": "kmh",
+   "shown": 0
+  },
+  {
+   "kmh": 49.5,
+   "unit": "kmh",
+   "shown": 50
+  },
+  {
+   "kmh": 49.4,
+   "unit": "kmh",
+   "shown": 49
+  },
+  {
+   "kmh": 100,
+   "unit": "mph",
+   "shown": 62
+  },
+  {
+   "kmh": 80.4672,
+   "unit": "mph",
+   "shown": 50
+  }
+ ],
+ "displayLimit": [
+  {
+   "value": 50,
+   "from": "kmh",
+   "to": "kmh",
+   "shown": 50
+  },
+  {
+   "value": 50,
+   "from": "kmh",
+   "to": "mph",
+   "shown": 30
+  },
+  {
+   "value": 30,
+   "from": "mph",
+   "to": "kmh",
+   "shown": 50
+  },
+  {
+   "value": 55,
+   "from": "mph",
+   "to": "mph",
+   "shown": 55
+  },
+  {
+   "value": 100,
+   "from": "kmh",
+   "to": "mph",
+   "shown": 60
+  },
+  {
+   "value": 130,
+   "from": "kmh",
+   "to": "mph",
+   "shown": 80
+  }
+ ],
+ "speedState": [
+  {
+   "speedKmh": null,
+   "limit": {
+    "value": 50,
+    "unit": "kmh"
+   },
+   "state": "ok"
+  },
+  {
+   "speedKmh": 60,
+   "limit": null,
+   "state": "ok"
+  },
+  {
+   "speedKmh": 53,
+   "limit": {
+    "value": 50,
+    "unit": "kmh"
+   },
+   "state": "ok"
+  },
+  {
+   "speedKmh": 53.01,
+   "limit": {
+    "value": 50,
+    "unit": "kmh"
+   },
+   "state": "over"
+  },
+  {
+   "speedKmh": 80,
+   "limit": {
+    "value": 50,
+    "unit": "mph"
+   },
+   "state": "ok"
+  },
+  {
+   "speedKmh": 81.4,
+   "limit": {
+    "value": 50,
+    "unit": "mph"
+   },
+   "state": "ok"
+  }
+ ],
+ "toleranceKmh": 3
+}

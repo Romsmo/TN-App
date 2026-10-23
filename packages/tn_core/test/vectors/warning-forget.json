@@ -1,0 +1,66 @@
+{
+ "note": "A candidate that is missing from one update is forgotten (its stage is reset).",
+ "steps": [
+  {
+   "fix": {
+    "lat": 52.5071946,
+    "lng": 13.4,
+    "speedKmh": 100,
+    "heading": 0,
+    "t": 800
+   },
+   "candidates": [
+    {
+     "id": "h1",
+     "kind": "point",
+     "category": "accident",
+     "source": "hazard",
+     "lat": 52.5134898,
+     "lng": 13.4
+    }
+   ],
+   "events": []
+  },
+  {
+   "fix": {
+    "lat": 52.5073744,
+    "lng": 13.4,
+    "speedKmh": 100,
+    "heading": 0,
+    "t": 820
+   },
+   "candidates": [],
+   "events": []
+  },
+  {
+   "fix": {
+    "lat": 52.5075543,
+    "lng": 13.4,
+    "speedKmh": 100,
+    "heading": 0,
+    "t": 840
+   },
+   "candidates": [
+    {
+     "id": "h1",
+     "kind": "point",
+     "category": "accident",
+     "source": "hazard",
+     "lat": 52.5134898,
+     "lng": 13.4
+    }
+   ],
+   "events": [
+    {
+     "type": "warn",
+     "level": "first",
+     "id": "h1",
+     "kind": "point",
+     "category": "accident",
+     "source": "hazard",
+     "distanceM": 660
+    }
+   ]
+  }
+ ]
+}

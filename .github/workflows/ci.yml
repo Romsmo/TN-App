@@ -1,0 +1,40 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.38.7"
+          channel: stable
+          cache: true
+      - name: "tn_core: analyze and the drive-core test vectors"
+        working-directory: packages/tn_core
+        run: |
+          dart pub get
+          dart analyze
+          dart test
+  app:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.38.7"
+          channel: stable
+          cache: true
+      - name: Fetch and verify the client library
+        run: tool/fetch_clientlib.sh
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test --dart-define=TN_DEMO=true

@@ -1,0 +1,390 @@
+{
+ "fixFromPosition": [
+  {
+   "position": {
+    "coords": {
+     "latitude": 52.5,
+     "longitude": 13.4,
+     "speed": 10,
+     "heading": 90
+    },
+    "timestamp": 1000
+   },
+   "fix": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": 36,
+    "heading": 90,
+    "t": 1000
+   }
+  },
+  {
+   "position": {
+    "coords": {
+     "latitude": 52.5,
+     "longitude": 13.4,
+     "speed": null,
+     "heading": null
+    },
+    "timestamp": 2000
+   },
+   "fix": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 2000
+   }
+  },
+  {
+   "position": {
+    "coords": {
+     "latitude": 52.5,
+     "longitude": 13.4,
+     "speed": -1,
+     "heading": -1
+    },
+    "timestamp": 3000
+   },
+   "fix": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 3000
+   }
+  },
+  {
+   "position": {
+    "coords": {
+     "latitude": 52.5,
+     "longitude": 13.4,
+     "speed": "NaN",
+     "heading": "NaN"
+    },
+    "timestamp": 4000
+   },
+   "fix": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 4000
+   }
+  },
+  {
+   "position": {
+    "coords": {
+     "latitude": 52.5,
+     "longitude": 13.4,
+     "speed": 0,
+     "heading": 0
+    },
+    "timestamp": 5000
+   },
+   "fix": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": 0,
+    "heading": 0,
+    "t": 5000
+   }
+  }
+ ],
+ "deriveFix": [
+  {
+   "name": "100 m at 0 degrees in 10 s, accuracy 0",
+   "previous": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": 90,
+    "t": 0
+   },
+   "fix": {
+    "lat": 52.5008993,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 10000
+   },
+   "accuracyM": 0,
+   "derived": {
+    "lat": 52.5008993,
+    "lng": 13.4,
+    "speedKmh": 35.99913511133782,
+    "heading": 0,
+    "t": 10000
+   }
+  },
+  {
+   "name": "1 m at 0 degrees in 5 s, accuracy 0",
+   "previous": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": 90,
+    "t": 0
+   },
+   "fix": {
+    "lat": 52.500009,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 5000
+   },
+   "accuracyM": 0,
+   "derived": {
+    "lat": 52.500009,
+    "lng": 13.4,
+    "speedKmh": 0,
+    "heading": 90,
+    "t": 5000
+   }
+  },
+  {
+   "name": "2.9 m at 0 degrees in 5 s, accuracy 0",
+   "previous": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": 90,
+    "t": 0
+   },
+   "fix": {
+    "lat": 52.5000261,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 5000
+   },
+   "accuracyM": 0,
+   "derived": {
+    "lat": 52.5000261,
+    "lng": 13.4,
+    "speedKmh": 2.089575061462417,
+    "heading": 90,
+    "t": 5000
+   }
+  },
+  {
+   "name": "3 m at 0 degrees in 5 s, accuracy 0",
+   "previous": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": 90,
+    "t": 0
+   },
+   "fix": {
+    "lat": 52.500027,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 5000
+   },
+   "accuracyM": 0,
+   "derived": {
+    "lat": 52.500027,
+    "lng": 13.4,
+    "speedKmh": 2.1616293742012624,
+    "heading": 0,
+    "t": 5000
+   }
+  },
+  {
+   "name": "20 m at 0 degrees in 0.4 s, accuracy 0",
+   "previous": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": 90,
+    "t": 0
+   },
+   "fix": {
+    "lat": 52.5001799,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 400
+   },
+   "accuracyM": 0,
+   "derived": {
+    "lat": 52.5001799,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 400
+   }
+  },
+  {
+   "name": "20 m at 0 degrees in 15.1 s, accuracy 0",
+   "previous": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": 90,
+    "t": 0
+   },
+   "fix": {
+    "lat": 52.5001799,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 15100
+   },
+   "accuracyM": 0,
+   "derived": {
+    "lat": 52.5001799,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 15100
+   }
+  },
+  {
+   "name": "20 m at 0 degrees in 15 s, accuracy 0",
+   "previous": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": 90,
+    "t": 0
+   },
+   "fix": {
+    "lat": 52.5001799,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 15000
+   },
+   "accuracyM": 0,
+   "derived": {
+    "lat": 52.5001799,
+    "lng": 13.4,
+    "speedKmh": 4.800952152782049,
+    "heading": 0,
+    "t": 15000
+   }
+  },
+  {
+   "name": "20 m at 0 degrees in 0.5 s, accuracy 0",
+   "previous": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": 90,
+    "t": 0
+   },
+   "fix": {
+    "lat": 52.5001799,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 500
+   },
+   "accuracyM": 0,
+   "derived": {
+    "lat": 52.5001799,
+    "lng": 13.4,
+    "speedKmh": 144.02856458346147,
+    "heading": 0,
+    "t": 500
+   }
+  },
+  {
+   "name": "8 m at 0 degrees in 2 s, accuracy 20",
+   "previous": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": 90,
+    "t": 0
+   },
+   "fix": {
+    "lat": 52.5000719,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 2000
+   },
+   "accuracyM": 20,
+   "derived": {
+    "lat": 52.5000719,
+    "lng": 13.4,
+    "speedKmh": 0,
+    "heading": 0,
+    "t": 2000
+   }
+  },
+  {
+   "name": "8 m at 0 degrees in 2 s, accuracy 10",
+   "previous": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": 90,
+    "t": 0
+   },
+   "fix": {
+    "lat": 52.5000719,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 2000
+   },
+   "accuracyM": 10,
+   "derived": {
+    "lat": 52.5000719,
+    "lng": 13.4,
+    "speedKmh": 14.390847406697057,
+    "heading": 0,
+    "t": 2000
+   }
+  },
+  {
+   "name": "100 m at 0 degrees in 10 s, accuracy 0, speed given",
+   "previous": {
+    "lat": 52.5,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": 90,
+    "t": 0
+   },
+   "fix": {
+    "lat": 52.5008993,
+    "lng": 13.4,
+    "speedKmh": 55,
+    "heading": 12,
+    "t": 10000
+   },
+   "accuracyM": 0,
+   "derived": {
+    "lat": 52.5008993,
+    "lng": 13.4,
+    "speedKmh": 55,
+    "heading": 12,
+    "t": 10000
+   }
+  },
+  {
+   "name": "50 m at 0 degrees in 10 s, accuracy 0",
+   "previous": null,
+   "fix": {
+    "lat": 52.5004497,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 10000
+   },
+   "accuracyM": 0,
+   "derived": {
+    "lat": 52.5004497,
+    "lng": 13.4,
+    "speedKmh": null,
+    "heading": null,
+    "t": 10000
+   }
+  }
+ ]
+}

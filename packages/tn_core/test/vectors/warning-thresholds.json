@@ -1,0 +1,84 @@
+{
+ "config": {
+  "leadFirstS": 25,
+  "leadSecondS": 8,
+  "minFirstM": 300,
+  "maxFirstM": 2000,
+  "minSecondM": 80,
+  "scale": 1,
+  "minSpeedKmh": 10,
+  "lateralMinM": 25,
+  "lateralMaxM": 100,
+  "lateralFactor": 0.1,
+  "passedM": 30
+ },
+ "formula": "v = speed/3.6; first = min(maxFirstM, max(minFirstM, v*leadFirstS)) * scale; second = min(first*0.6, max(minSecondM, v*leadSecondS) * scale)",
+ "table": [
+  {
+   "speedKmh": 0,
+   "scale": 1,
+   "first": 300,
+   "second": 80
+  },
+  {
+   "speedKmh": 10,
+   "scale": 1,
+   "first": 300,
+   "second": 80
+  },
+  {
+   "speedKmh": 30,
+   "scale": 1,
+   "first": 300,
+   "second": 80
+  },
+  {
+   "speedKmh": 60,
+   "scale": 1,
+   "first": 416.6666666666667,
+   "second": 133.33333333333334
+  },
+  {
+   "speedKmh": 100,
+   "scale": 1,
+   "first": 694.4444444444445,
+   "second": 222.22222222222223
+  },
+  {
+   "speedKmh": 130,
+   "scale": 1,
+   "first": 902.7777777777777,
+   "second": 288.88888888888886
+  },
+  {
+   "speedKmh": 200,
+   "scale": 1,
+   "first": 1388.888888888889,
+   "second": 444.44444444444446
+  },
+  {
+   "speedKmh": 400,
+   "scale": 1,
+   "first": 2000,
+   "second": 888.8888888888889
+  },
+  {
+   "speedKmh": 100,
+   "scale": 0.75,
+   "first": 520.8333333333334,
+   "second": 166.66666666666669
+  },
+  {
+   "speedKmh": 100,
+   "scale": 1.5,
+   "first": 1041.6666666666667,
+   "second": 333.33333333333337
+  },
+  {
+   "speedKmh": 30,
+   "scale": 1.5,
+   "first": 450,
+   "second": 120
+  }
+ ]
+}

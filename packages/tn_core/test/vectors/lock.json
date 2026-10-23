@@ -1,0 +1,211 @@
+{
+ "constants": {
+  "lockOnKmh": 10,
+  "lockOffKmh": 5,
+  "releaseAfterMs": 2000,
+  "staleAfterMs": 60000
+ },
+ "rule": "locked when speed >= lockOn; released when speed <= lockOff for releaseAfterMs; speeds in between change nothing and restart the dwell; null speed keeps the state; tick(now) releases when no update for staleAfterMs; the app lock additionally needs the user setting (isLockActive).",
+ "scenarios": [
+  {
+   "name": "crossing the threshold",
+   "steps": [
+    {
+     "speed": 0,
+     "t": 0,
+     "locked": false
+    },
+    {
+     "speed": 9.9,
+     "t": 1000,
+     "locked": false
+    },
+    {
+     "speed": 10,
+     "t": 2000,
+     "locked": true
+    },
+    {
+     "speed": 50,
+     "t": 3000,
+     "locked": true
+    }
+   ]
+  },
+  {
+   "name": "brief dip keeps the lock, dwell restarts between thresholds",
+   "steps": [
+    {
+     "speed": 50,
+     "t": 0,
+     "locked": true
+    },
+    {
+     "speed": 5,
+     "t": 1000,
+     "locked": true
+    },
+    {
+     "speed": 7,
+     "t": 5000,
+     "locked": true
+    },
+    {
+     "speed": 5,
+     "t": 6000,
+     "locked": true
+    },
+    {
+     "speed": 5,
+     "t": 7999,
+     "locked": true
+    },
+    {
+     "speed": 5,
+     "t": 8000,
+     "locked": false
+    }
+   ]
+  },
+  {
+   "name": "release after the dwell",
+   "steps": [
+    {
+     "speed": 50,
+     "t": 0,
+     "locked": true
+    },
+    {
+     "speed": 2,
+     "t": 1000,
+     "locked": true
+    },
+    {
+     "speed": 0,
+     "t": 2999,
+     "locked": true
+    },
+    {
+     "speed": 0,
+     "t": 3000,
+     "locked": false
+    },
+    {
+     "speed": 30,
+     "t": 4000,
+     "locked": true
+    }
+   ]
+  },
+  {
+   "name": "null speed keeps the state",
+   "steps": [
+    {
+     "speed": 60,
+     "t": 0,
+     "locked": true
+    },
+    {
+     "speed": null,
+     "t": 1000,
+     "locked": true
+    },
+    {
+     "speed": null,
+     "t": 100000,
+     "locked": true
+    }
+   ]
+  },
+  {
+   "name": "stale lock is released by tick",
+   "steps": [
+    {
+     "speed": 60,
+     "t": 0,
+     "locked": true
+    },
+    {
+     "tick": 59999,
+     "locked": true
+    },
+    {
+     "tick": 60000,
+     "locked": false
+    },
+    {
+     "speed": 60,
+     "t": 61000,
+     "locked": true
+    },
+    {
+     "tick": 120999,
+     "locked": true
+    },
+    {
+     "tick": 121000,
+     "locked": false
+    }
+   ]
+  },
+  {
+   "name": "tick without any update does nothing",
+   "steps": [
+    {
+     "tick": 100000,
+     "locked": false
+    }
+   ]
+  }
+ ],
+ "isLockActive": [
+  {
+   "driving": true,
+   "lockEnabled": true,
+   "locked": true,
+   "active": true
+  },
+  {
+   "driving": true,
+   "lockEnabled": true,
+   "locked": false,
+   "active": false
+  },
+  {
+   "driving": true,
+   "lockEnabled": false,
+   "locked": true,
+   "active": false
+  },
+  {
+   "driving": true,
+   "lockEnabled": false,
+   "locked": false,
+   "active": false
+  },
+  {
+   "driving": false,
+   "lockEnabled": true,
+   "locked": true,
+   "active": false
+  },
+  {
+   "driving": false,
+   "lockEnabled": true,
+   "locked": false,
+   "active": false
+  },
+  {
+   "driving": false,
+   "lockEnabled": false,
+   "locked": true,
+   "active": false
+  },
+  {
+   "driving": false,
+   "lockEnabled": false,
+   "locked": false,
+   "active": false
+  }
+ ]
+}

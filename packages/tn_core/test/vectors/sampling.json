@@ -1,0 +1,315 @@
+{
+ "samplingFor": [
+  {
+   "speedKmh": null,
+   "regime": "crawl",
+   "accuracy": "balanced",
+   "distanceIntervalM": 20,
+   "timeIntervalMs": 5000
+  },
+  {
+   "speedKmh": 0,
+   "regime": "crawl",
+   "accuracy": "balanced",
+   "distanceIntervalM": 20,
+   "timeIntervalMs": 5000
+  },
+  {
+   "speedKmh": 14.9,
+   "regime": "crawl",
+   "accuracy": "balanced",
+   "distanceIntervalM": 20,
+   "timeIntervalMs": 5000
+  },
+  {
+   "speedKmh": 15,
+   "regime": "city",
+   "accuracy": "high",
+   "distanceIntervalM": 10,
+   "timeIntervalMs": 2000
+  },
+  {
+   "speedKmh": 79.9,
+   "regime": "city",
+   "accuracy": "high",
+   "distanceIntervalM": 10,
+   "timeIntervalMs": 2000
+  },
+  {
+   "speedKmh": 80,
+   "regime": "fast",
+   "accuracy": "navigation",
+   "distanceIntervalM": 15,
+   "timeIntervalMs": 1000
+  },
+  {
+   "speedKmh": 130,
+   "regime": "fast",
+   "accuracy": "navigation",
+   "distanceIntervalM": 15,
+   "timeIntervalMs": 1000
+  }
+ ],
+ "nextRegime": [
+  {
+   "current": "crawl",
+   "speedKmh": null,
+   "next": "crawl"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 0,
+   "next": "crawl"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 10,
+   "next": "crawl"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 14,
+   "next": "crawl"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 19,
+   "next": "crawl"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 20,
+   "next": "city"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 25,
+   "next": "city"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 69,
+   "next": "city"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 70,
+   "next": "city"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 75,
+   "next": "city"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 79,
+   "next": "city"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 80,
+   "next": "fast"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 85,
+   "next": "fast"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 89,
+   "next": "fast"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 90,
+   "next": "fast"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 95,
+   "next": "fast"
+  },
+  {
+   "current": "crawl",
+   "speedKmh": 120,
+   "next": "fast"
+  },
+  {
+   "current": "city",
+   "speedKmh": null,
+   "next": "crawl"
+  },
+  {
+   "current": "city",
+   "speedKmh": 0,
+   "next": "crawl"
+  },
+  {
+   "current": "city",
+   "speedKmh": 10,
+   "next": "crawl"
+  },
+  {
+   "current": "city",
+   "speedKmh": 14,
+   "next": "city"
+  },
+  {
+   "current": "city",
+   "speedKmh": 19,
+   "next": "city"
+  },
+  {
+   "current": "city",
+   "speedKmh": 20,
+   "next": "city"
+  },
+  {
+   "current": "city",
+   "speedKmh": 25,
+   "next": "city"
+  },
+  {
+   "current": "city",
+   "speedKmh": 69,
+   "next": "city"
+  },
+  {
+   "current": "city",
+   "speedKmh": 70,
+   "next": "city"
+  },
+  {
+   "current": "city",
+   "speedKmh": 75,
+   "next": "city"
+  },
+  {
+   "current": "city",
+   "speedKmh": 79,
+   "next": "city"
+  },
+  {
+   "current": "city",
+   "speedKmh": 80,
+   "next": "fast"
+  },
+  {
+   "current": "city",
+   "speedKmh": 85,
+   "next": "fast"
+  },
+  {
+   "current": "city",
+   "speedKmh": 89,
+   "next": "fast"
+  },
+  {
+   "current": "city",
+   "speedKmh": 90,
+   "next": "fast"
+  },
+  {
+   "current": "city",
+   "speedKmh": 95,
+   "next": "fast"
+  },
+  {
+   "current": "city",
+   "speedKmh": 120,
+   "next": "fast"
+  },
+  {
+   "current": "fast",
+   "speedKmh": null,
+   "next": "crawl"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 0,
+   "next": "crawl"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 10,
+   "next": "crawl"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 14,
+   "next": "crawl"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 19,
+   "next": "city"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 20,
+   "next": "city"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 25,
+   "next": "city"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 69,
+   "next": "city"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 70,
+   "next": "fast"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 75,
+   "next": "fast"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 79,
+   "next": "fast"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 80,
+   "next": "fast"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 85,
+   "next": "fast"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 89,
+   "next": "fast"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 90,
+   "next": "fast"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 95,
+   "next": "fast"
+  },
+  {
+   "current": "fast",
+   "speedKmh": 120,
+   "next": "fast"
+  }
+ ],
+ "representativeSpeed": {
+  "crawl": 0,
+  "city": 40,
+  "fast": 100
+ }
+}

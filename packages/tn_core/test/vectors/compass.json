@@ -1,0 +1,70 @@
+{
+ "cardinalIndex": [
+  {
+   "heading": 0,
+   "index": 0
+  },
+  {
+   "heading": 22,
+   "index": 0
+  },
+  {
+   "heading": 23,
+   "index": 1
+  },
+  {
+   "heading": 45,
+   "index": 1
+  },
+  {
+   "heading": 90,
+   "index": 2
+  },
+  {
+   "heading": 180,
+   "index": 4
+  },
+  {
+   "heading": 270,
+   "index": 6
+  },
+  {
+   "heading": 337,
+   "index": 7
+  },
+  {
+   "heading": 338,
+   "index": 0
+  },
+  {
+   "heading": 359,
+   "index": 0
+  },
+  {
+   "heading": 360,
+   "index": 0
+  },
+  {
+   "heading": 405,
+   "index": 1
+  },
+  {
+   "heading": -45,
+   "index": 7
+  },
+  {
+   "heading": -10,
+   "index": 0
+  }
+ ],
+ "points": [
+  "N",
+  "NE",
+  "E",
+  "SE",
+  "S",
+  "SW",
+  "W",
+  "NW"
+ ]
+}

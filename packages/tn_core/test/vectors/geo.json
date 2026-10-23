@@ -1,0 +1,378 @@
+{
+ "note": "Meters/degrees on a sphere of radius 6371000 m (haversine; local equirectangular projection for alongCross/rayEntry). Compare with a tolerance of 0.5 m / 0.05 degrees.",
+ "distance": [
+  {
+   "name": "same point",
+   "a": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "b": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "meters": 0,
+   "bearing": 0
+  },
+  {
+   "name": "1 km north",
+   "a": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "b": {
+    "lat": 52.5089932,
+    "lng": 13.4
+   },
+   "meters": 999.9982142997384,
+   "bearing": 0
+  },
+  {
+   "name": "1 km east",
+   "a": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "b": {
+    "lat": 52.4999991,
+    "lng": 13.414773
+   },
+   "meters": 1000.0018517250244,
+   "bearing": 89.99987378493455
+  },
+  {
+   "name": "3 km south-west",
+   "a": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "b": {
+    "lat": 52.4809184,
+    "lng": 13.3686754
+   },
+   "meters": 2999.9970175160447,
+   "bearing": 225.00003062349566
+  },
+  {
+   "name": "Berlin to Munich",
+   "a": {
+    "lat": 52.52,
+    "lng": 13.405
+   },
+   "b": {
+    "lat": 48.137,
+    "lng": 11.575
+   },
+   "meters": 504337.89943823224,
+   "bearing": 195.63415940208003
+  }
+ ],
+ "angleDiff": [
+  {
+   "a": 0,
+   "b": 0,
+   "diff": 0
+  },
+  {
+   "a": 10,
+   "b": 350,
+   "diff": 20
+  },
+  {
+   "a": 350,
+   "b": 10,
+   "diff": 20
+  },
+  {
+   "a": 90,
+   "b": 270,
+   "diff": 180
+  },
+  {
+   "a": 180,
+   "b": 0,
+   "diff": 180
+  },
+  {
+   "a": 359,
+   "b": 1,
+   "diff": 2
+  },
+  {
+   "a": 725,
+   "b": 5,
+   "diff": 0
+  }
+ ],
+ "destination": [
+  {
+   "from": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "bearing": 0,
+   "meters": 100,
+   "to": {
+    "lat": 52.5008993,
+    "lng": 13.4
+   }
+  },
+  {
+   "from": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "bearing": 90,
+   "meters": 100,
+   "to": {
+    "lat": 52.5,
+    "lng": 13.4014773
+   }
+  },
+  {
+   "from": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "bearing": 180,
+   "meters": 2500,
+   "to": {
+    "lat": 52.477517,
+    "lng": 13.4
+   }
+  },
+  {
+   "from": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "bearing": 270,
+   "meters": 40,
+   "to": {
+    "lat": 52.5,
+    "lng": 13.3994091
+   }
+  },
+  {
+   "from": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "bearing": 45,
+   "meters": 12345,
+   "to": {
+    "lat": 52.5784336,
+    "lng": 13.5291873
+   }
+  }
+ ],
+ "alongCross": [
+  {
+   "name": "ahead 500 m on the heading",
+   "vehicle": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "heading": 0,
+   "point": {
+    "lat": 52.5044966,
+    "lng": 13.4
+   },
+   "along": 499.9991071502642,
+   "cross": 0
+  },
+  {
+   "name": "behind 100 m",
+   "vehicle": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "heading": 0,
+   "point": {
+    "lat": 52.4991007,
+    "lng": 13.4
+   },
+   "along": -99.99759753149395,
+   "cross": 0
+  },
+  {
+   "name": "ahead 500 m, 40 m to the side",
+   "vehicle": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "heading": 0,
+   "point": {
+    "lat": 52.5044966,
+    "lng": 13.400591
+   },
+   "along": 499.9991071502642,
+   "cross": 40.00548882361346
+  },
+  {
+   "name": "heading east, object east 300 m",
+   "vehicle": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "heading": 90,
+   "point": {
+    "lat": 52.4999999,
+    "lng": 13.4044319
+   },
+   "along": 300.00055146764174,
+   "cross": 0.011119492794417716
+  },
+  {
+   "name": "heading 45, object north 100 m",
+   "vehicle": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "heading": 45,
+   "point": {
+    "lat": 52.5008993,
+    "lng": 13.4
+   },
+   "along": 70.70897931688255,
+   "cross": 70.70897931688253
+  }
+ ],
+ "rayEntry": [
+  {
+   "name": "north into the zone",
+   "vehicle": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "heading": 0,
+   "ring": [
+    [
+     13.3955677,
+     52.5044965
+    ],
+    [
+     13.4044323,
+     52.5044965
+    ],
+    [
+     13.4044331,
+     52.5116911
+    ],
+    [
+     13.3955669,
+     52.5116911
+    ]
+   ],
+   "entryMeters": 499.98798765746983
+  },
+  {
+   "name": "north, already inside",
+   "vehicle": {
+    "lat": 52.5071946,
+    "lng": 13.4
+   },
+   "heading": 0,
+   "ring": [
+    [
+     13.3955677,
+     52.5044965
+    ],
+    [
+     13.4044323,
+     52.5044965
+    ],
+    [
+     13.4044331,
+     52.5116911
+    ],
+    [
+     13.3955669,
+     52.5116911
+    ]
+   ],
+   "entryMeters": 0
+  },
+  {
+   "name": "south, away from the zone",
+   "vehicle": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "heading": 180,
+   "ring": [
+    [
+     13.3955677,
+     52.5044965
+    ],
+    [
+     13.4044323,
+     52.5044965
+    ],
+    [
+     13.4044331,
+     52.5116911
+    ],
+    [
+     13.3955669,
+     52.5116911
+    ]
+   ],
+   "entryMeters": null
+  },
+  {
+   "name": "east, misses the zone",
+   "vehicle": {
+    "lat": 52.5,
+    "lng": 13.4
+   },
+   "heading": 90,
+   "ring": [
+    [
+     13.3955677,
+     52.5044965
+    ],
+    [
+     13.4044323,
+     52.5044965
+    ],
+    [
+     13.4044331,
+     52.5116911
+    ],
+    [
+     13.3955669,
+     52.5116911
+    ]
+   ],
+   "entryMeters": null
+  },
+  {
+   "name": "north from the west side, misses",
+   "vehicle": {
+    "lat": 52.4999997,
+    "lng": 13.3911362
+   },
+   "heading": 0,
+   "ring": [
+    [
+     13.3955677,
+     52.5044965
+    ],
+    [
+     13.4044323,
+     52.5044965
+    ],
+    [
+     13.4044331,
+     52.5116911
+    ],
+    [
+     13.3955669,
+     52.5116911
+    ]
+   ],
+   "entryMeters": null
+  }
+ ]
+}

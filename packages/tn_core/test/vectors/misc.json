@@ -1,0 +1,1222 @@
+{
+ "isPlausiblePosition": [
+  {
+   "lat": 52.5,
+   "lng": 13.4,
+   "plausible": true
+  },
+  {
+   "lat": 0,
+   "lng": 0,
+   "plausible": false
+  },
+  {
+   "lat": 91,
+   "lng": 0,
+   "plausible": false
+  },
+  {
+   "lat": 0,
+   "lng": 181,
+   "plausible": false
+  },
+  {
+   "lat": "NaN",
+   "lng": 1,
+   "plausible": false
+  },
+  {
+   "lat": 1,
+   "lng": "Infinity",
+   "plausible": false
+  },
+  {
+   "lat": -90,
+   "lng": 180,
+   "plausible": true
+  }
+ ],
+ "parseDuration": [
+  {
+   "amount": "90",
+   "unit": "min",
+   "seconds": 5400
+  },
+  {
+   "amount": "1,5",
+   "unit": "h",
+   "seconds": 5400
+  },
+  {
+   "amount": "1.5",
+   "unit": "h",
+   "seconds": 5400
+  },
+  {
+   "amount": " 2 ",
+   "unit": "d",
+   "seconds": 172800
+  },
+  {
+   "amount": "",
+   "unit": "h",
+   "seconds": null
+  },
+  {
+   "amount": "abc",
+   "unit": "h",
+   "seconds": null
+  },
+  {
+   "amount": "0",
+   "unit": "h",
+   "seconds": null
+  },
+  {
+   "amount": "-3",
+   "unit": "h",
+   "seconds": null
+  },
+  {
+   "amount": "1e999",
+   "unit": "h",
+   "seconds": null
+  }
+ ],
+ "checkDuration": {
+  "limits": {
+   "supported": true,
+   "defaultSeconds": 7200,
+   "minSeconds": 600,
+   "maxSeconds": 1209600
+  },
+  "cases": [
+   {
+    "seconds": 599,
+    "result": {
+     "ok": false,
+     "reason": "tooShort",
+     "minSeconds": 600,
+     "maxSeconds": 1209600
+    }
+   },
+   {
+    "seconds": 600,
+    "result": {
+     "ok": true
+    }
+   },
+   {
+    "seconds": 3600,
+    "result": {
+     "ok": true
+    }
+   },
+   {
+    "seconds": 1209600,
+    "result": {
+     "ok": true
+    }
+   },
+   {
+    "seconds": 1209601,
+    "result": {
+     "ok": false,
+     "reason": "tooLong",
+     "minSeconds": 600,
+     "maxSeconds": 1209600
+    }
+   }
+  ],
+  "unsupported": {
+   "ok": false,
+   "reason": "unsupported",
+   "minSeconds": null,
+   "maxSeconds": null
+  }
+ },
+ "formatDuration": {
+  "de": [
+   {
+    "seconds": 900,
+    "text": "15 Min."
+   },
+   {
+    "seconds": 3600,
+    "text": "1 Std."
+   },
+   {
+    "seconds": 10800,
+    "text": "3 Std."
+   },
+   {
+    "seconds": 11400,
+    "text": "3 Std. 10 Min."
+   },
+   {
+    "seconds": 86400,
+    "text": "1 d"
+   },
+   {
+    "seconds": 95400,
+    "text": "1 d 2 Std."
+   },
+   {
+    "seconds": 1209600,
+    "text": "14 d"
+   },
+   {
+    "seconds": 59,
+    "text": "1 Min."
+   },
+   {
+    "seconds": 61,
+    "text": "1 Min."
+   }
+  ],
+  "en": [
+   {
+    "seconds": 900,
+    "text": "15 min"
+   },
+   {
+    "seconds": 3600,
+    "text": "1 h"
+   },
+   {
+    "seconds": 10800,
+    "text": "3 h"
+   },
+   {
+    "seconds": 11400,
+    "text": "3 h 10 min"
+   },
+   {
+    "seconds": 86400,
+    "text": "1 d"
+   },
+   {
+    "seconds": 95400,
+    "text": "1 d 2 h"
+   },
+   {
+    "seconds": 1209600,
+    "text": "14 d"
+   },
+   {
+    "seconds": 59,
+    "text": "1 min"
+   },
+   {
+    "seconds": 61,
+    "text": "1 min"
+   }
+  ],
+  "rule": "the two largest units; minutes are dropped once there are days; at least 1 minute"
+ },
+ "remainingSeconds": {
+  "now": "2026-10-13T12:00:00Z",
+  "cases": [
+   {
+    "expiresAt": "2026-10-13T15:00:00Z",
+    "seconds": 10800
+   },
+   {
+    "expiresAt": "2026-10-27T12:00:00Z",
+    "seconds": 1209600
+   },
+   {
+    "expiresAt": "2026-10-13T11:59:59Z",
+    "seconds": null
+   },
+   {
+    "expiresAt": null,
+    "seconds": null
+   },
+   {
+    "expiresAt": "nonsense",
+    "seconds": null
+   }
+  ]
+ },
+ "quickDurationSeconds": [
+  900,
+  3600,
+  10800,
+  86400
+ ],
+ "parseLimitValue": [
+  {
+   "text": "50",
+   "unit": "kmh",
+   "value": 50
+  },
+  {
+   "text": " 130 ",
+   "unit": "kmh",
+   "value": 130
+  },
+  {
+   "text": "5",
+   "unit": "kmh",
+   "value": 5
+  },
+  {
+   "text": "200",
+   "unit": "kmh",
+   "value": 200
+  },
+  {
+   "text": "55",
+   "unit": "mph",
+   "value": 55
+  },
+  {
+   "text": "",
+   "unit": "kmh",
+   "value": null
+  },
+  {
+   "text": "abc",
+   "unit": "kmh",
+   "value": null
+  },
+  {
+   "text": "4",
+   "unit": "kmh",
+   "value": null
+  },
+  {
+   "text": "201",
+   "unit": "kmh",
+   "value": null
+  },
+  {
+   "text": "126",
+   "unit": "mph",
+   "value": null
+  },
+  {
+   "text": "5,5",
+   "unit": "kmh",
+   "value": null
+  },
+  {
+   "text": "-50",
+   "unit": "kmh",
+   "value": null
+  },
+  {
+   "text": "1000",
+   "unit": "kmh",
+   "value": null
+  }
+ ],
+ "entryLocked": [
+  {
+   "lockActive": true,
+   "lockEnabled": true,
+   "deviceSpeedKmh": 0,
+   "locked": true
+  },
+  {
+   "lockActive": false,
+   "lockEnabled": true,
+   "deviceSpeedKmh": 10,
+   "locked": true
+  },
+  {
+   "lockActive": false,
+   "lockEnabled": true,
+   "deviceSpeedKmh": 80,
+   "locked": true
+  },
+  {
+   "lockActive": false,
+   "lockEnabled": true,
+   "deviceSpeedKmh": 9.9,
+   "locked": false
+  },
+  {
+   "lockActive": false,
+   "lockEnabled": true,
+   "deviceSpeedKmh": null,
+   "locked": false
+  },
+  {
+   "lockActive": false,
+   "lockEnabled": false,
+   "deviceSpeedKmh": 90,
+   "locked": false
+  }
+ ],
+ "toggleRegion": [
+  {
+   "selected": [],
+   "id": "de",
+   "result": [
+    "de"
+   ]
+  },
+  {
+   "selected": [
+    "de"
+   ],
+   "id": "at",
+   "result": [
+    "de",
+    "at"
+   ]
+  },
+  {
+   "selected": [
+    "de",
+    "at"
+   ],
+   "id": "de",
+   "result": [
+    "at"
+   ]
+  }
+ ],
+ "isLeaving": [
+  {
+   "settings": {
+    "mode": "regions",
+    "regions": []
+   },
+   "regionId": "de",
+   "storedTiles": 3,
+   "leaving": true
+  },
+  {
+   "settings": {
+    "mode": "regions",
+    "regions": [
+     "de"
+    ]
+   },
+   "regionId": "de",
+   "storedTiles": 3,
+   "leaving": false
+  },
+  {
+   "settings": {
+    "mode": "regions",
+    "regions": []
+   },
+   "regionId": "de",
+   "storedTiles": 0,
+   "leaving": false
+  },
+  {
+   "settings": {
+    "mode": "auto",
+    "regions": []
+   },
+   "regionId": "de",
+   "storedTiles": 3,
+   "leaving": false
+  }
+ ],
+ "usedBytes": [
+  {
+   "usage": {
+    "storeBytes": 100,
+    "estimatedDeviceBytes": 7
+   },
+   "bytes": 100
+  },
+  {
+   "usage": {
+    "storeBytes": null,
+    "estimatedDeviceBytes": 7
+   },
+   "bytes": 7
+  }
+ ],
+ "regionName": {
+  "de": [
+   {
+    "country": "DE",
+    "language": "de",
+    "name": "Deutschland"
+   },
+   {
+    "country": "AT",
+    "language": "en",
+    "name": "Austria"
+   },
+   {
+    "country": null,
+    "language": "de",
+    "name": "x-1"
+   }
+  ]
+ },
+ "isTypeHidden": [
+  {
+   "type": "ice",
+   "hidden": [],
+   "isHidden": false
+  },
+  {
+   "type": "ice",
+   "hidden": [
+    "ice"
+   ],
+   "isHidden": true
+  },
+  {
+   "type": "fixedSpeedCamera",
+   "hidden": [
+    "cameras"
+   ],
+   "isHidden": true
+  },
+  {
+   "type": "fixedSpeedCamera",
+   "hidden": [
+    "mobileSpeedCamera"
+   ],
+   "isHidden": false
+  },
+  {
+   "type": "mobileSpeedCamera",
+   "hidden": [
+    "mobileSpeedCamera"
+   ],
+   "isHidden": true
+  },
+  {
+   "type": "ice",
+   "hidden": [
+    "cameras"
+   ],
+   "isHidden": false
+  }
+ ],
+ "isCameraType": [
+  {
+   "type": "fixedSpeedCamera",
+   "camera": true
+  },
+  {
+   "type": "mobileSpeedCamera",
+   "camera": true
+  },
+  {
+   "type": "trailerCamera",
+   "camera": true
+  },
+  {
+   "type": "redLightCamera",
+   "camera": true
+  },
+  {
+   "type": "distanceControl",
+   "camera": true
+  },
+  {
+   "type": "ice",
+   "camera": false
+  },
+  {
+   "type": "cameras",
+   "camera": false
+  }
+ ],
+ "mapReportTypes": [
+  {
+   "camerasActive": false,
+   "maxLevel": null,
+   "types": [
+    "traffic",
+    "accident",
+    "construction",
+    "ice",
+    "breakdown",
+    "obstacle"
+   ]
+  },
+  {
+   "camerasActive": true,
+   "maxLevel": "full",
+   "types": [
+    "traffic",
+    "accident",
+    "construction",
+    "ice",
+    "breakdown",
+    "obstacle",
+    "fixedSpeedCamera",
+    "mobileSpeedCamera",
+    "trailerCamera",
+    "redLightCamera",
+    "distanceControl"
+   ]
+  },
+  {
+   "camerasActive": true,
+   "maxLevel": "zones",
+   "types": [
+    "traffic",
+    "accident",
+    "construction",
+    "ice",
+    "breakdown",
+    "obstacle"
+   ]
+  },
+  {
+   "camerasActive": true,
+   "maxLevel": "off",
+   "types": [
+    "traffic",
+    "accident",
+    "construction",
+    "ice",
+    "breakdown",
+    "obstacle"
+   ]
+  },
+  {
+   "camerasActive": false,
+   "maxLevel": "full",
+   "types": [
+    "traffic",
+    "accident",
+    "construction",
+    "ice",
+    "breakdown",
+    "obstacle"
+   ]
+  },
+  {
+   "camerasActive": true,
+   "maxLevel": null,
+   "types": [
+    "traffic",
+    "accident",
+    "construction",
+    "ice",
+    "breakdown",
+    "obstacle"
+   ]
+  }
+ ],
+ "driveReportTypes": [
+  {
+   "camerasActive": false,
+   "maxLevel": null,
+   "types": [
+    "traffic",
+    "accident",
+    "construction",
+    "ice"
+   ]
+  },
+  {
+   "camerasActive": true,
+   "maxLevel": "full",
+   "types": [
+    "traffic",
+    "accident",
+    "construction",
+    "ice",
+    "fixedSpeedCamera",
+    "mobileSpeedCamera",
+    "trailerCamera",
+    "redLightCamera",
+    "distanceControl"
+   ]
+  },
+  {
+   "camerasActive": true,
+   "maxLevel": "zones",
+   "types": [
+    "traffic",
+    "accident",
+    "construction",
+    "ice"
+   ]
+  },
+  {
+   "camerasActive": false,
+   "maxLevel": "full",
+   "types": [
+    "traffic",
+    "accident",
+    "construction",
+    "ice"
+   ]
+  }
+ ],
+ "normalizeServerAddress": [
+  {
+   "input": "",
+   "allowInsecure": false,
+   "result": {
+    "ok": false,
+    "reason": "empty"
+   }
+  },
+  {
+   "input": "",
+   "allowInsecure": true,
+   "result": {
+    "ok": false,
+    "reason": "empty"
+   }
+  },
+  {
+   "input": "  ",
+   "allowInsecure": false,
+   "result": {
+    "ok": false,
+    "reason": "empty"
+   }
+  },
+  {
+   "input": "  ",
+   "allowInsecure": true,
+   "result": {
+    "ok": false,
+    "reason": "empty"
+   }
+  },
+  {
+   "input": "node.example.org",
+   "allowInsecure": false,
+   "result": {
+    "ok": true,
+    "url": "https://node.example.org"
+   }
+  },
+  {
+   "input": "node.example.org",
+   "allowInsecure": true,
+   "result": {
+    "ok": true,
+    "url": "https://node.example.org"
+   }
+  },
+  {
+   "input": "https://node.example.org/",
+   "allowInsecure": false,
+   "result": {
+    "ok": true,
+    "url": "https://node.example.org"
+   }
+  },
+  {
+   "input": "https://node.example.org/",
+   "allowInsecure": true,
+   "result": {
+    "ok": true,
+    "url": "https://node.example.org"
+   }
+  },
+  {
+   "input": "https://node.example.org/api/",
+   "allowInsecure": false,
+   "result": {
+    "ok": true,
+    "url": "https://node.example.org/api"
+   }
+  },
+  {
+   "input": "https://node.example.org/api/",
+   "allowInsecure": true,
+   "result": {
+    "ok": true,
+    "url": "https://node.example.org/api"
+   }
+  },
+  {
+   "input": "http://node.example.org",
+   "allowInsecure": false,
+   "result": {
+    "ok": false,
+    "reason": "insecure"
+   }
+  },
+  {
+   "input": "http://node.example.org",
+   "allowInsecure": true,
+   "result": {
+    "ok": true,
+    "url": "http://node.example.org"
+   }
+  },
+  {
+   "input": "http://192.168.1.5:3000",
+   "allowInsecure": false,
+   "result": {
+    "ok": false,
+    "reason": "insecure"
+   }
+  },
+  {
+   "input": "http://192.168.1.5:3000",
+   "allowInsecure": true,
+   "result": {
+    "ok": true,
+    "url": "http://192.168.1.5:3000"
+   }
+  },
+  {
+   "input": "ftp://x.org",
+   "allowInsecure": false,
+   "result": {
+    "ok": false,
+    "reason": "invalid"
+   }
+  },
+  {
+   "input": "ftp://x.org",
+   "allowInsecure": true,
+   "result": {
+    "ok": false,
+    "reason": "invalid"
+   }
+  },
+  {
+   "input": "https://user:pw@node.example.org",
+   "allowInsecure": false,
+   "result": {
+    "ok": false,
+    "reason": "credentials"
+   }
+  },
+  {
+   "input": "https://user:pw@node.example.org",
+   "allowInsecure": true,
+   "result": {
+    "ok": false,
+    "reason": "credentials"
+   }
+  },
+  {
+   "input": "not a url",
+   "allowInsecure": false,
+   "result": {
+    "ok": false,
+    "reason": "invalid"
+   }
+  },
+  {
+   "input": "not a url",
+   "allowInsecure": true,
+   "result": {
+    "ok": false,
+    "reason": "invalid"
+   }
+  },
+  {
+   "input": "https://",
+   "allowInsecure": false,
+   "result": {
+    "ok": false,
+    "reason": "invalid"
+   }
+  },
+  {
+   "input": "https://",
+   "allowInsecure": true,
+   "result": {
+    "ok": false,
+    "reason": "invalid"
+   }
+  },
+  {
+   "input": "node.example.org:8443/path//",
+   "allowInsecure": false,
+   "result": {
+    "ok": true,
+    "url": "https://node.example.org:8443/path"
+   }
+  },
+  {
+   "input": "node.example.org:8443/path//",
+   "allowInsecure": true,
+   "result": {
+    "ok": true,
+    "url": "https://node.example.org:8443/path"
+   }
+  }
+ ],
+ "shouldSync": [
+  {
+   "wifiOnly": true,
+   "onWifi": true,
+   "bytesPending": null,
+   "sync": true
+  },
+  {
+   "wifiOnly": true,
+   "onWifi": true,
+   "bytesPending": 0,
+   "sync": true
+  },
+  {
+   "wifiOnly": true,
+   "onWifi": true,
+   "bytesPending": 5000,
+   "sync": true
+  },
+  {
+   "wifiOnly": true,
+   "onWifi": false,
+   "bytesPending": null,
+   "sync": false
+  },
+  {
+   "wifiOnly": true,
+   "onWifi": false,
+   "bytesPending": 0,
+   "sync": true
+  },
+  {
+   "wifiOnly": true,
+   "onWifi": false,
+   "bytesPending": 5000,
+   "sync": false
+  },
+  {
+   "wifiOnly": false,
+   "onWifi": true,
+   "bytesPending": null,
+   "sync": true
+  },
+  {
+   "wifiOnly": false,
+   "onWifi": true,
+   "bytesPending": 0,
+   "sync": true
+  },
+  {
+   "wifiOnly": false,
+   "onWifi": true,
+   "bytesPending": 5000,
+   "sync": true
+  },
+  {
+   "wifiOnly": false,
+   "onWifi": false,
+   "bytesPending": null,
+   "sync": true
+  },
+  {
+   "wifiOnly": false,
+   "onWifi": false,
+   "bytesPending": 0,
+   "sync": true
+  },
+  {
+   "wifiOnly": false,
+   "onWifi": false,
+   "bytesPending": 5000,
+   "sync": true
+  }
+ ],
+ "emergencyOf": [
+  {
+   "phase": "starting",
+   "sync": null,
+   "waitingForWifi": false,
+   "emergency": null
+  },
+  {
+   "phase": "noCredentials",
+   "sync": null,
+   "waitingForWifi": false,
+   "emergency": "noAccess"
+  },
+  {
+   "phase": "ready",
+   "sync": {
+    "staticDataVersion": null,
+    "connection": "offline"
+   },
+   "waitingForWifi": false,
+   "emergency": "noServer"
+  },
+  {
+   "phase": "ready",
+   "sync": {
+    "staticDataVersion": null,
+    "connection": "never"
+   },
+   "waitingForWifi": false,
+   "emergency": "noServer"
+  },
+  {
+   "phase": "ready",
+   "sync": {
+    "staticDataVersion": null,
+    "connection": "online"
+   },
+   "waitingForWifi": false,
+   "emergency": null
+  },
+  {
+   "phase": "ready",
+   "sync": {
+    "staticDataVersion": 3,
+    "connection": "offline"
+   },
+   "waitingForWifi": false,
+   "emergency": null
+  },
+  {
+   "phase": "ready",
+   "sync": null,
+   "waitingForWifi": false,
+   "emergency": null
+  },
+  {
+   "phase": "error",
+   "sync": null,
+   "waitingForWifi": false,
+   "emergency": null
+  },
+  {
+   "phase": "noCredentials",
+   "sync": null,
+   "waitingForWifi": true,
+   "emergency": null
+  }
+ ],
+ "settings": {
+  "defaults": {
+   "serverAddress": null,
+   "hiddenHazardTypes": [],
+   "dataWifiOnly": true,
+   "speedUnit": "kmh",
+   "driveSound": true,
+   "driveVoice": true,
+   "warnOffCategories": [],
+   "warnScale": 1,
+   "camerasEnabled": false,
+   "camerasNoticeSeen": null,
+   "driveNoticeSeen": false,
+   "driveLockEnabled": true
+  },
+  "parse": [
+   {
+    "raw": null,
+    "settings": {
+     "serverAddress": null,
+     "hiddenHazardTypes": [],
+     "dataWifiOnly": true,
+     "speedUnit": "kmh",
+     "driveSound": true,
+     "driveVoice": true,
+     "warnOffCategories": [],
+     "warnScale": 1,
+     "camerasEnabled": false,
+     "camerasNoticeSeen": null,
+     "driveNoticeSeen": false,
+     "driveLockEnabled": true
+    }
+   },
+   {
+    "raw": "",
+    "settings": {
+     "serverAddress": null,
+     "hiddenHazardTypes": [],
+     "dataWifiOnly": true,
+     "speedUnit": "kmh",
+     "driveSound": true,
+     "driveVoice": true,
+     "warnOffCategories": [],
+     "warnScale": 1,
+     "camerasEnabled": false,
+     "camerasNoticeSeen": null,
+     "driveNoticeSeen": false,
+     "driveLockEnabled": true
+    }
+   },
+   {
+    "raw": "{",
+    "settings": {
+     "serverAddress": null,
+     "hiddenHazardTypes": [],
+     "dataWifiOnly": true,
+     "speedUnit": "kmh",
+     "driveSound": true,
+     "driveVoice": true,
+     "warnOffCategories": [],
+     "warnScale": 1,
+     "camerasEnabled": false,
+     "camerasNoticeSeen": null,
+     "driveNoticeSeen": false,
+     "driveLockEnabled": true
+    }
+   },
+   {
+    "raw": "{\"driveLockEnabled\":false}",
+    "settings": {
+     "serverAddress": null,
+     "hiddenHazardTypes": [],
+     "dataWifiOnly": true,
+     "speedUnit": "kmh",
+     "driveSound": true,
+     "driveVoice": true,
+     "warnOffCategories": [],
+     "warnScale": 1,
+     "camerasEnabled": false,
+     "camerasNoticeSeen": null,
+     "driveNoticeSeen": false,
+     "driveLockEnabled": false
+    }
+   },
+   {
+    "raw": "{\"driveLockEnabled\":\"no\"}",
+    "settings": {
+     "serverAddress": null,
+     "hiddenHazardTypes": [],
+     "dataWifiOnly": true,
+     "speedUnit": "kmh",
+     "driveSound": true,
+     "driveVoice": true,
+     "warnOffCategories": [],
+     "warnScale": 1,
+     "camerasEnabled": false,
+     "camerasNoticeSeen": null,
+     "driveNoticeSeen": false,
+     "driveLockEnabled": true
+    }
+   },
+   {
+    "raw": "{\"driveLockEnabled\":true}",
+    "settings": {
+     "serverAddress": null,
+     "hiddenHazardTypes": [],
+     "dataWifiOnly": true,
+     "speedUnit": "kmh",
+     "driveSound": true,
+     "driveVoice": true,
+     "warnOffCategories": [],
+     "warnScale": 1,
+     "camerasEnabled": false,
+     "camerasNoticeSeen": null,
+     "driveNoticeSeen": false,
+     "driveLockEnabled": true
+    }
+   },
+   {
+    "raw": "{\"speedUnit\":\"mph\",\"warnScale\":1.5,\"dataWifiOnly\":false}",
+    "settings": {
+     "serverAddress": null,
+     "hiddenHazardTypes": [],
+     "dataWifiOnly": false,
+     "speedUnit": "mph",
+     "driveSound": true,
+     "driveVoice": true,
+     "warnOffCategories": [],
+     "warnScale": 1.5,
+     "camerasEnabled": false,
+     "camerasNoticeSeen": null,
+     "driveNoticeSeen": false,
+     "driveLockEnabled": true
+    }
+   },
+   {
+    "raw": "{\"warnScale\":2}",
+    "settings": {
+     "serverAddress": null,
+     "hiddenHazardTypes": [],
+     "dataWifiOnly": true,
+     "speedUnit": "kmh",
+     "driveSound": true,
+     "driveVoice": true,
+     "warnOffCategories": [],
+     "warnScale": 1,
+     "camerasEnabled": false,
+     "camerasNoticeSeen": null,
+     "driveNoticeSeen": false,
+     "driveLockEnabled": true
+    }
+   },
+   {
+    "raw": "{\"hiddenHazardTypes\":[\"ice\",3]}",
+    "settings": {
+     "serverAddress": null,
+     "hiddenHazardTypes": [
+      "ice"
+     ],
+     "dataWifiOnly": true,
+     "speedUnit": "kmh",
+     "driveSound": true,
+     "driveVoice": true,
+     "warnOffCategories": [],
+     "warnScale": 1,
+     "camerasEnabled": false,
+     "camerasNoticeSeen": null,
+     "driveNoticeSeen": false,
+     "driveLockEnabled": true
+    }
+   },
+   {
+    "raw": "{\"serverAddress\":\"\"}",
+    "settings": {
+     "serverAddress": null,
+     "hiddenHazardTypes": [],
+     "dataWifiOnly": true,
+     "speedUnit": "kmh",
+     "driveSound": true,
+     "driveVoice": true,
+     "warnOffCategories": [],
+     "warnScale": 1,
+     "camerasEnabled": false,
+     "camerasNoticeSeen": null,
+     "driveNoticeSeen": false,
+     "driveLockEnabled": true
+    }
+   }
+  ],
+  "note": "driveLockEnabled is false only for an explicit boolean false (and only in builds that allow switching the lock off, ALLOW_DISABLE_DRIVE_LOCK != false); everything else is true."
+ },
+ "pendingText": [
+  {
+   "pending": 0,
+   "waitingForWifi": false,
+   "offline": false,
+   "text": null
+  },
+  {
+   "pending": 2,
+   "waitingForWifi": true,
+   "offline": false,
+   "text": "Wartende Meldungen: 2. Sie werden mit dem Laden der Kartendaten über WLAN gesendet."
+  },
+  {
+   "pending": 2,
+   "waitingForWifi": false,
+   "offline": true,
+   "text": "Wartende Meldungen: 2. Sie werden gesendet, sobald du online bist."
+  },
+  {
+   "pending": 2,
+   "waitingForWifi": false,
+   "offline": false,
+   "text": "Wartende Meldungen: 2. Sie werden gerade gesendet."
+  }
+ ],
+ "rejectedText": [
+  {
+   "count": 0,
+   "text": null
+  },
+  {
+   "count": 1,
+   "text": "Der Server hat 1 Meldung(en) nicht angenommen, zum Beispiel wegen einer Begrenzung oder weil es schon eine ähnliche gibt. Das ist kein Fehler."
+  },
+  {
+   "count": 4,
+   "text": "Der Server hat 4 Meldung(en) nicht angenommen, zum Beispiel wegen einer Begrenzung oder weil es schon eine ähnliche gibt. Das ist kein Fehler."
+  }
+ ]
+}

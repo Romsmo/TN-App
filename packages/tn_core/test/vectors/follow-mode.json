@@ -1,0 +1,23 @@
+{
+ "next": [
+  {
+   "mode": "off",
+   "next": "centered",
+   "afterUserMove": "off",
+   "movesWithPosition": false
+  },
+  {
+   "mode": "centered",
+   "next": "follow",
+   "afterUserMove": "off",
+   "movesWithPosition": false
+  },
+  {
+   "mode": "follow",
+   "next": "off",
+   "afterUserMove": "off",
+   "movesWithPosition": true
+  }
+ ],
+ "centerZoom": 15
+}

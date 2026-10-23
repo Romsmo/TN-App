@@ -1,0 +1,2298 @@
+{
+ "constants": {
+  "warningShownMs": 12000,
+  "promptShownMs": 8000,
+  "promptMinGapMs": 30000,
+  "speechMinGapMs": 2500,
+  "gpsLostAfterMs": 10000,
+  "maxReportFixAgeMs": 15000,
+  "refreshMovedM": 200,
+  "refreshAfterMs": 10000,
+  "limitRefreshMovedM": 30,
+  "limitRefreshAfterMs": 3000,
+  "nearbyRadiusM": "max(2500, firstWarningDistance(speed, scale) * 1.6)",
+  "heartbeatMs": 1000
+ },
+ "note": "Scripted clock starts at 1000000 ms; \"fix\" steps are followed by an advance (default 1000 ms) and one session.tick(). Data: nearby() answers the listed items every time, speedLimit() the fixed limit. feedback[] is what the session asked the sound/speech/haptic layer to do since the previous step.",
+ "scenarios": [
+  {
+   "name": "speed lock: locks at 10 km/h, needs 2 s at <= 5 km/h to release (fixes 1 s apart; clock advances 1 s after each fix)",
+   "settings": {
+    "unit": "kmh",
+    "sound": true,
+    "voice": true,
+    "warnOff": [],
+    "scale": 1,
+    "lockEnabled": true
+   },
+   "items": [],
+   "limit": 100,
+   "steps": [
+    {
+     "action": {
+      "type": "start"
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 0,
+      "speedKmh": 0,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 0,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 10,
+      "speedKmh": 12,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 12,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 20,
+      "speedKmh": 12,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 12,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 30,
+      "speedKmh": 3,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 3,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 40,
+      "speedKmh": 3,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 3,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 50,
+      "speedKmh": 3,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 3,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 60,
+      "speedKmh": 3,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 3,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "user switched the lock off: speedLocked is true, locked stays false",
+   "settings": {
+    "unit": "kmh",
+    "sound": true,
+    "voice": true,
+    "warnOff": [],
+    "scale": 1,
+    "lockEnabled": false
+   },
+   "items": [],
+   "limit": 100,
+   "steps": [
+    {
+     "action": {
+      "type": "start"
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 0,
+      "speedKmh": 80,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 80,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "hazard 1500 m ahead at 100 km/h (fixes every 50 m, 1 s apart): first warning, second warning, passed -> \"still there?\" card, expires after 8 s",
+   "settings": {
+    "unit": "kmh",
+    "sound": true,
+    "voice": true,
+    "warnOff": [],
+    "scale": 1,
+    "lockEnabled": true
+   },
+   "items": [
+    {
+     "id": "h1",
+     "type": "accident",
+     "northM": 1500,
+     "lat": 52.5134898,
+     "lng": 13.4
+    }
+   ],
+   "limit": 100,
+   "steps": [
+    {
+     "action": {
+      "type": "start"
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 0,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 500,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 850,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [
+      "warn:first:\"Accident in 650 metres\":sound=true:voice=true"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "first",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 650
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 900,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "first",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 650
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 950,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "first",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 650
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1000,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "first",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 650
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1050,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "first",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 650
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1100,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "first",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 650
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1150,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "first",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 650
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1200,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "first",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 650
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1250,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "first",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 650
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1300,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [
+      "warn:second:\"Accident ahead\":sound=true:voice=true"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "second",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 200
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1350,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "second",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 200
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1400,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "second",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 200
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1450,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "second",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 200
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1500,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "second",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 200
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1550,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [
+      "prompt:sound=true"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": {
+       "id": "h1",
+       "hazardType": "accident"
+      },
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1600,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": {
+       "id": "h1",
+       "hazardType": "accident"
+      },
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1650,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": {
+       "id": "h1",
+       "hazardType": "accident"
+      },
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1700,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": {
+       "id": "h1",
+       "hazardType": "accident"
+      },
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "tick",
+      "afterMs": 40000
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": true
+     }
+    }
+   ]
+  },
+  {
+   "name": "answering \"still there?\" with yes sends a confirmation (vote) and plays the confirm cue",
+   "votes": [
+    {
+     "reportId": "h1",
+     "stillThere": true
+    }
+   ],
+   "steps": [
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1650,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": {
+       "id": "h1",
+       "hazardType": "accident"
+      },
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1700,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": {
+       "id": "h1",
+       "hazardType": "accident"
+      },
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "answerPrompt",
+      "stillThere": true
+     },
+     "feedback": [
+      "confirm:sound=true"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "a report that is only on this device (pending) never warns",
+   "items": [
+    {
+     "id": "h1",
+     "type": "accident",
+     "pending": true,
+     "lat": 52.5134898,
+     "lng": 13.4
+    }
+   ],
+   "anyWarning": false,
+   "anyPrompt": false
+  },
+  {
+   "name": "category switched off in the settings never warns (and gives no prompt)",
+   "warnOff": [
+    "accident"
+   ],
+   "anyWarning": false,
+   "anyPrompt": false
+  },
+  {
+   "name": "two hazards close together: speech gap of 2.5 s for first warnings, second warnings always spoken; at most 3 warnings on screen, second level first",
+   "items": [
+    {
+     "id": "h1",
+     "type": "accident",
+     "lat": 52.5134898,
+     "lng": 13.4
+    },
+    {
+     "id": "h2",
+     "type": "ice",
+     "lat": 52.5140294,
+     "lng": 13.4
+    }
+   ],
+   "steps": [
+    {
+     "action": {
+      "type": "start"
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1050,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [
+      "warn:first:\"Accident in 450 metres\":sound=true:voice=true",
+      "warn:first:\"Ice in 500 metres\":sound=true:voice=false"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "first",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 450
+       },
+       {
+        "id": "h2",
+        "level": "first",
+        "kind": "point",
+        "category": "ice",
+        "label": "Ice",
+        "distanceM": 510
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1300,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [
+      "warn:second:\"Accident ahead\":sound=true:voice=true"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "second",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 200
+       },
+       {
+        "id": "h2",
+        "level": "first",
+        "kind": "point",
+        "category": "ice",
+        "label": "Ice",
+        "distanceM": 510
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1350,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [
+      "warn:second:\"Ice ahead\":sound=true:voice=true"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h2",
+        "level": "second",
+        "kind": "point",
+        "category": "ice",
+        "label": "Ice",
+        "distanceM": 210
+       },
+       {
+        "id": "h1",
+        "level": "second",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 200
+       }
+      ],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1550,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [
+      "prompt:sound=true"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h2",
+        "level": "second",
+        "kind": "point",
+        "category": "ice",
+        "label": "Ice",
+        "distanceM": 210
+       }
+      ],
+      "prompt": {
+       "id": "h1",
+       "hazardType": "accident"
+      },
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "muted: warnings still show, but no sound and no speech (and silence() is called when muting)",
+   "steps": [
+    {
+     "action": {
+      "type": "setMuted",
+      "muted": true
+     },
+     "feedback": [
+      "silence"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": true,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1050,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [
+      "warn:first:\"Accident in 450 metres\":sound=false:voice=false"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "first",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 450
+       }
+      ],
+      "prompt": null,
+      "muted": true,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1300,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [
+      "warn:second:\"Accident ahead\":sound=false:voice=false"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [
+       {
+        "id": "h1",
+        "level": "second",
+        "kind": "point",
+        "category": "accident",
+        "label": "Accident",
+        "distanceM": 200
+       }
+      ],
+      "prompt": null,
+      "muted": true,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 1550,
+      "speedKmh": 100,
+      "heading": 0
+     },
+     "feedback": [
+      "prompt:sound=false"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": {
+       "id": "h1",
+       "hazardType": "accident"
+      },
+      "muted": true,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "setMuted",
+      "muted": false
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 100,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": {
+       "id": "h1",
+       "hazardType": "accident"
+      },
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "speed over the limit: \"over\" only above limit + 3 km/h tolerance",
+   "limit": 50,
+   "steps": [
+    {
+     "action": {
+      "type": "start"
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 0,
+      "speedKmh": 60,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 60,
+      "heading": 0,
+      "limit": {
+       "value": 50,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "over",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 10,
+      "speedKmh": 53,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 53,
+      "heading": 0,
+      "limit": {
+       "value": 50,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 20,
+      "speedKmh": 53.5,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 53.5,
+      "heading": 0,
+      "limit": {
+       "value": 50,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "over",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "no limit and the offline data does not cover the spot: limitUnavailable = true (calm hint, never a silent \"no limit\")",
+   "steps": [
+    {
+     "action": {
+      "type": "start"
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 0,
+      "speedKmh": 60,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 60,
+      "heading": 0,
+      "limit": null,
+      "limitUnavailable": true,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "no limit but the spot is covered (nothing on record): limitUnavailable = false, limit = null, speedState ok",
+   "steps": [
+    {
+     "action": {
+      "type": "start"
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 0,
+      "speedKmh": 60,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 60,
+      "heading": 0,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "GPS lost: gpsLost becomes true after more than 10 s without a fix, false again with the next fix",
+   "steps": [
+    {
+     "action": {
+      "type": "start"
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 0,
+      "speedKmh": 50,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 50,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "tick",
+      "afterMs": 9999
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 50,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "tick",
+      "afterMs": 2
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 50,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": true
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 10,
+      "speedKmh": 50,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 50,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "one-tap report: false before the first fix, true with a fresh fix (confirm cue), false when the last fix is older than 15 s; the report carries only type and position",
+   "reports": [
+    {
+     "type": "traffic",
+     "lat": 52.5,
+     "lng": 13.4
+    }
+   ],
+   "steps": [
+    {
+     "action": {
+      "type": "start"
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "report",
+      "type_": "traffic",
+      "result": false
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 0,
+      "speedKmh": 50,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 50,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "report",
+      "type_": "traffic",
+      "result": true
+     },
+     "feedback": [
+      "confirm:sound=true"
+     ],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 50,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "report",
+      "type_": "ice",
+      "afterMs": 15001,
+      "result": false
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 50,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "storing the report failed: returns false and gives no confirm cue",
+   "steps": [
+    {
+     "action": {
+      "type": "report",
+      "result": false
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 50,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "heading: kept at >= 4 km/h from the receiver; below that, from the last clear position (kept if moved < 10 m, else the bearing of the movement)",
+   "steps": [
+    {
+     "action": {
+      "type": "start"
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 0,
+      "speedKmh": 50,
+      "heading": 90
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 50,
+      "heading": 90,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 0.00001,
+      "speedKmh": 2,
+      "heading": null
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 2,
+      "heading": 90,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 100,
+      "speedKmh": 2,
+      "heading": null
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 2,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "stop() resets the snapshot to inactive/initial and silences; no report after the drive",
+   "steps": [
+    {
+     "action": {
+      "type": "start"
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "fix",
+      "northM": 0,
+      "speedKmh": 80,
+      "heading": 0
+     },
+     "feedback": [],
+     "snapshot": {
+      "active": true,
+      "speedKmh": 80,
+      "heading": 0,
+      "limit": {
+       "value": 100,
+       "unit": "kmh"
+      },
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": true,
+      "speedLocked": true,
+      "gpsLost": false
+     }
+    },
+    {
+     "action": {
+      "type": "stop"
+     },
+     "feedback": [
+      "silence"
+     ],
+     "snapshot": {
+      "active": false,
+      "speedKmh": null,
+      "heading": null,
+      "limit": null,
+      "limitUnavailable": false,
+      "speedState": "ok",
+      "warnings": [],
+      "prompt": null,
+      "muted": false,
+      "locked": false,
+      "speedLocked": false,
+      "gpsLost": false
+     }
+    }
+   ],
+   "reportAfterStop": false
+  }
+ ],
+ "spokenText": [
+  {
+   "language": "de",
+   "level": "first",
+   "kind": "point",
+   "label": "Unfall",
+   "distanceM": 1240,
+   "text": "Unfall in 1250 Metern"
+  },
+  {
+   "language": "de",
+   "level": "first",
+   "kind": "point",
+   "label": "Unfall",
+   "distanceM": 80,
+   "text": "Unfall in 100 Metern"
+  },
+  {
+   "language": "de",
+   "level": "first",
+   "kind": "point",
+   "label": "Unfall",
+   "distanceM": null,
+   "text": "Unfall voraus"
+  },
+  {
+   "language": "de",
+   "level": "first",
+   "kind": "zone",
+   "label": "Gefahrenbereich",
+   "distanceM": null,
+   "text": "Gefahrenbereich voraus"
+  },
+  {
+   "language": "de",
+   "level": "second",
+   "kind": "point",
+   "label": "Unfall",
+   "distanceM": 1240,
+   "text": "Unfall voraus"
+  },
+  {
+   "language": "de",
+   "level": "second",
+   "kind": "point",
+   "label": "Unfall",
+   "distanceM": 80,
+   "text": "Unfall voraus"
+  },
+  {
+   "language": "de",
+   "level": "second",
+   "kind": "point",
+   "label": "Unfall",
+   "distanceM": null,
+   "text": "Unfall voraus"
+  },
+  {
+   "language": "de",
+   "level": "second",
+   "kind": "zone",
+   "label": "Gefahrenbereich",
+   "distanceM": null,
+   "text": "Im Gefahrenbereich"
+  },
+  {
+   "language": "en",
+   "level": "first",
+   "kind": "point",
+   "label": "Accident",
+   "distanceM": 1240,
+   "text": "Accident in 1250 metres"
+  },
+  {
+   "language": "en",
+   "level": "first",
+   "kind": "point",
+   "label": "Accident",
+   "distanceM": 80,
+   "text": "Accident in 100 metres"
+  },
+  {
+   "language": "en",
+   "level": "first",
+   "kind": "zone",
+   "label": "Danger area",
+   "distanceM": null,
+   "text": "Danger area ahead"
+  },
+  {
+   "language": "en",
+   "level": "second",
+   "kind": "point",
+   "label": "Accident",
+   "distanceM": 1240,
+   "text": "Accident ahead"
+  },
+  {
+   "language": "en",
+   "level": "second",
+   "kind": "point",
+   "label": "Accident",
+   "distanceM": 80,
+   "text": "Accident ahead"
+  },
+  {
+   "language": "en",
+   "level": "second",
+   "kind": "zone",
+   "label": "Danger area",
+   "distanceM": null,
+   "text": "In the danger area"
+  }
+ ]
+}

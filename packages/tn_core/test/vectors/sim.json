@@ -1,0 +1,69 @@
+{
+ "limits": [
+  [
+   0,
+   50
+  ],
+  [
+   1500,
+   100
+  ],
+  [
+   4500,
+   70
+  ]
+ ],
+ "table": [
+  {
+   "distanceM": 0,
+   "limitKmh": 50,
+   "speedKmh": 47
+  },
+  {
+   "distanceM": 1499,
+   "limitKmh": 50,
+   "speedKmh": 47
+  },
+  {
+   "distanceM": 1500,
+   "limitKmh": 100,
+   "speedKmh": 97
+  },
+  {
+   "distanceM": 2599,
+   "limitKmh": 100,
+   "speedKmh": 97
+  },
+  {
+   "distanceM": 2600,
+   "limitKmh": 100,
+   "speedKmh": 112
+  },
+  {
+   "distanceM": 3199,
+   "limitKmh": 100,
+   "speedKmh": 112
+  },
+  {
+   "distanceM": 3200,
+   "limitKmh": 100,
+   "speedKmh": 97
+  },
+  {
+   "distanceM": 4499,
+   "limitKmh": 100,
+   "speedKmh": 97
+  },
+  {
+   "distanceM": 4500,
+   "limitKmh": 70,
+   "speedKmh": 67
+  },
+  {
+   "distanceM": 7000,
+   "limitKmh": 70,
+   "speedKmh": 67
+  }
+ ],
+ "rule": "speed = limit - 3, except limit + 12 for distances 2600..3199 m"
+}
