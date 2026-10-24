@@ -32,6 +32,9 @@ class DriveController extends ChangeNotifier {
   final SettingsStore settings;
   final Texts texts;
 
+  /// Whether the phone itself may make sounds and speak: false while the announcements play on a connected display.
+  bool Function() phoneSoundAllowed = () => true;
+
   late final DeviceFeedback _feedback;
   late final GeolocatorBackend _backend;
   late final DriveHost _host;
@@ -59,8 +62,8 @@ class DriveController extends ChangeNotifier {
     final s = settings.value;
     return DriveSettings(
       unit: s.speedUnit,
-      sound: s.driveSound,
-      voice: s.driveVoice,
+      sound: s.driveSound && phoneSoundAllowed(),
+      voice: s.driveVoice && phoneSoundAllowed(),
       warnOff: s.warnOffCategories,
       scale: s.warnScale,
       lockEnabled: s.driveLockEnabled,

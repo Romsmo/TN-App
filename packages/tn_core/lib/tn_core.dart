@@ -3,6 +3,8 @@
 library;
 
 export 'src/connection.dart';
+export 'src/display/display_feed.dart';
+export 'src/display/display_link.dart';
 export 'src/drive/compass_follow.dart';
 export 'src/drive/data_source.dart';
 export 'src/drive/drive_host.dart';

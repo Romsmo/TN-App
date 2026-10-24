@@ -7,6 +7,7 @@ import 'package:tn_core/tn_core.dart';
 import 'package:trafficnetwork_flutter/trafficnetwork_flutter.dart' as tn;
 
 import '../services/demo_backend.dart';
+import '../services/display_ble.dart';
 
 /// Whether this build answers from the demo backend (development only: `--dart-define=TN_DEMO=true`).
 const bool demoMode = bool.fromEnvironment('TN_DEMO');
@@ -14,6 +15,9 @@ const bool demoMode = bool.fromEnvironment('TN_DEMO');
 /// Whether the development aids (the simulated drive) are shown. Off in every release build; `--dart-define=TN_DEV_TOOLS=true`
 /// or a demo build switches them on.
 const bool devTools = demoMode || bool.fromEnvironment('TN_DEV_TOOLS');
+
+/// The Bluetooth transport for the TN display on a phone; null where there is none.
+DisplayTransport? createDisplayTransport() => isMobile ? UniversalBleDisplayTransport() : null;
 
 Future<File> _settingsFile() async {
   final dir = await getApplicationDocumentsDirectory();

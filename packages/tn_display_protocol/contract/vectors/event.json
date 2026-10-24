@@ -1,0 +1,108 @@
+{
+  "characteristic": "0002",
+  "direction": "device -> app",
+  "what": "DeviceEvent",
+  "protocolVersion": 1,
+  "generatedBy": "test/gen_vectors.cpp (core/codec/protocol.cpp)",
+  "vectors": [
+    {
+      "name": "report-pressed",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "the + button was tapped",
+      "hex": "a200010100",
+      "decodeOk": true,
+      "decoded": {"tag":0}
+    },
+    {
+      "name": "report-submitted-with-speed",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "Melden: mobile camera, speed in km/h",
+      "hex": "a4000101010201031832",
+      "decodeOk": true,
+      "decoded": {"tag":1,"hazardType":1,"speedKmh":50}
+    },
+    {
+      "name": "report-submitted-no-speed",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "Melden: accident (no speed field)",
+      "hex": "a3000101010207",
+      "decodeOk": true,
+      "decoded": {"tag":1,"hazardType":7,"speedKmh":null}
+    },
+    {
+      "name": "confirm-seen",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "Gesehen? answered Ja",
+      "hex": "a30001010204f5",
+      "decodeOk": true,
+      "decoded": {"tag":2,"seen":true}
+    },
+    {
+      "name": "confirm-not-seen",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "Gesehen? answered Nein",
+      "hex": "a30001010204f4",
+      "decodeOk": true,
+      "decoded": {"tag":2,"seen":false}
+    },
+    {
+      "name": "phone-connect",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "legacy: the pairing button (no longer sent by the UI)",
+      "hex": "a200010103",
+      "decodeOk": true,
+      "decoded": {"tag":3}
+    },
+    {
+      "name": "sound-on",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "Settings: sound switched on",
+      "hex": "a30001010405f5",
+      "decodeOk": true,
+      "decoded": {"tag":4,"on":true}
+    },
+    {
+      "name": "theme-changed",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "Settings: theme (the device has one dark theme; kept for the wire)",
+      "hex": "a3000101050602",
+      "decodeOk": true,
+      "decoded": {"tag":5,"mode":2}
+    },
+    {
+      "name": "units-mph",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "Settings: units switched to mph",
+      "hex": "a30001010607f5",
+      "decodeOk": true,
+      "decoded": {"tag":6,"useMph":true}
+    },
+    {
+      "name": "filter-changed",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "Settings: hazard filter bits changed on the device",
+      "hex": "a300010107081907fb",
+      "decodeOk": true,
+      "decoded": {"tag":7,"filterBits":2043}
+    },
+    {
+      "name": "heartbeat",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "every ~10 s while connected; uptime in seconds",
+      "hex": "a30001010809193039",
+      "decodeOk": true,
+      "decoded": {"tag":8,"uptimeS":12345}
+    }
+  ]
+}

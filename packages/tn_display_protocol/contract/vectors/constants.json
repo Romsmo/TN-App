@@ -1,0 +1,7 @@
+{
+  "protocolVersion": 1,
+  "maxPayloadBytes": 244,
+  "uiConfigBitCount": 10,
+  "hazardTypeMaxKnown": 10,
+  "signListMax": 4
+}

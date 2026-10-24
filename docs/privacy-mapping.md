@@ -38,3 +38,19 @@ fine/coarse location and a foreground service with a notification while the driv
 * **Threat note:** a foreign code leads into a foreign network. The app shows the address and the key's fingerprint and asks first;
   it cannot do more. A code shown on a web page is practically public (see the server's `join-code.md`).
 * No analytics, no telemetry.
+
+
+## Added 2026-10-24 (display, draft for a lawyer)
+
+* **Bluetooth** (new permission, `NSBluetoothAlwaysUsageDescription` / Android `BLUETOOTH_SCAN` (not used for location), `BLUETOOTH_CONNECT`;
+  iOS background mode `bluetooth-central`): the app talks to one TN display chosen by the user. Exchanged with the display: the speed limit,
+  warnings (category, distance), the "still there?" prompt, announcement cues, the app's display settings (sound, volume, units, filter,
+  night hours), the time, and the display's events (report, answer). **No position, no track, no identifier of the user is sent.** The
+  display's Bluetooth id and name are stored on the phone (settings file) to reconnect.
+* The link is **not secured** in protocol v1 (the display requires no pairing). Anyone in range could connect while the phone is not
+  connected. The app says so on the display page.
+* **Reports from the display** become ordinary reports of the app (same rules as the one-tap tiles: only during a drive with a recent
+  position; general hazards only, never a speed-camera category).
+* **Speed-camera data** reaches the display only if the user switched cameras on and the country rule allows it (the same switch as in the app).
+* No update check yet, so no new internet connection for the display feature.
+* No analytics, no telemetry.

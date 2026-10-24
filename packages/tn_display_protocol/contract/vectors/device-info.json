@@ -1,0 +1,18 @@
+{
+  "characteristic": "0003",
+  "direction": "device -> app",
+  "what": "DeviceInfo",
+  "protocolVersion": 1,
+  "generatedBy": "test/gen_vectors.cpp (core/codec/protocol.cpp)",
+  "vectors": [
+    {
+      "name": "typical",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "caps 61 = audio + rtc + sd + speedcam + ota (bits 0,2,3,4,5); see ble-protocol.md",
+      "hex": "a500010169302e312e302d64657602183d031901d2041901d2",
+      "decodeOk": true,
+      "decoded": {"protoVersion":1,"fwVersion":"0.1.0-dev","caps":61,"width":466,"height":466}
+    }
+  ]
+}

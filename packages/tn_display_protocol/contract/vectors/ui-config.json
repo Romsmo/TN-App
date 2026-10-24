@@ -1,0 +1,27 @@
+{
+  "characteristic": "0006",
+  "direction": "both",
+  "what": "UiConfig",
+  "protocolVersion": 1,
+  "generatedBy": "test/gen_vectors.cpp (core/codec/protocol.cpp)",
+  "vectors": [
+    {
+      "name": "all-on",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "every feature enabled (factory state)",
+      "hex": "a20001011903ff",
+      "decodeOk": true,
+      "decoded": {"bits":1023}
+    },
+    {
+      "name": "melden-peers-boot-off",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "Melden page, peer count and boot animation stripped",
+      "hex": "a20001011901be",
+      "decodeOk": true,
+      "decoded": {"bits":446}
+    }
+  ]
+}

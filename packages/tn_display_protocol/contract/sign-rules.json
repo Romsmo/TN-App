@@ -1,0 +1,415 @@
+{
+  "contractVersion": "1.0.0",
+  "description": "Rules the APP applies when it builds leftSigns / rightSigns for the display. The device renders the two lists exactly as sent; it applies none of these rules.",
+  "labelSource": "Wikimedia Commons file titles of the vendored sign SVGs (checked 2026-10-24)",
+  "codeFormula": "code = major * 100 + minor   (VzNr '142-10' -> 14210, '276' -> 27600)",
+  "wire": {
+    "maxSignsPerColumn": 4,
+    "displayedSignsPerColumn": 3,
+    "note": "The display shows the newest 3 of a column (last entries); anything older falls off."
+  },
+  "sideRule": {
+    "left": "major VzNr in 200..299 (Vorschrift- and Verbotszeichen)",
+    "right": "every other vendored sign (Gefahrzeichen, 100..199)"
+  },
+  "addAlgorithm": [
+    "1. side = sideRule(vzNr)",
+    "2. In BOTH columns remove every sign s with conflicts(vzNr, s)",
+    "3. Append vzNr to the list of its side",
+    "4. If that list now holds more than displayedSignsPerColumn entries, drop the oldest (first) ones"
+  ],
+  "conflictRule": "conflicts(new, other) is true if ANY holds: (a) both are members of the same family; (b) both have the same major VzNr (e.g. 101-11 and 101-15, or a sign and itself); (c) major(other) is listed in cancels[new]",
+  "removeAlgorithm": "remove vzNr from whichever column holds it; nothing else changes",
+  "families": {
+    "gefahrstelle": [
+      "101",
+      "101-10",
+      "101-11",
+      "101-12",
+      "101-13",
+      "101-14",
+      "101-15",
+      "101-51",
+      "101-52",
+      "101-53",
+      "101-54",
+      "101-55"
+    ],
+    "kurve": [
+      "103-10",
+      "105-10"
+    ],
+    "laengsneigung": [
+      "108-4",
+      "110-4"
+    ],
+    "ueberholverbot": [
+      "276",
+      "277",
+      "280",
+      "281"
+    ],
+    "haltverbot": [
+      "283",
+      "286"
+    ]
+  },
+  "cancels": {
+    "282": [
+      "274",
+      "276",
+      "277"
+    ]
+  },
+  "cancelsNote": "282 (Ende sämtlicher Streckenverbote) also ends 274 (a speed limit). 274 is not a vendored list sign: the speed limit travels in DisplayState.speedLimit, so the app must clear that itself.",
+  "signs": [
+    {
+      "vzNr": "101",
+      "code": 10100,
+      "labelDe": "Gefahrstelle",
+      "side": "right"
+    },
+    {
+      "vzNr": "101-10",
+      "code": 10110,
+      "labelDe": "Flugbetrieb, Aufstellung rechts",
+      "side": "right"
+    },
+    {
+      "vzNr": "101-11",
+      "code": 10111,
+      "labelDe": "Fußgängerüberweg",
+      "side": "right"
+    },
+    {
+      "vzNr": "101-12",
+      "code": 10112,
+      "labelDe": "Viehtrieb",
+      "side": "right"
+    },
+    {
+      "vzNr": "101-13",
+      "code": 10113,
+      "labelDe": "Reiter",
+      "side": "right"
+    },
+    {
+      "vzNr": "101-14",
+      "code": 10114,
+      "labelDe": "Amphibienwanderung",
+      "side": "right"
+    },
+    {
+      "vzNr": "101-15",
+      "code": 10115,
+      "labelDe": "Steinschlag",
+      "side": "right"
+    },
+    {
+      "vzNr": "101-51",
+      "code": 10151,
+      "labelDe": "Schnee- oder Eisglätte",
+      "side": "right"
+    },
+    {
+      "vzNr": "101-52",
+      "code": 10152,
+      "labelDe": "Splitt, Schotter",
+      "side": "right"
+    },
+    {
+      "vzNr": "101-53",
+      "code": 10153,
+      "labelDe": "Ufer",
+      "side": "right"
+    },
+    {
+      "vzNr": "101-54",
+      "code": 10154,
+      "labelDe": "Unzureichendes Lichtraumprofil",
+      "side": "right"
+    },
+    {
+      "vzNr": "101-55",
+      "code": 10155,
+      "labelDe": "Bewegliche Brücke",
+      "side": "right"
+    },
+    {
+      "vzNr": "102",
+      "code": 10200,
+      "labelDe": "Kreuzung oder Einmündung mit Vorfahrt von rechts",
+      "side": "right"
+    },
+    {
+      "vzNr": "103-10",
+      "code": 10310,
+      "labelDe": "Kurve (links)",
+      "side": "right"
+    },
+    {
+      "vzNr": "105-10",
+      "code": 10510,
+      "labelDe": "Doppelkurve (zunächst links)",
+      "side": "right"
+    },
+    {
+      "vzNr": "108-4",
+      "code": 10804,
+      "labelDe": "Gefälle",
+      "side": "right"
+    },
+    {
+      "vzNr": "110-4",
+      "code": 11004,
+      "labelDe": "Steigung",
+      "side": "right"
+    },
+    {
+      "vzNr": "112",
+      "code": 11200,
+      "labelDe": "Unebene Fahrbahn",
+      "side": "right"
+    },
+    {
+      "vzNr": "114",
+      "code": 11400,
+      "labelDe": "Schleuder- oder Rutschgefahr",
+      "side": "right"
+    },
+    {
+      "vzNr": "117-10",
+      "code": 11710,
+      "labelDe": "Seitenwind von rechts",
+      "side": "right"
+    },
+    {
+      "vzNr": "120",
+      "code": 12000,
+      "labelDe": "Verengte Fahrbahn",
+      "side": "right"
+    },
+    {
+      "vzNr": "121-10",
+      "code": 12110,
+      "labelDe": "einseitig (rechts) verengte Fahrbahn",
+      "side": "right"
+    },
+    {
+      "vzNr": "123",
+      "code": 12300,
+      "labelDe": "Arbeitsstelle",
+      "side": "right"
+    },
+    {
+      "vzNr": "124",
+      "code": 12400,
+      "labelDe": "Stau",
+      "side": "right"
+    },
+    {
+      "vzNr": "125",
+      "code": 12500,
+      "labelDe": "Gegenverkehr",
+      "side": "right"
+    },
+    {
+      "vzNr": "131",
+      "code": 13100,
+      "labelDe": "Lichtzeichenanlage",
+      "side": "right"
+    },
+    {
+      "vzNr": "133-10",
+      "code": 13310,
+      "labelDe": "Fußgänger (Aufstellung rechts)",
+      "side": "right"
+    },
+    {
+      "vzNr": "136-10",
+      "code": 13610,
+      "labelDe": "Kinder, Aufstellung rechts",
+      "side": "right"
+    },
+    {
+      "vzNr": "138-10",
+      "code": 13810,
+      "labelDe": "Radverkehr",
+      "side": "right"
+    },
+    {
+      "vzNr": "142-10",
+      "code": 14210,
+      "labelDe": "Wildwechsel, Aufstellung rechts",
+      "side": "right"
+    },
+    {
+      "vzNr": "151",
+      "code": 15100,
+      "labelDe": "Bahnübergang",
+      "side": "right"
+    },
+    {
+      "vzNr": "250",
+      "code": 25000,
+      "labelDe": "Verbot für Fahrzeuge aller Art",
+      "side": "left"
+    },
+    {
+      "vzNr": "251",
+      "code": 25100,
+      "labelDe": "Verbot für Kraftwagen und sonstige mehrspurige Kraftfahrzeuge",
+      "side": "left"
+    },
+    {
+      "vzNr": "253",
+      "code": 25300,
+      "labelDe": "Verbot für Kraftfahrzeuge mit einem zulässigen Gesamtgewicht",
+      "side": "left"
+    },
+    {
+      "vzNr": "254",
+      "code": 25400,
+      "labelDe": "Verbot für Radfahrer",
+      "side": "left"
+    },
+    {
+      "vzNr": "255",
+      "code": 25500,
+      "labelDe": "Verbot für Krafträder, auch mit Beiwagen, Kleinkrafträder und Mofas",
+      "side": "left"
+    },
+    {
+      "vzNr": "257-50",
+      "code": 25750,
+      "labelDe": "Verbot für Mofas",
+      "side": "left"
+    },
+    {
+      "vzNr": "259",
+      "code": 25900,
+      "labelDe": "Verbot für Fußgänger",
+      "side": "left"
+    },
+    {
+      "vzNr": "260",
+      "code": 26000,
+      "labelDe": "Verbot für Krafträder und Mofas und sonstige mehrspurige Kraftfahrzeuge",
+      "side": "left"
+    },
+    {
+      "vzNr": "261",
+      "code": 26100,
+      "labelDe": "Verbot für kennzeichnungspflichtige Kraftfahrzeuge mit gefährlichen Gütern",
+      "side": "left"
+    },
+    {
+      "vzNr": "262-5",
+      "code": 26205,
+      "labelDe": "Verbot für Fahrzeuge über angegebene tatsächliche Masse (Variante 5,5 t)",
+      "side": "left"
+    },
+    {
+      "vzNr": "263-8",
+      "code": 26308,
+      "labelDe": "Verbot für Fahrzeuge über angegebene tatsächliche Achslast",
+      "side": "left"
+    },
+    {
+      "vzNr": "264-2",
+      "code": 26402,
+      "labelDe": "Verbot für Fahrzeuge über angegebene tatsächliche Breite",
+      "side": "left"
+    },
+    {
+      "vzNr": "265-3",
+      "code": 26503,
+      "labelDe": "Verbot für Fahrzeuge über angegebene tatsächliche Höhe (Variante 3,8 m)",
+      "side": "left"
+    },
+    {
+      "vzNr": "266-10",
+      "code": 26610,
+      "labelDe": "Verbot für Fahrzeuge über angegebene tatsächliche Länge",
+      "side": "left"
+    },
+    {
+      "vzNr": "267",
+      "code": 26700,
+      "labelDe": "Verbot der Einfahrt",
+      "side": "left"
+    },
+    {
+      "vzNr": "268",
+      "code": 26800,
+      "labelDe": "Schneeketten sind vorgeschrieben",
+      "side": "left"
+    },
+    {
+      "vzNr": "269",
+      "code": 26900,
+      "labelDe": "Verbot für Fahrzeuge mit wassergefährdender Ladung",
+      "side": "left"
+    },
+    {
+      "vzNr": "270",
+      "code": 27000,
+      "labelDe": "Beginn eines Verkehrsverbots zur Verminderung schädlicher Luftverunreinigungen in einer Zone (Zeichen 270.1)",
+      "side": "left"
+    },
+    {
+      "vzNr": "272",
+      "code": 27200,
+      "labelDe": "Verbot des Wendens",
+      "side": "left"
+    },
+    {
+      "vzNr": "273-70",
+      "code": 27370,
+      "labelDe": "Verbot des Unterschreitens des angegebenen Mindestabstandes",
+      "side": "left"
+    },
+    {
+      "vzNr": "276",
+      "code": 27600,
+      "labelDe": "Überholverbot für Kraftfahrzeuge aller Art",
+      "side": "left"
+    },
+    {
+      "vzNr": "277",
+      "code": 27700,
+      "labelDe": "Überholverbot für Kraftfahrzeuge mit einem zulässigen Gesamtgewicht über 2,8 t, einschließlich ihrer Anhänger",
+      "side": "left"
+    },
+    {
+      "vzNr": "280",
+      "code": 28000,
+      "labelDe": "Ende des Überholverbotes für Kraftfahrzeuge aller Art",
+      "side": "left"
+    },
+    {
+      "vzNr": "281",
+      "code": 28100,
+      "labelDe": "Ende des Überholverbots für Kraftfahrzeuge mit einem zulässigen Gesamtgewicht über 3,5 t",
+      "side": "left"
+    },
+    {
+      "vzNr": "282",
+      "code": 28200,
+      "labelDe": "Ende sämtlicher Streckenverbote",
+      "side": "left"
+    },
+    {
+      "vzNr": "283",
+      "code": 28300,
+      "labelDe": "Absolutes Haltverbot",
+      "side": "left"
+    },
+    {
+      "vzNr": "286",
+      "code": 28600,
+      "labelDe": "Eingeschränktes Halteverbot",
+      "side": "left"
+    }
+  ]
+}

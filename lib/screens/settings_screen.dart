@@ -10,6 +10,7 @@ import '../ui/widgets.dart';
 import 'common.dart';
 import 'data_screen.dart';
 import 'info_screen.dart';
+import 'display_screen.dart';
 import 'server_screen.dart';
 
 /// The "Einstellungen" tab.
@@ -145,6 +146,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Group(children: [
                 for (final e in [
                   (context.t('settings.server'), context.t('settings.serverHint'), Icons.dns, const Color(0xFF5856D6), () => _open(const LockGuard(child: ServerScreen()))),
+                  (context.t('settings.display'), context.t('settings.displayHint'), Icons.bluetooth, const Color(0xFF0A84FF), () => _open(const LockGuard(child: DisplayScreen()))),
                   (context.t('settings.data'), context.t('settings.dataHint'), Icons.cloud_download, const Color(0xFF30B0C7), () => _open(const LockGuard(child: DataScreen()))),
                   (context.t('settings.info'), context.t('settings.infoHint'), Icons.info, const Color(0xFF007AFF), () => _open(const LockGuard(child: InfoScreen()))),
                 ])

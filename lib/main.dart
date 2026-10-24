@@ -8,7 +8,9 @@ import 'package:tn_core/tn_core.dart';
 
 import 'app.dart';
 import 'app_scope.dart';
+import 'platform/platform.dart' show createDisplayTransport;
 import 'services/app_config.dart';
+import 'services/display_controller.dart';
 import 'services/drive_controller.dart';
 import 'services/legal.dart';
 import 'services/location.dart';
@@ -42,6 +44,7 @@ Future<void> main() async {
   final credentials = await CredentialsStore.open();
   final tn = TnController(settings: settings, credentials: credentials);
   final drive = DriveController(tn: tn, settings: settings, texts: texts);
+  final display = DisplayController(settings: settings, tn: tn, drive: drive, transport: createDisplayTransport());
   final services = AppServices(
     texts: texts,
     legal: legal,
@@ -49,9 +52,11 @@ Future<void> main() async {
     credentials: credentials,
     tn: tn,
     drive: drive,
+    display: display,
     position: DevicePosition(),
   );
   runApp(TnApp(services: services));
   // the client starts behind the start screen; the app is usable meanwhile
   await tn.start();
+  display.start();
 }

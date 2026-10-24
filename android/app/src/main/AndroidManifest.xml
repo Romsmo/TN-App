@@ -2,6 +2,12 @@
     xmlns:tools="http://schemas.android.com/tools">
     <!-- Network, location while the app is in use, and the foreground service of the drive mode. Nothing else:
          no background-location permission, no storage access, no contacts, camera or microphone. -->
+    <!-- The TN display (Bluetooth LE). Scanning is not used to find the position. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30"/>
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false"/>
     <!-- Only to scan the QR code of a join code; nothing is stored or sent -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission

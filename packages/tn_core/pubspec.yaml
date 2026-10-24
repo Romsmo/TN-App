@@ -7,6 +7,8 @@ environment:
   sdk: ">=3.4.0 <4.0.0"
 
 dependencies:
+  tn_display_protocol:
+    path: ../tn_display_protocol
   crypto: ^3.0.6
 
 dev_dependencies:

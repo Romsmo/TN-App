@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tn_core/tn_core.dart';
 
+import 'services/display_controller.dart';
 import 'services/drive_controller.dart';
 import 'services/legal.dart';
 import 'services/location.dart';
@@ -16,6 +17,7 @@ class AppServices {
     required this.credentials,
     required this.tn,
     required this.drive,
+    required this.display,
     required this.position,
   });
 
@@ -25,6 +27,7 @@ class AppServices {
   final CredentialsStore credentials;
   final TnController tn;
   final DriveController drive;
+  final DisplayController display;
   final DevicePosition position;
 }
 

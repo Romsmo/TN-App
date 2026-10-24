@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Display firmware release manifest",
+  "type": "object",
+  "required": ["manifestVersion", "firmware", "protocol", "releasedAt", "changes"],
+  "properties": {
+    "manifestVersion": { "const": 1 },
+    "firmware": {
+      "type": "object",
+      "required": ["version", "image", "minFromVersion"],
+      "properties": {
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$" },
+        "gitCommit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+        "minFromVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$" },
+        "image": {
+          "type": "object",
+          "required": ["file", "sizeBytes", "sha256"],
+          "properties": {
+            "file": { "type": "string" },
+            "sizeBytes": { "type": "integer", "minimum": 1, "maximum": 3145728 },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "protocol": {
+      "type": "object",
+      "required": ["version", "minAppProtocol"],
+      "properties": {
+        "version": { "type": "integer", "minimum": 1 },
+        "minAppProtocol": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": true
+    },
+    "releasedAt": { "type": "string", "format": "date" },
+    "changes": {
+      "type": "object",
+      "required": ["de", "en"],
+      "properties": {
+        "de": { "type": "array", "items": { "type": "string" } },
+        "en": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "audioPack": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["included"],
+          "properties": {
+            "included": { "type": "boolean" },
+            "version": { "type": "string" },
+            "file": { "type": "string" },
+            "sizeBytes": { "type": "integer", "minimum": 1 },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "signature": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["alg", "keyId", "file"],
+          "properties": {
+            "alg": { "type": "string" },
+            "keyId": { "type": "string" },
+            "file": { "type": "string" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    }
+  },
+  "additionalProperties": true
+}

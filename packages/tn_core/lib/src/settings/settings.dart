@@ -17,6 +17,12 @@ class Settings {
     this.camerasNoticeSeen,
     this.driveNoticeSeen = false,
     this.driveLockEnabled = true,
+    this.displayEnabled = false,
+    this.displayDeviceId,
+    this.displayName,
+    this.displaySound = DisplaySoundTarget.auto,
+    this.displayVolume = 70,
+    this.displayVoice = false,
   });
 
   /// A server the user entered ("Server verbinden"); null = use discovery from the built-in seeds.
@@ -51,6 +57,20 @@ class Settings {
   /// The speed lock. On by default, also on a fresh install (no settings file) and after resetting the device identity.
   final bool driveLockEnabled;
 
+  /// The TN display (Bluetooth): the drive mode feeds it while it is on and a device is chosen.
+  final bool displayEnabled;
+
+  /// The Bluetooth id of the display the user chose, and the name it advertised (for the screen only).
+  final String? displayDeviceId;
+  final String? displayName;
+
+  /// Where announcements play while the display is connected.
+  final DisplaySoundTarget displaySound;
+
+  /// 0..100, written to the display's Settings.
+  final int displayVolume;
+  final bool displayVoice;
+
   Settings copyWith({
     Object? serverAddress = _unset,
     List<String>? hiddenHazardTypes,
@@ -64,6 +84,12 @@ class Settings {
     Object? camerasNoticeSeen = _unset,
     bool? driveNoticeSeen,
     bool? driveLockEnabled,
+    bool? displayEnabled,
+    Object? displayDeviceId = _unset,
+    Object? displayName = _unset,
+    DisplaySoundTarget? displaySound,
+    int? displayVolume,
+    bool? displayVoice,
   }) =>
       Settings(
         serverAddress: identical(serverAddress, _unset) ? this.serverAddress : serverAddress as String?,
@@ -78,6 +104,12 @@ class Settings {
         camerasNoticeSeen: identical(camerasNoticeSeen, _unset) ? this.camerasNoticeSeen : camerasNoticeSeen as String?,
         driveNoticeSeen: driveNoticeSeen ?? this.driveNoticeSeen,
         driveLockEnabled: driveLockEnabled ?? this.driveLockEnabled,
+        displayEnabled: displayEnabled ?? this.displayEnabled,
+        displayDeviceId: identical(displayDeviceId, _unset) ? this.displayDeviceId : displayDeviceId as String?,
+        displayName: identical(displayName, _unset) ? this.displayName : displayName as String?,
+        displaySound: displaySound ?? this.displaySound,
+        displayVolume: displayVolume ?? this.displayVolume,
+        displayVoice: displayVoice ?? this.displayVoice,
       );
 
   Map<String, Object?> toJson() => {
@@ -94,7 +126,21 @@ class Settings {
         'driveNoticeSeen': driveNoticeSeen,
         'driveLockEnabled': driveLockEnabled,
       };
+
+  /// What is written to the settings file: [toJson] (the fields the shared test vectors pin) plus the display fields added later.
+  Map<String, Object?> toStorageJson() => {
+        ...toJson(),
+        'displayEnabled': displayEnabled,
+        'displayDeviceId': displayDeviceId,
+        'displayName': displayName,
+        'displaySound': displaySound.name,
+        'displayVolume': displayVolume,
+        'displayVoice': displayVoice,
+      };
 }
+
+/// Where announcements play while a display is connected: `auto` = on the display, and on the phone when it is not connected.
+enum DisplaySoundTarget { auto, display, phone, both }
 
 const Object _unset = Object();
 
@@ -130,7 +176,13 @@ Settings parseSettings(String? raw, {bool allowDisableDriveLock = true}) {
     camerasNoticeSeen: o['camerasNoticeSeen'] is String && (o['camerasNoticeSeen'] as String).isNotEmpty ? o['camerasNoticeSeen'] as String : null,
     driveNoticeSeen: _bool(o['driveNoticeSeen'], d.driveNoticeSeen),
     driveLockEnabled: allowDisableDriveLock && o['driveLockEnabled'] == false ? false : true,
+    displayEnabled: _bool(o['displayEnabled'], d.displayEnabled),
+    displayDeviceId: o['displayDeviceId'] is String && (o['displayDeviceId'] as String).isNotEmpty ? o['displayDeviceId'] as String : null,
+    displayName: o['displayName'] is String && (o['displayName'] as String).isNotEmpty ? o['displayName'] as String : null,
+    displaySound: DisplaySoundTarget.values.firstWhere((t) => t.name == o['displaySound'], orElse: () => d.displaySound),
+    displayVolume: o['displayVolume'] is int ? (o['displayVolume'] as int).clamp(0, 100) : d.displayVolume,
+    displayVoice: _bool(o['displayVoice'], d.displayVoice),
   );
 }
 
-String encodeSettings(Settings s) => jsonEncode(s.toJson());
+String encodeSettings(Settings s) => jsonEncode(s.toStorageJson());

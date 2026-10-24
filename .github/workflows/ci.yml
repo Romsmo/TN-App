@@ -16,6 +16,11 @@ jobs:
           flutter-version: "3.38.7"
           channel: stable
           cache: true
+      - name: "tn_display_protocol: the display contract's golden vectors"
+        working-directory: packages/tn_display_protocol
+        run: |
+          dart pub get
+          dart test
       - name: "tn_core: analyze and the drive-core test vectors"
         working-directory: packages/tn_core
         run: |

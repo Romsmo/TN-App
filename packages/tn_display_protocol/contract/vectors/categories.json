@@ -1,0 +1,37 @@
+{
+  "protocolVersion": 1,
+  "note": "HazardType values are frozen for protocol v1. filterBits (Settings key 5) uses the same numbers as bit indices. The speed-camera group (ids 0-4) exists only in firmware built with the speedcam capability (DeviceInfo caps bit 4).",
+  "unknownTypeBehaviour": "a hazardType above 10 renders a generic hazard icon; it is never rejected and is never filtered out",
+  "categories": [
+    {"id": 0, "key": "FixedSpeedCamera", "labelDe": "Fest", "group": "speedCamera", "needsSpeed": false, "filterBit": 0, "voicePhrase": "voice/de/blitzer_fest.wav"},
+    {"id": 1, "key": "MobileSpeedCamera", "labelDe": "Mobil", "group": "speedCamera", "needsSpeed": true, "filterBit": 1, "voicePhrase": "voice/de/blitzer_mobil.wav"},
+    {"id": 2, "key": "TrailerCamera", "labelDe": "Anhänger", "group": "speedCamera", "needsSpeed": true, "filterBit": 2, "voicePhrase": "voice/de/blitzer_anhaenger.wav"},
+    {"id": 3, "key": "RedLightCamera", "labelDe": "Rotlicht", "group": "speedCamera", "needsSpeed": false, "filterBit": 3, "voicePhrase": "voice/de/blitzer_rotlicht.wav"},
+    {"id": 4, "key": "DistanceControl", "labelDe": "Abstand", "group": "speedCamera", "needsSpeed": true, "filterBit": 4, "voicePhrase": "voice/de/blitzer_abstand.wav"},
+    {"id": 5, "key": "Traffic", "labelDe": "Stau", "group": "generalHazard", "needsSpeed": false, "filterBit": 5, "voicePhrase": "voice/de/gefahr_stau.wav"},
+    {"id": 6, "key": "Ice", "labelDe": "Glätte", "group": "generalHazard", "needsSpeed": false, "filterBit": 6, "voicePhrase": "voice/de/gefahr_glaette.wav"},
+    {"id": 7, "key": "Accident", "labelDe": "Unfall", "group": "generalHazard", "needsSpeed": false, "filterBit": 7, "voicePhrase": "voice/de/gefahr_unfall.wav"},
+    {"id": 8, "key": "Construction", "labelDe": "Baustelle", "group": "generalHazard", "needsSpeed": false, "filterBit": 8, "voicePhrase": "voice/de/gefahr_baustelle.wav"},
+    {"id": 9, "key": "Breakdown", "labelDe": "Panne", "group": "generalHazard", "needsSpeed": false, "filterBit": 9, "voicePhrase": "voice/de/gefahr_panne.wav"},
+    {"id": 10, "key": "Obstacle", "labelDe": "Hindernis", "group": "generalHazard", "needsSpeed": false, "filterBit": 10, "voicePhrase": "voice/de/gefahr_hindernis.wav"}
+  ],
+  "audio": {
+    "events": [
+      {"id": 0, "name": "HazardApproach", "toneClip": "tones/warn.wav"},
+      {"id": 1, "name": "HazardImminent", "toneClip": "tones/alert.wav"},
+      {"id": 2, "name": "ConfirmPrompt", "toneClip": "tones/confirm.wav"},
+      {"id": 3, "name": "Cleared", "toneClip": "tones/clear.wav"},
+      {"id": 4, "name": "Info", "toneClip": "tones/info.wav"}
+    ],
+    "voicePhrases": {"achtung": "voice/de/achtung.wav", "in": "voice/de/in.wav"},
+    "distanceBuckets": [
+      {"fromMetres": 100, "clip": "voice/de/d_100.wav"},
+      {"fromMetres": 200, "clip": "voice/de/d_200.wav"},
+      {"fromMetres": 300, "clip": "voice/de/d_300.wav"},
+      {"fromMetres": 500, "clip": "voice/de/d_500.wav"},
+      {"fromMetres": 800, "clip": "voice/de/d_800.wav"}
+    ],
+    "voiceAnnouncementRule": "Voice + HazardApproach/HazardImminent: achtung, <type phrase>, then (only if distanceM >= 50) in + the bucket clip rounded DOWN; ConfirmPrompt and Cleared play their tone clip in either mode. If any phrase clip is missing on the card the device plays the event chime instead.",
+    "format": "WAV, 16-bit PCM, mono, 16 kHz"
+  }
+}

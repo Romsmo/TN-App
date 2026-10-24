@@ -1,0 +1,22 @@
+{
+  "manifestVersion": 1,
+  "firmware": {
+    "version": "0.2.0",
+    "gitCommit": "0000000",
+    "minFromVersion": "0.1.0",
+    "image": {
+      "file": "tn-display-0.2.0.bin",
+      "sizeBytes": 1974912,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "protocol": { "version": 1, "minAppProtocol": 1 },
+  "releasedAt": "2026-11-01",
+  "changes": {
+    "de": ["Beispiel: Straßenbild statt grüner Pfeile", "Beispiel: lauter einstellbare Ansagen"],
+    "en": ["Example: road picture instead of green chevrons", "Example: adjustable announcement volume"]
+  },
+  "audioPack": { "included": false },
+  "signature": null,
+  "_comment": "EXAMPLE ONLY — placeholder hash and commit; no release has been made."
+}

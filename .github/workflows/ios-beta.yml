@@ -50,6 +50,7 @@ jobs:
       - name: Analyze and test
         run: |
           flutter analyze
+          (cd packages/tn_display_protocol && dart pub get && dart test)
           (cd packages/tn_core && dart pub get && dart test)
           flutter test --dart-define=TN_DEMO=true
       # The server values are optional: a join code (QR or text) sets them up inside the app. Variables set in the repository

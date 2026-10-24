@@ -9,6 +9,9 @@ const bool demoMode = true;
 /// The browser preview shows the development aids (the simulated drive).
 const bool devTools = true;
 
+/// No Bluetooth in the browser preview.
+DisplayTransport? createDisplayTransport() => null;
+
 String? _settings;
 
 Future<String?> readSettingsFile() async => _settings;

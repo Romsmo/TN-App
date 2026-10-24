@@ -1,0 +1,16 @@
+name: tn_display_protocol
+description: >-
+  Pure-Dart implementation of the TN-Display BLE protocol v1 (CBOR messages, OTA/asset
+  framing, sign-list rules). No Flutter, no Bluetooth: the transport stays with the app.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  crypto: ^3.0.3   # SHA-256 for the OTA image check (BSD-3-Clause, dart.dev)
+
+dev_dependencies:
+  test: ^1.24.0
+  lints: ^4.0.0

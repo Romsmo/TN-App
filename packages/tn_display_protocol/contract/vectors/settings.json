@@ -1,0 +1,54 @@
+{
+  "characteristic": "0004",
+  "direction": "both",
+  "what": "Settings",
+  "protocolVersion": 1,
+  "generatedBy": "test/gen_vectors.cpp (core/codec/protocol.cpp)",
+  "vectors": [
+    {
+      "name": "defaults",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "a factory-fresh device",
+      "hex": "aa000101f40200091846030004f40519ffff06140706080a",
+      "decodeOk": true,
+      "decoded": {"soundEnabled":false,"soundMode":0,"soundVolume":70,"theme":0,"useMph":false,"filterBits":65535,"nightStartHour":20,"nightEndHour":6,"cacheStaleMinutes":10}
+    },
+    {
+      "name": "custom",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "sound on, voice, volume 40, mph, Stau filtered out, night 21-06, cache 15 min",
+      "hex": "aa000101f50201091828030004f50519ffdf06150706080f",
+      "decodeOk": true,
+      "decoded": {"soundEnabled":true,"soundMode":1,"soundVolume":40,"theme":0,"useMph":true,"filterBits":65503,"nightStartHour":21,"nightEndHour":6,"cacheStaleMinutes":15}
+    },
+    {
+      "name": "volume-100",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "upper bound of the volume range",
+      "hex": "aa000101f50201091864030004f50519ffdf06150706080f",
+      "decodeOk": true,
+      "decoded": {"soundEnabled":true,"soundMode":1,"soundVolume":100,"theme":0,"useMph":true,"filterBits":65503,"nightStartHour":21,"nightEndHour":6,"cacheStaleMinutes":15}
+    },
+    {
+      "name": "v1-writer-without-volume",
+      "kind": "input",
+      "canonical": false,
+      "note": "an older app that never sends key 9: volume keeps the default 70",
+      "hex": "a9000101f50201030004f50519fffb06150706080f",
+      "decodeOk": true,
+      "decoded": {"soundEnabled":true,"soundMode":1,"soundVolume":70,"theme":0,"useMph":true,"filterBits":65531,"nightStartHour":21,"nightEndHour":6,"cacheStaleMinutes":15}
+    },
+    {
+      "name": "volume-out-of-range-clamps",
+      "kind": "input",
+      "canonical": false,
+      "note": "key 9 = 200 is clamped to 100",
+      "hex": "a200010918c8",
+      "decodeOk": true,
+      "decoded": {"soundEnabled":false,"soundMode":0,"soundVolume":100,"theme":0,"useMph":false,"filterBits":65535,"nightStartHour":20,"nightEndHour":6,"cacheStaleMinutes":10}
+    }
+  ]
+}

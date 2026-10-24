@@ -1,0 +1,99 @@
+{
+  "characteristic": "0001",
+  "direction": "app -> device",
+  "what": "DisplayState",
+  "protocolVersion": 1,
+  "generatedBy": "test/gen_vectors.cpp (core/codec/protocol.cpp)",
+  "vectors": [
+    {
+      "name": "home-clear-road",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "60 km/h, free-road picture, one prohibition left, two danger signs right",
+      "hex": "aa0001010302183c0300070f0807091a6b49d2000a1a000753000b81196bd00c82193782192afc",
+      "decodeOk": true,
+      "decoded": {"internetConnected":true,"networkPeers":480000,"speedLimit":60,"speedLimitUnit":0,"directionArrows":true,"leftSigns":[27600],"rightSigns":[14210,11004],"hazardActive":false,"hazardType":null,"hazardDistanceM":null,"hazardSpeedLimit":null,"confirmPromptActive":false,"confirmPromptTimeoutS":15,"nightMode":false,"useMph":false,"stateSeq":7,"epochS":1800000000,"audioCue":null}
+    },
+    {
+      "name": "minimal",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "nothing but the sequence number: no sign, offline, no peers",
+      "hex": "a5000101000300070f0801",
+      "decodeOk": true,
+      "decoded": {"internetConnected":false,"networkPeers":0,"speedLimit":null,"speedLimitUnit":0,"directionArrows":false,"leftSigns":[],"rightSigns":[],"hazardActive":false,"hazardType":null,"hazardDistanceM":null,"hazardSpeedLimit":null,"confirmPromptActive":false,"confirmPromptTimeoutS":15,"nightMode":false,"useMph":false,"stateSeq":1,"epochS":0,"audioCue":null}
+    },
+    {
+      "name": "hazard-mobile-camera-with-voice-cue",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "overlay at 300 m, enforced limit 50, voice announcement",
+      "hex": "ae0001010702183c030004010519012c061832070f0808091a6b49d2000a1a000753000b81196bd00c82193782192afc0da700010101020003010419012c0518320600",
+      "decodeOk": true,
+      "decoded": {"internetConnected":true,"networkPeers":480000,"speedLimit":60,"speedLimitUnit":0,"directionArrows":true,"leftSigns":[27600],"rightSigns":[14210,11004],"hazardActive":true,"hazardType":1,"hazardDistanceM":300,"hazardSpeedLimit":50,"confirmPromptActive":false,"confirmPromptTimeoutS":15,"nightMode":false,"useMph":false,"stateSeq":8,"epochS":1800000000,"audioCue":{"seq":1,"mode":1,"event":0,"hazardType":1,"distanceM":300,"speedValue":50,"speedUnit":0}}
+    },
+    {
+      "name": "confirm-prompt-night-mph",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "Gesehen? prompt, 12 s, night dim, a 30 mph SIGN value",
+      "hex": "a6000101183902181e0301070c0809",
+      "decodeOk": true,
+      "decoded": {"internetConnected":true,"networkPeers":0,"speedLimit":30,"speedLimitUnit":1,"directionArrows":false,"leftSigns":[],"rightSigns":[],"hazardActive":false,"hazardType":null,"hazardDistanceM":null,"hazardSpeedLimit":null,"confirmPromptActive":true,"confirmPromptTimeoutS":12,"nightMode":true,"useMph":true,"stateSeq":9,"epochS":0,"audioCue":null}
+    },
+    {
+      "name": "hazard-unknown-type-11",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "type 11 is not defined in v1: the device must render a generic icon, not fail",
+      "hex": "a7000101040300040b05190190070f080a",
+      "decodeOk": true,
+      "decoded": {"internetConnected":false,"networkPeers":0,"speedLimit":null,"speedLimitUnit":0,"directionArrows":false,"leftSigns":[],"rightSigns":[],"hazardActive":true,"hazardType":11,"hazardDistanceM":400,"hazardSpeedLimit":null,"confirmPromptActive":false,"confirmPromptTimeoutS":15,"nightMode":false,"useMph":false,"stateSeq":10,"epochS":0,"audioCue":null}
+    },
+    {
+      "name": "four-signs-per-column",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "the wire carries up to 4 per column; the display shows the newest 3",
+      "hex": "a7000101000300070f080b0b84196bd0196e8c196fb81961a80c841927741927a7192afc19300c",
+      "decodeOk": true,
+      "decoded": {"internetConnected":false,"networkPeers":0,"speedLimit":null,"speedLimitUnit":0,"directionArrows":false,"leftSigns":[27600,28300,28600,25000],"rightSigns":[10100,10151,11004,12300],"hazardActive":false,"hazardType":null,"hazardDistanceM":null,"hazardSpeedLimit":null,"confirmPromptActive":false,"confirmPromptTimeoutS":15,"nightMode":false,"useMph":false,"stateSeq":11,"epochS":0,"audioCue":null}
+    },
+    {
+      "name": "audio-cue-tone",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "chime only, no hazard fields",
+      "hex": "a6000101000300070f080c0da40002010002010600",
+      "decodeOk": true,
+      "decoded": {"internetConnected":false,"networkPeers":0,"speedLimit":null,"speedLimitUnit":0,"directionArrows":false,"leftSigns":[],"rightSigns":[],"hazardActive":false,"hazardType":null,"hazardDistanceM":null,"hazardSpeedLimit":null,"confirmPromptActive":false,"confirmPromptTimeoutS":15,"nightMode":false,"useMph":false,"stateSeq":12,"epochS":0,"audioCue":{"seq":2,"mode":0,"event":1,"hazardType":null,"distanceM":null,"speedValue":null,"speedUnit":0}}
+    },
+    {
+      "name": "forward-compat-unknown-keys",
+      "kind": "input",
+      "canonical": false,
+      "note": "keys 99 (uint) and 100 (nested map) are unknown and must be skipped",
+      "hex": "a400010218321863071864a1010a",
+      "decodeOk": true,
+      "decoded": {"internetConnected":false,"networkPeers":0,"speedLimit":50,"speedLimitUnit":0,"directionArrows":false,"leftSigns":[],"rightSigns":[],"hazardActive":false,"hazardType":null,"hazardDistanceM":null,"hazardSpeedLimit":null,"confirmPromptActive":false,"confirmPromptTimeoutS":15,"nightMode":false,"useMph":false,"stateSeq":0,"epochS":0,"audioCue":null}
+    },
+    {
+      "name": "malformed-truncated",
+      "kind": "input",
+      "canonical": false,
+      "note": "a map that announces more pairs than the payload holds: decode must fail",
+      "hex": "a500010102",
+      "decodeOk": false,
+      "decoded": null
+    },
+    {
+      "name": "malformed-not-a-map",
+      "kind": "input",
+      "canonical": false,
+      "note": "a bare integer: decode must fail",
+      "hex": "01",
+      "decodeOk": false,
+      "decoded": null
+    }
+  ]
+}

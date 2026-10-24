@@ -29,6 +29,8 @@ Legend — **Code**: done / partial / open. **Test**: what exists. **Device**: a
 | iOS build (cloud, unsigned `.ipa`) | done | workflow `ios-beta.yml`; run on 2026-10-23; a tag `v<version>-beta.<n>` publishes a pre-release | |
 | Signing and install with xtool (WSL) | done | installed on one iPhone (iOS 26.4.1), the app starts | Part B of `ios-install.md` |
 | Join code: parse, derive, confirm, store, scan, link | done (code) | unit (shared vectors + 300 server-made codes), widget | **never run against a real server**; scan and link never run on a device (`join-device-test.md`) |
+| Display (Bluetooth): connect, live State from the drive mode, events, settings both ways, time, "Display" page | done (code) | 85 contract tests, 15 feed tests, 7 link tests (fake transport), 3 widget tests | **never run against the real display or on a phone**; `universal_ble` calls untested; iOS background behaviour unverified (`display-device-test.md`) |
+| Display: firmware / voice-pack update, developer area, sign columns | **open** | — | update source is a private repository and no signed manifest exists (`display-gate0.md`) |
 | Map background (OpenStreetMap tiles) | done | style unit-free; analysis only | **not looked at on a device yet** |
 | Android build | **open** | — | Android SDK on this PC lacks cmdline-tools and accepted licences |
 | Store submission | **open** | — | only after written approval |

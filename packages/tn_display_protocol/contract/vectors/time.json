@@ -1,0 +1,27 @@
+{
+  "characteristic": "0005",
+  "direction": "app -> device",
+  "what": "TimeSync",
+  "protocolVersion": 1,
+  "generatedBy": "test/gen_vectors.cpp (core/codec/protocol.cpp)",
+  "vectors": [
+    {
+      "name": "utc-plus-2",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "epoch seconds + timezone offset in minutes",
+      "hex": "a30001011a6b49d200021878",
+      "decodeOk": true,
+      "decoded": {"epochS":1800000000,"tzOffsetMin":120}
+    },
+    {
+      "name": "utc-minus-3-30",
+      "kind": "encoded",
+      "canonical": true,
+      "note": "negative offsets are CBOR negative integers",
+      "hex": "a30001011a6b49d2000238d1",
+      "decodeOk": true,
+      "decoded": {"epochS":1800000000,"tzOffsetMin":-210}
+    }
+  ]
+}

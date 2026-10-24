@@ -337,6 +337,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.18"
+  tn_display_protocol:
+    dependency: "direct main"
+    description:
+      path: "../tn_display_protocol"
+      relative: true
+    source: path
+    version: "1.0.0"
   typed_data:
     dependency: transitive
     description:

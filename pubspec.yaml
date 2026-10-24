@@ -32,6 +32,8 @@ dependencies:
     sdk: flutter
   tn_core:
     path: packages/tn_core
+  tn_display_protocol:
+    path: packages/tn_display_protocol
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -51,6 +53,7 @@ dependencies:
   url_launcher: ^6.3.2
   intl: ^0.20.3
   mobile_scanner: 7.4.2
+  universal_ble: ">=3.0.0 <3.1.1"
 
 dev_dependencies:
   flutter_test:

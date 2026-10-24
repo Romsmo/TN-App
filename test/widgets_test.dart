@@ -13,6 +13,7 @@ import 'package:tnviewer/screens/map/detail_card.dart';
 import 'package:tnviewer/screens/map/report_sheet.dart';
 import 'package:tnviewer/screens/map/speed_limit_card.dart';
 import 'package:tnviewer/services/app_config.dart';
+import 'package:tnviewer/services/display_controller.dart';
 import 'package:tnviewer/services/drive_controller.dart';
 import 'package:tnviewer/services/legal.dart';
 import 'package:tnviewer/services/location.dart';
@@ -31,7 +32,8 @@ Future<AppServices> _services() async {
   final drive = DriveController(tn: tn, settings: settings, texts: texts);
   // LegalTexts.load needs the asset bundle; the widget tests read the same file directly
   final legal = await LegalTexts.load();
-  return AppServices(texts: texts, legal: legal, settings: settings, credentials: credentials, tn: tn, drive: drive, position: DevicePosition());
+  final display = DisplayController(settings: settings, tn: tn, drive: drive);
+  return AppServices(texts: texts, legal: legal, settings: settings, credentials: credentials, tn: tn, drive: drive, display: display, position: DevicePosition());
 }
 
 Widget _host(AppServices s, Widget child) => AppScope(
