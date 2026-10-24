@@ -2,6 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools">
     <!-- Network, location while the app is in use, and the foreground service of the drive mode. Nothing else:
          no background-location permission, no storage access, no contacts, camera or microphone. -->
+    <!-- Only to scan the QR code of a join code; nothing is stored or sent -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission
         android:name="android.permission.INTERNET"/>
     <uses-permission
@@ -47,6 +49,13 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- A join code opened as a link (trafficnetwork://join?...), e.g. from the system camera -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="trafficnetwork" android:host="join"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

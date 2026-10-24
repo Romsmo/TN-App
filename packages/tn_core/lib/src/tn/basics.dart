@@ -117,6 +117,7 @@ Map<String, Object?> buildClientOptions({
   required Credentials? credentials,
   required BuildConfig config,
   bool cameraNamespaceEnabled = false,
+  String? networkRootKey,
 }) {
   final options = <String, Object?>{};
   final node = config.defaultNode;
@@ -131,7 +132,8 @@ Map<String, Object?> buildClientOptions({
     options['discovery'] = true;
     options['seeds'] = [...seedServers];
   }
-  final root = config.networkRootKey;
+  // The key from a join code wins over the one built in.
+  final root = networkRootKey != null && networkRootKey.isNotEmpty ? networkRootKey : config.networkRootKey;
   if (root != null && root.isNotEmpty) options['networkRootKey'] = root;
   // Access the user typed wins; otherwise a build that is open to everyone registers the device with its public app key.
   final creds = credentials ?? config.publicAppKey;
@@ -144,6 +146,9 @@ Map<String, Object?> buildClientOptions({
 
 /// The access data the user typed is kept under its own name so a device reset leaves it alone.
 const String credentialsKey = 'app_access';
+
+/// The network's public root key that came with a join code (not a secret; kept next to the access data it belongs to).
+const String joinRootKey = 'app_join_root';
 
 Credentials? parseCredentials(String? raw) {
   if (raw == null || raw.isEmpty) return null;

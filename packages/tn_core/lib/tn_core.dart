@@ -18,6 +18,7 @@ export 'src/drive/sim/sim_data.dart';
 export 'src/drive/sim/sim_source.dart';
 export 'src/drive/units.dart';
 export 'src/drive/warning_engine.dart';
+export 'src/join/join_code.dart';
 export 'src/limits/speed_limit.dart';
 export 'src/map/camera_types.dart';
 export 'src/map/map_data.dart';

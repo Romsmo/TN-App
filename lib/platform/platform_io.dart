@@ -11,6 +11,10 @@ import '../services/demo_backend.dart';
 /// Whether this build answers from the demo backend (development only: `--dart-define=TN_DEMO=true`).
 const bool demoMode = bool.fromEnvironment('TN_DEMO');
 
+/// Whether the development aids (the simulated drive) are shown. Off in every release build; `--dart-define=TN_DEV_TOOLS=true`
+/// or a demo build switches them on.
+const bool devTools = demoMode || bool.fromEnvironment('TN_DEV_TOOLS');
+
 Future<File> _settingsFile() async {
   final dir = await getApplicationDocumentsDirectory();
   return File('${dir.path}/settings.json');

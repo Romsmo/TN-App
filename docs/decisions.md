@@ -21,3 +21,12 @@ go on. Each is easy to reverse; please confirm or change.
 
 `WarningEngine` (own-carriageway filter), `ReportCatalog` (report types) — as in the Expo version; both are wishes to the
 library (`wishes-clientlib.md`).
+
+## Added 2026-10-24
+
+| # | Question | Decision | Why / how to change |
+|---|---|---|---|
+| D-N5 (revised) | Map background | **OpenStreetMap raster tiles** (`tile.openstreetmap.org`), as the operator's web map; dimmed in dark mode; credit shown. The app names itself in the `User-Agent` (`TNViewer/<version> (+repo)`). | The tile usage policy (operations.osmfoundation.org/policies/tiles, read 2026-10-24) allows apps that identify themselves, show the credit and honour the cache; it forbids bulk download, prefetching and offline use, and gives no guarantee (access can be blocked). Known gap: the native map library may prefetch some low-zoom tiles around the view; it has no switch in `maplibre_gl` 0.27.1. `MAP_STYLE_URL(_DARK)` still overrides. Own tiles stay the goal. |
+| D-N10 | Simulated drive in a release | **Removed from the UI** of every release build. `--dart-define=TN_DEV_TOOLS=true` (or the demo/browser preview) shows it again. The code and its tests stay. | The owner: everything that only serves testing, such as the simulated drive, leaves the beta. |
+| D-N11 | Join code (server 1.3.0, branch `feat/join-code`) | Implemented as `JoinCode` in `tn_core` against `server/docs/join-code.md` and the shared vectors; 300 random codes made by the server's `code.ts` were also parsed and re-derived identically. **One deviation:** `v=01` is rejected (the text says "exactly 1", the server also accepts `01`). | Report to the server chat. The seed is never stored; address, app key and root key are (Keychain, this device only, after first unlock). A saved code beats the build variables. |
+| D-N12 | QR scanner | `mobile_scanner` 7.4.2 (BSD-3-Clause, verified publisher steenbakker.dev; Apple Vision on iOS, has a SwiftPM manifest; Android uses ML Kit). New permission: camera (`NSCameraUsageDescription`, Android `CAMERA`), approved by the owner on 2026-10-24. | A link `trafficnetwork://join?…` needs no permission (URL scheme in Info.plist, intent filter). |

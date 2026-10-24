@@ -24,3 +24,17 @@ a reinstall on iOS), device credential and signing key and the user's access dat
 
 Permissions: location **while using the app** only (never "Always"); iOS background modes `location` and `audio` only; Android
 fine/coarse location and a foreground service with a notification while the drive mode runs; storage access removed.
+
+
+## Added 2026-10-24 (draft for a lawyer)
+
+* **Map tiles:** the map background is loaded from `tile.openstreetmap.org` (OpenStreetMap Foundation). The operator of the tile server
+  sees the phone's IP address and the map section being viewed, and the app's name in the `User-Agent` (`TNViewer/<version>` and the
+  project's repository address, no personal data). Same as the operator's web map. Tiles are cached as the server allows.
+* **Join code / camera:** the camera is used only while the scan page is open, to read one QR code. The image is not stored and
+  does not leave the device. The code is checked on the device; it is not logged. After the user confirms, the app contacts the
+  address in the code (that server sees the phone's IP address, as before). Stored in the Keychain/Keystore, this device only: address,
+  app key (id and derived secret) and the public network key. The seed of the code is not stored.
+* **Threat note:** a foreign code leads into a foreign network. The app shows the address and the key's fingerprint and asks first;
+  it cannot do more. A code shown on a web page is practically public (see the server's `join-code.md`).
+* No analytics, no telemetry.

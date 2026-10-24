@@ -43,13 +43,56 @@ class UserMark {
   final double? accuracyM;
 }
 
-const _emptyStyle = '{"version":8,"sources":{},"layers":[{"id":"background","type":"background","paint":{"background-color":"#E9E9EE"}}]}';
+/// The default background map, the same source as the operator's web map: OpenStreetMap's raster tiles. Their usage policy
+/// (operations.osmfoundation.org/policies/tiles, read 2026-10-24) allows apps that send an identifying User-Agent (see
+/// [_identifyToTileServer]), show the credit and honour the cache headers; offline downloads and prefetching are not allowed.
+/// In dark mode the tiles are dimmed (no dark OSM tiles exist).
+String _osmStyle(String background, bool dark) => jsonEncode({
+      'version': 8,
+      'sources': {
+        'osm': {
+          'type': 'raster',
+          'tiles': ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          'tileSize': 256,
+          'maxzoom': 19,
+          'attribution': mapAttribution,
+        },
+      },
+      'layers': [
+        {
+          'id': 'background',
+          'type': 'background',
+          'paint': {'background-color': background},
+        },
+        {
+          'id': 'osm',
+          'type': 'raster',
+          'source': 'osm',
+          'paint': dark
+              ? {'raster-brightness-max': 0.45, 'raster-saturation': -0.4, 'raster-contrast': 0.1}
+              : <String, Object>{},
+        },
+      ],
+    });
 
 String _styleFor(Color background, bool dark) {
   final url = dark && (buildConfig.mapStyleUrlDark?.isNotEmpty ?? false) ? buildConfig.mapStyleUrlDark : buildConfig.mapStyleUrl;
   if (url != null && url.isNotEmpty) return url;
   final hex = '#${(background.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
-  return _emptyStyle.replaceFirst('#E9E9EE', hex);
+  return _osmStyle(hex, dark);
+}
+
+bool _identified = false;
+
+/// OpenStreetMap blocks the generic User-Agent of a map library, so the app names itself once (no personal data).
+Future<void> _identifyToTileServer() async {
+  if (_identified || demoMode) return;
+  _identified = true;
+  try {
+    await setHttpHeaders({'User-Agent': 'TNViewer/$appVersion (+$sourceRepoUrl)'});
+  } catch (_) {
+    // The map still works; OpenStreetMap may then refuse the tiles.
+  }
 }
 
 /// The arrow of the position: polygon (32,5) (54,56) (32,44) (10,56) on a 64x64 canvas, blue with a white border.
@@ -154,6 +197,7 @@ class _TnMapViewState extends State<TnMapView> {
   @override
   void initState() {
     super.initState();
+    _identifyToTileServer();
     _style = _styleFor(widget.background, widget.dark);
   }
 

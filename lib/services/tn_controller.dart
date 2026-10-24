@@ -75,7 +75,7 @@ class TnController extends ChangeNotifier {
 
   String _keyNow() {
     final s = settings.value;
-    return [s.serverAddress ?? '', credentials.value?.toJson().toString() ?? '', s.camerasEnabled].join('|');
+    return [s.serverAddress ?? '', credentials.value?.toJson().toString() ?? '', credentials.networkRootKey ?? '', s.camerasEnabled].join('|');
   }
 
   Future<void> _rebuild({bool force = false}) {
@@ -96,6 +96,7 @@ class TnController extends ChangeNotifier {
         credentials: credentials.value,
         config: buildConfig,
         cameraNamespaceEnabled: s.camerasEnabled,
+        networkRootKey: credentials.networkRootKey,
       );
       final conn = TnConnection(
         createService: () async => TnService(await createLibraryBackend(options)),

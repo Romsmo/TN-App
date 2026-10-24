@@ -41,6 +41,19 @@
 		</array>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>TNViewer nutzt deinen Standort, um Meldungen in deiner Nähe anzuzeigen und Meldungen an deiner Position abzusetzen. Im Fahrmodus wird er auch bei ausgeschaltetem Bildschirm genutzt, solange der Fahrmodus läuft, um dich vor Meldungen voraus zu warnen. / TNViewer uses your location to show reports near you and to place reports at your position. In the drive mode it is also used with the screen off, only while the drive mode is running, to warn you about reports ahead.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>TNViewer nutzt die Kamera nur, um den QR-Code zum Verbinden mit einem Server zu scannen. Das Bild wird weder gespeichert noch gesendet. / TNViewer uses the camera only to scan the QR code that connects the app to a server. The image is neither stored nor sent.</string>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleURLName</key>
+				<string>info.trafficnetwork.tnviewer.join</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>trafficnetwork</string>
+				</array>
+			</dict>
+		</array>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>location</string>

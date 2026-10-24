@@ -7,6 +7,7 @@ import 'package:tn_core/tn_core.dart';
 import 'app_scope.dart';
 import 'screens/common.dart' show LockGuard;
 import 'screens/drive_screen.dart';
+import 'screens/join_screens.dart';
 import 'screens/map/map_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/tn_controller.dart';
@@ -28,9 +29,28 @@ class TnApp extends StatelessWidget {
         darkTheme: buildTheme(TnColors.dark),
         themeMode: ThemeMode.system,
         home: const _StartupGate(child: _Shell()),
+        onGenerateRoute: _linkRoute,
       ),
     );
   }
+}
+
+/// A join code opened as a link (`trafficnetwork://join?...`): the platform hands the whole link to the navigator as the route name.
+/// The confirmation page opens on top of the app (or, when the app was started by the link, in place of its first page and
+/// then continues to the app). A link that is not a valid join code opens the app and shows nothing of it.
+MaterialPageRoute<void>? _linkRoute(RouteSettings settings) {
+  final name = settings.name;
+  if (name == null || !name.toLowerCase().startsWith('$joinScheme://')) return null;
+  final r = JoinCode.tryParse(name);
+  MaterialPageRoute<void> app() => MaterialPageRoute<void>(builder: (_) => const _StartupGate(child: _Shell()));
+  if (r.code == null) return app();
+  return MaterialPageRoute<void>(
+    settings: const RouteSettings(name: 'join'),
+    builder: (context) => JoinConfirmScreen(
+      code: r.code!,
+      onDone: () => Navigator.of(context).pushReplacement(app()),
+    ),
+  );
 }
 
 /// The start screen: the logo on the system background, over the app, until the first connection attempt is done (at least

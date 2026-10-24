@@ -6,6 +6,8 @@ import '../services/app_config.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 import 'common.dart';
+import 'join_scan_screen.dart';
+import 'join_screens.dart';
 
 /// "Server verbinden": the address, the access data, the status and the known nodes.
 class ServerScreen extends StatefulWidget {
@@ -22,6 +24,7 @@ class _ServerScreenState extends State<ServerScreen> {
   String? _addressError;
   bool _app = true;
   String? _accessMessage;
+  String? _joinMessage;
 
   @override
   void initState() {
@@ -78,6 +81,30 @@ class _ServerScreenState extends State<ServerScreen> {
     if (mounted) setState(() => _accessMessage = null);
   }
 
+  Future<void> _scan() async {
+    final text = await Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => const JoinScanScreen()));
+    if (text == null || !mounted) return;
+    setState(() => _joinMessage = openJoinConfirmation(context, text));
+  }
+
+  Future<void> _paste() async {
+    final problem = await pasteJoinCode(context);
+    if (mounted) setState(() => _joinMessage = problem);
+  }
+
+  Future<void> _disconnect() async {
+    final app = context.app;
+    await app.credentials.clear();
+    await app.settings.update((s) => s.copyWith(serverAddress: null));
+    if (!mounted) return;
+    _address.text = '';
+    setState(() {
+      _addressError = null;
+      _accessMessage = null;
+      _joinMessage = 'join.disconnected';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final app = context.app;
@@ -93,6 +120,16 @@ class _ServerScreenState extends State<ServerScreen> {
         return SubPage(
           title: context.t('server.title'),
           children: [
+            CardSection(title: context.t('join.title'), children: [
+              Hint(context.t('join.hint')),
+              PrimaryButton(icon: Icons.qr_code_scanner, label: context.t('join.scan'), onPressed: _scan),
+              SoftButton(icon: Icons.content_paste, label: context.t('join.paste'), onPressed: _paste),
+              if (_joinMessage != null) Semantics(liveRegion: true, child: Text(context.t(_joinMessage!), style: TextStyle(fontSize: 15, color: _joinMessage == 'join.disconnected' ? c.textSecondary : c.danger))),
+              if (server != null || app.credentials.value != null) ...[
+                Hint(context.t('join.disconnectHint')),
+                SoftButton(icon: Icons.link_off, label: context.t('join.disconnect'), danger: true, onPressed: _disconnect),
+              ],
+            ]),
             CardSection(title: context.t('server.address'), children: [
               TextField(
                 controller: _address,
@@ -146,7 +183,10 @@ class _ServerScreenState extends State<ServerScreen> {
                   'time': sync.lastSyncedAtUnixMs != null ? formatDateTime(context, sync.lastSyncedAtUnixMs!) : context.t('common.never'),
                 })),
                 Hint(context.t('server.pending', {'count': sync.pendingWrites})),
-                if (sync.lastErrorCode != null) Hint(context.t('server.lastError', {'code': sync.lastErrorCode!})),
+                if (sync.lastErrorCode != null)
+                  joinServerErrorKey(sync.lastErrorCode) != null
+                      ? Semantics(liveRegion: true, child: Text(context.t(joinServerErrorKey(sync.lastErrorCode)!), style: TextStyle(fontSize: 15, color: c.danger)))
+                      : Hint(context.t('server.lastError', {'code': sync.lastErrorCode!})),
               ],
               if (snap.network?.onlineNetwork != null) Hint(context.t('server.online', {'count': snap.network!.onlineNetwork!})),
               PrimaryButton(label: context.t('server.syncNow'), onPressed: snap.service == null ? null : () => app.tn.syncNow()),

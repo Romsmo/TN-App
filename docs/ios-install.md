@@ -25,7 +25,7 @@ per 7 days; secondary sources only: [Corellium](https://support.corellium.com/fe
   this project does not do.
 - Not verified by anyone: that a Flutter `.ipa` with the embedded dynamic framework `TrafficNetworkDart.framework` is signed correctly.
 
-## Part A: the cloud build (`.github/workflows/ios-unsigned.yml`)
+## Part A: the cloud build (`.github/workflows/ios-beta.yml`)
 
 Runs on `macos-26` (Xcode 26.6; an Xcode 27 exists only as a beta there). Public repository: standard runners are free there (GitHub's
 billing page; it does not name macOS explicitly). It fetches client-lib 1.2.1 with checksum check, runs analysis and tests, builds with
@@ -56,6 +56,16 @@ Unsigned `TNViewer-unsigned.ipa`, 18,104,588 bytes (artifact zip 18,023,116 byte
 `info.trafficnetwork.tnviewer`, version 0.1.0 (1), built with iphoneos 26.5 / Xcode 26.6, minimum iOS 13.0, arm64; `UIBackgroundModes` =
 `location`, `audio`; only `NSLocationWhenInUseUsageDescription`; `TrafficNetworkDart.framework` 1.2.1 embedded as a dynamic arm64 library
 with the `frb_*` symbols; no code signature and no provisioning profile (as intended).
+
+## Result of Part B (2026-10-24)
+
+`xtool install` through `usbipd` + WSL `usbmuxd` hung at "[Connecting] 100%" (the known usbipd-win/usbmuxd problem, see
+[xtool#19](https://github.com/xtool-org/xtool/issues/19), [usbipd-win#959](https://github.com/dorssel/usbipd-win/issues/959)). What worked:
+"Apple Devices" (Microsoft Store, `9NP83LWLPZ9K`) on Windows owns the iPhone; its service listens on `127.0.0.1:27015`; a firewall rule
+(TCP 27015, WSL interface only) and `netsh interface portproxy` from the WSL gateway address (`172.19.144.1`, may change after a WSL
+restart) to `127.0.0.1:27015`; in WSL `export USBMUXD_SOCKET_ADDRESS=<gateway>:27015` and `xtool install TNViewer-unsigned.ipa`.
+Output ended with "Successfully installed!". The iPhone must not be attached with `usbipd attach`. **Not yet verified:** that the app
+starts and runs on the phone (device trust, Developer Mode, first launch).
 
 ## Risks
 

@@ -9,7 +9,7 @@ This is the Flutter rebuild of the Expo/React Native app (`Romsmo/TN-App`, commi
 is the export `TNViewer-export-2026-10-22` (`spec/`, `texts/`, `drive-core/`).
 
 > **Honest status:** the logic is tested (all test vectors of `drive-core` pass in Dart, plus own tests of the service and device layers) and the UI was
-> looked at in a browser with demo data. **Nothing has run on an iPhone or an Android device yet.** See
+> looked at in a browser with demo data. **It has been installed on one iPhone and starts; drive mode, the join code against a real server and Android are not checked yet.** See
 > [docs/status.md](docs/status.md) and [docs/ios-install.md](docs/ios-install.md).
 
 ## Layout
@@ -31,19 +31,20 @@ flutter analyze
 (cd packages/tn_core && dart test)
 flutter test --dart-define=TN_DEMO=true
 flutter build apk --release      # Android (needs the Android SDK)
-flutter build ios --release --no-codesign   # on macOS (the workflow ios-unsigned.yml does it in the cloud); see docs/ios-install.md
+flutter build ios --release --no-codesign   # on macOS (the workflow ios-beta.yml does it in the cloud); see docs/ios-install.md
 ```
 
 ### Configuration (`--dart-define`, nothing in the code)
 
 | Name | Meaning |
 |---|---|
-| `TN_DEFAULT_NODE` | server the app tries first; the user can enter another under *Server verbinden* |
+| `TN_DEFAULT_NODE` | optional fallback: server the app tries first. A join code (scan or paste under *Server verbinden*) takes precedence |
 | `TN_APP_CLIENT_ID`, `TN_APP_CLIENT_SECRET` | a *public* app key (scope `device-registration`) so a fresh install can register itself |
 | `TN_NETWORK_ROOT_KEY` | the network's public root key (base64url) |
-| `MAP_STYLE_URL`, `MAP_STYLE_URL_DARK` | MapLibre style URL; **no default** (see `docs/decisions.md`, D-N5) |
+| `MAP_STYLE_URL`, `MAP_STYLE_URL_DARK` | optional MapLibre style URL; the default is OpenStreetMap tiles (see `docs/decisions.md`, D-N5) |
 | `ALLOW_DISABLE_DRIVE_LOCK` | `false` removes the option to switch the speed lock off (cautious review build) |
 | `DRIVE_FEEDS_TILES` | `false` stops the drive mode from handing its position to the library (see D-N1) |
+| `TN_DEV_TOOLS` | `true` shows the simulated drive (never in a release) |
 | `TN_DEMO` | **development only:** answer from an invented data set instead of the library |
 
 Without a server address and access data the app runs in the *Notmodus*. The real values are entered by the operator;

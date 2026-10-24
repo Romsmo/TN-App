@@ -6,6 +6,9 @@ import '../services/demo_backend.dart';
 /// The browser preview always answers from the demo backend; it is a development aid, never shipped.
 const bool demoMode = true;
 
+/// The browser preview shows the development aids (the simulated drive).
+const bool devTools = true;
+
 String? _settings;
 
 Future<String?> readSettingsFile() async => _settings;

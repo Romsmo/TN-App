@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:tn_core/tn_core.dart';
 
 import '../../app_scope.dart';
-import '../../services/app_config.dart';
 import '../../services/location.dart';
 import '../../ui/theme.dart';
 import '../../ui/widgets.dart';
@@ -329,7 +328,6 @@ class _MapScreenState extends State<MapScreen> {
           if (banner != null) Notice(text: banner, icon: Icons.info),
           if (pending != null) Notice(text: pending, icon: Icons.schedule, color: c.warn),
           if (_notice != null) Notice(text: _notice!, icon: Icons.check_circle, color: c.success),
-          if (buildConfig.mapStyleUrl == null || buildConfig.mapStyleUrl!.isEmpty) Notice(text: context.t('map.noBackground'), icon: Icons.map_outlined),
           if (rejected != null) Notice(text: rejected, icon: Icons.info_outline, action: app.tn.dismissRejected, actionLabel: context.t('rejected.dismiss')),
         ];
 

@@ -1,0 +1,82 @@
+# Builds the iOS app on a macOS runner without signing and keeps the .ipa as an artifact. A tag `v<version>-beta.<n>` also
+# publishes it as a GitHub pre-release (the tag must match `appVersion` in lib/services/app_config.dart).
+#
+# The .ipa is unsigned on purpose: path (b) of docs/ios-install.md signs and installs it on the owner's own iPhone with the owner's
+# own Apple ID (xtool, entered by the owner on their machine). Nothing is uploaded to TestFlight or the App Store.
+#
+# Starts by tag, by hand (workflow_dispatch) or when this file changes on the branch flutter: a workflow that only has a
+# manual trigger is not registered by GitHub until it is on the default branch, which this repository keeps untouched.
+# Standard runners are free in a public repository.
+name: ios-beta
+on:
+  push:
+    tags: ["v*-beta.*"]
+    branches: [flutter]
+    paths: [".github/workflows/ios-beta.yml"]
+  workflow_dispatch:
+    inputs:
+      clientlib_version:
+        description: Trafficnetwork client library version
+        default: "1.2.1"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 45
+    permissions:
+      contents: write # only used to create the pre-release for a tag
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: The tag must match the app version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          version=$(sed -n "s/^const String appVersion = '\(.*\)';/\1/p" lib/services/app_config.dart)
+          test "v$version" = "${GITHUB_REF_NAME}" || { echo "Tag ${GITHUB_REF_NAME} does not match appVersion v$version"; exit 1; }
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.38.7"
+          channel: stable
+          cache: true
+      - name: Fetch and verify the client library
+        env:
+          TN_CLIENTLIB_VERSION: ${{ inputs.clientlib_version || '1.2.1' }}
+        run: bash tool/fetch_clientlib.sh
+      - run: flutter pub get
+      - name: Analyze and test
+        run: |
+          flutter analyze
+          (cd packages/tn_core && dart pub get && dart test)
+          flutter test --dart-define=TN_DEMO=true
+      # The server values are optional: a join code (QR or text) sets them up inside the app. Variables set in the repository
+      # still work as a fallback.
+      - name: Build (no code signing)
+        run: |
+          flutter build ios --release --no-codesign \
+            --dart-define=TN_DEFAULT_NODE="${{ vars.TN_DEFAULT_NODE }}" \
+            --dart-define=TN_APP_CLIENT_ID="${{ vars.TN_APP_CLIENT_ID }}" \
+            --dart-define=TN_APP_CLIENT_SECRET="${{ secrets.TN_APP_CLIENT_SECRET }}" \
+            --dart-define=TN_NETWORK_ROOT_KEY="${{ vars.TN_NETWORK_ROOT_KEY }}" \
+            --dart-define=MAP_STYLE_URL="${{ vars.MAP_STYLE_URL }}" \
+            --dart-define=MAP_STYLE_URL_DARK="${{ vars.MAP_STYLE_URL_DARK }}"
+      - name: Package the .ipa
+        run: |
+          mkdir -p Payload out
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          version=$(sed -n "s/^const String appVersion = '\(.*\)';/\1/p" lib/services/app_config.dart)
+          zip -qry "out/TNViewer-${version}-unsigned.ipa" Payload
+          (cd out && shasum -a 256 *.ipa > SHA256SUMS.txt && cat SHA256SUMS.txt)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TNViewer-unsigned-ipa
+          path: out/
+          retention-days: 7
+      - name: Publish the pre-release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          gh release create "${GITHUB_REF_NAME}" out/* --repo "${GITHUB_REPOSITORY}" --prerelease \
+            --title "TNViewer ${GITHUB_REF_NAME#v} (beta)" --notes-file docs/release-notes-beta.md

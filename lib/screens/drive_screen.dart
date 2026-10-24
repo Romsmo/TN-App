@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:tn_core/tn_core.dart';
 
 import '../app_scope.dart';
+import '../platform/platform.dart' show devTools;
 import '../services/drive_controller.dart';
 import '../services/legal.dart';
 import '../ui/icons.dart';
@@ -104,27 +105,29 @@ class _DriveScreenState extends State<DriveScreen> {
                         ? null
                         : () => _request(DriveMode.real),
                   ),
-                  const SizedBox(height: Space.lg),
-                  Text(
-                    context.t('drive.simulateHint'),
-                    style: TnText.body.copyWith(color: c.textSecondary),
-                  ),
-                  const SizedBox(height: Space.md),
-                  SoftButton(
-                    icon: Icons.science,
-                    label: context.t('drive.simulate'),
-                    onPressed: _starting
-                        ? null
-                        : () => _request(DriveMode.simulation),
-                  ),
-                  const SizedBox(height: Space.sm),
-                  SoftButton(
-                    icon: Icons.bolt,
-                    label: context.t('drive.simulateFast'),
-                    onPressed: _starting
-                        ? null
-                        : () => _request(DriveMode.simulation, 4),
-                  ),
+                  if (devTools) ...[
+                    const SizedBox(height: Space.lg),
+                    Text(
+                      context.t('drive.simulateHint'),
+                      style: TnText.body.copyWith(color: c.textSecondary),
+                    ),
+                    const SizedBox(height: Space.md),
+                    SoftButton(
+                      icon: Icons.science,
+                      label: context.t('drive.simulate'),
+                      onPressed: _starting
+                          ? null
+                          : () => _request(DriveMode.simulation),
+                    ),
+                    const SizedBox(height: Space.sm),
+                    SoftButton(
+                      icon: Icons.bolt,
+                      label: context.t('drive.simulateFast'),
+                      onPressed: _starting
+                          ? null
+                          : () => _request(DriveMode.simulation, 4),
+                    ),
+                  ],
                   if (_error != null) ...[
                     const SizedBox(height: Space.md),
                     Semantics(
