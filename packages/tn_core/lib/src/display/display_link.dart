@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:tn_display_protocol/tn_display_protocol.dart' as d;
 
 import 'display_feed.dart';
+import 'display_update.dart';
 
 /// A display found while scanning (it advertises the service UUID; the name is only a label, not an identity).
 class DisplayFound {
@@ -104,6 +105,9 @@ class DisplayLink {
   int _generation = 0;
   final List<StreamSubscription<Object?>> _subs = [];
   bool _sending = false;
+
+  /// A firmware transfer is running: no State packets go out meanwhile.
+  bool updating = false;
   Completer<void>? _droppedNow;
 
   /// Connects to [id] and keeps the connection until [stop]; reconnects after a drop with a growing pause.
@@ -129,10 +133,12 @@ class DisplayLink {
   }
 
   Future<void> _cancel() async {
-    for (final s in _subs) {
+    // a copy: the connect loop may add subscriptions while a cancel is awaited
+    final all = List<StreamSubscription<Object?>>.of(_subs);
+    _subs.clear();
+    for (final s in all) {
       await s.cancel();
     }
-    _subs.clear();
   }
 
   void _set(DisplayLinkState s) {
@@ -228,7 +234,7 @@ class DisplayLink {
 
   /// Called a few times a second while the drive runs (and every second otherwise): sends the next State if one is due.
   Future<void> tick() async {
-    if (state != DisplayLinkState.ready || _sending) return;
+    if (state != DisplayLinkState.ready || _sending || updating) return;
     _sending = true;
     try {
       final s = feed.next(input(), nowMs(), epochS: epochS());
@@ -262,5 +268,101 @@ class DisplayLink {
     await transport.write(d.Slot.uiConfig, config.encode(), withResponse: true);
     uiConfig = config;
     onChange?.call();
+  }
+
+  /// Sends the time again (after the user changed the phone's time zone, or on request).
+  Future<void> syncTime() async {
+    if (state != DisplayLinkState.ready) return;
+    try {
+      await transport.write(d.Slot.time, d.TimeSync(epochS(), tzOffsetMin()).encode(), withResponse: true);
+    } catch (e) {
+      lastError = e.runtimeType.toString();
+    }
+  }
+
+  /// Pushes a firmware image over the OTA characteristic as the contract describes: `begin`, wait for the first progress
+  /// notification (the display erases the slot first), data frames paced like the reference tool, `end`, wait for the verdict. The
+  /// caller has checked size and SHA-256 against the manifest. The display reboots after an accepted image, so the link drops by
+  /// design; the reconnect loop brings it back and the caller reads the version again.
+  Future<OtaResult> runOta(
+    Uint8List image, {
+    void Function(int sent, int total)? onProgress,
+    bool Function()? isCancelled,
+    Duration eraseTimeout = const Duration(seconds: 90),
+    Duration verdictTimeout = const Duration(seconds: 45),
+  }) async {
+    if (state != DisplayLinkState.ready || updating) return const OtaResult(OtaOutcome.lostLink);
+    updating = true;
+    onChange?.call();
+    final first = Completer<void>();
+    final verdict = Completer<OtaResult>();
+    final dropped = _droppedNow;
+    late final StreamSubscription<Uint8List> sub;
+    OtaResult? early;
+    try {
+      sub = transport.subscribe(d.Slot.ota).listen((b) {
+        final n = d.OtaNotify.parse(b);
+        if (n is d.OtaProgress) {
+          if (!first.isCompleted) first.complete();
+        } else if (n is d.OtaAccepted) {
+          if (!verdict.isCompleted) verdict.complete(const OtaResult(OtaOutcome.accepted));
+        } else if (n is d.OtaError) {
+          if (!verdict.isCompleted) verdict.complete(OtaResult(OtaOutcome.deviceError, errorCode: n.code));
+          if (!first.isCompleted) first.complete();
+        }
+      });
+      Future<OtaResult?> failed() async {
+        if (isCancelled?.call() == true) return const OtaResult(OtaOutcome.cancelled);
+        if (verdict.isCompleted) return verdict.future;
+        if (dropped != null && dropped.isCompleted) return const OtaResult(OtaOutcome.lostLink);
+        return null;
+      }
+
+      await transport.write(d.Slot.ota, d.OtaFrames.beginForImage(image), withResponse: false);
+      final erased = await Future.any<bool>([
+        first.future.then((_) => true),
+        _delay(eraseTimeout).then((_) => false),
+        if (dropped != null) dropped.future.then((_) => false),
+      ]);
+      early = await failed();
+      if (early == null && !erased) early = const OtaResult(OtaOutcome.timeout);
+      if (early == null) {
+        final chunk = (mtu - 3 < 244 ? mtu - 3 : 244) - 1;
+        var sent = 0;
+        var n = 0;
+        for (final frame in d.OtaFrames.dataFrames(image, chunk: chunk < 19 ? 19 : chunk)) {
+          early = await failed();
+          if (early != null) break;
+          await transport.write(d.Slot.ota, frame, withResponse: false);
+          sent += frame.length - 1;
+          onProgress?.call(sent, image.length);
+          if (++n % 10 == 0) await _delay(const Duration(milliseconds: 40));
+        }
+        if (early == null) {
+          await transport.write(d.Slot.ota, d.OtaFrames.end(), withResponse: false);
+          early = await Future.any<OtaResult>([
+            verdict.future,
+            _delay(verdictTimeout).then((_) => const OtaResult(OtaOutcome.timeout)),
+            if (dropped != null) dropped.future.then((_) => verdict.isCompleted ? const OtaResult(OtaOutcome.accepted) : const OtaResult(OtaOutcome.lostLink)),
+          ]);
+        }
+      }
+      final result = early;
+      if (!result.ok && result.outcome != OtaOutcome.lostLink && result.outcome != OtaOutcome.deviceError) {
+        try {
+          await transport.write(d.Slot.ota, d.OtaFrames.abort(), withResponse: false);
+        } catch (_) {}
+      }
+      return result;
+    } catch (e) {
+      lastError = e.runtimeType.toString();
+      return const OtaResult(OtaOutcome.lostLink);
+    } finally {
+      try {
+        await sub.cancel();
+      } catch (_) {}
+      updating = false;
+      onChange?.call();
+    }
   }
 }

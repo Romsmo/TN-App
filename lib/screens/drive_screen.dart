@@ -11,6 +11,8 @@ import '../services/legal.dart';
 import '../ui/icons.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
+import 'common.dart' show LockGuard;
+import 'display_screen.dart';
 
 Color _hex(String hex) => Color(int.parse('FF${hex.substring(1)}', radix: 16));
 
@@ -66,76 +68,86 @@ class _DriveScreenState extends State<DriveScreen> {
   Widget build(BuildContext context) {
     final app = context.app;
     return ListenableBuilder(
-      listenable: Listenable.merge([app.drive, app.settings, app.tn]),
+      listenable: Listenable.merge([app.drive, app.settings, app.tn, app.display]),
       builder: (context, _) {
         if (app.drive.snapshot?.active == true) return const RunningDrive();
         final c = context.colors;
+        final settings = app.settings.value;
+        final conn = app.tn.snapshot.sync?.connection;
+        final serverText = conn == null ? context.t('status.starting') : context.t('server.connection.${conn.name}');
         return SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                20,
-                20,
-                20,
-                tabBarClearance + 16,
-              ),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, tabBarClearance + 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ScreenTitle(context.t('tabs.drive')),
-                  const SizedBox(height: Space.md),
+                  const SizedBox(height: Space.lg),
+                  Center(
+                    child: Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(color: c.tintSoft, shape: BoxShape.circle),
+                      child: Icon(Icons.speed, size: 48, color: c.tint),
+                    ),
+                  ),
+                  const SizedBox(height: Space.lg),
                   Text(
                     context.t('drive.startHint'),
+                    textAlign: TextAlign.center,
                     style: TnText.body.copyWith(color: c.textSecondary),
                   ),
                   if (app.tn.snapshot.emergency != null) ...[
                     const SizedBox(height: Space.md),
-                    Text(
-                      context.t('emergency.driveHint'),
-                      style: TnText.body.copyWith(color: c.textSecondary),
-                    ),
+                    Notice(text: context.t('emergency.driveHint'), icon: Icons.info_outline),
                   ],
-                  const SizedBox(height: Space.md),
+                  const SizedBox(height: Space.lg),
+                  Group(children: [
+                    Row3(
+                      leading: IconTile(icon: Icons.dns, color: const Color(0xFF5856D6)),
+                      title: context.t('drive.status.server'),
+                      trailing: Text(serverText, style: TnText.body.copyWith(color: c.textSecondary)),
+                    ),
+                    if (settings.displayFeature)
+                      Row3(
+                        leading: IconTile(icon: Icons.bluetooth, color: const Color(0xFF0A84FF)),
+                        title: context.t('drive.display'),
+                        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Text(context.t('display.summary.${app.display.summary}'), style: TnText.body.copyWith(color: c.textSecondary)),
+                          const SizedBox(width: 4),
+                          Icon(Icons.chevron_right, size: 20, color: c.textSecondary),
+                        ]),
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LockGuard(child: DisplayScreen()))),
+                      ),
+                  ]),
+                  const SizedBox(height: Space.lg),
                   PrimaryButton(
                     icon: Icons.play_circle,
-                    label: _starting
-                        ? context.t('drive.starting')
-                        : context.t('drive.start'),
-                    onPressed: _starting || !canDriveForReal
-                        ? null
-                        : () => _request(DriveMode.real),
+                    label: _starting ? context.t('drive.starting') : context.t('drive.start'),
+                    onPressed: _starting || !canDriveForReal ? null : () => _request(DriveMode.real),
                   ),
                   if (devTools) ...[
                     const SizedBox(height: Space.lg),
-                    Text(
-                      context.t('drive.simulateHint'),
-                      style: TnText.body.copyWith(color: c.textSecondary),
-                    ),
+                    Text(context.t('drive.simulateHint'), style: TnText.body.copyWith(color: c.textSecondary)),
                     const SizedBox(height: Space.md),
                     SoftButton(
                       icon: Icons.science,
                       label: context.t('drive.simulate'),
-                      onPressed: _starting
-                          ? null
-                          : () => _request(DriveMode.simulation),
+                      onPressed: _starting ? null : () => _request(DriveMode.simulation),
                     ),
                     const SizedBox(height: Space.sm),
                     SoftButton(
                       icon: Icons.bolt,
                       label: context.t('drive.simulateFast'),
-                      onPressed: _starting
-                          ? null
-                          : () => _request(DriveMode.simulation, 4),
+                      onPressed: _starting ? null : () => _request(DriveMode.simulation, 4),
                     ),
                   ],
                   if (_error != null) ...[
                     const SizedBox(height: Space.md),
                     Semantics(
                       liveRegion: true,
-                      child: Text(
-                        _error!,
-                        style: TextStyle(fontSize: 16, color: c.danger),
-                      ),
+                      child: Text(_error!, style: TextStyle(fontSize: 16, color: c.danger)),
                     ),
                   ],
                 ],

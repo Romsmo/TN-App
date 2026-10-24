@@ -3,9 +3,13 @@
 * The `.ipa` is **unsigned**. It is for sideloading on your own iPhone with your own Apple ID (for example with
   [xtool](https://github.com/xtool-org/xtool), see `docs/ios-install.md`); with a free Apple account the profile lasts 7 days.
   It is not on TestFlight or the App Store. Minimum iOS 13.1.
-* **New in beta 2:** the **TN display** over Bluetooth (Settings → Display): live speed limit and warnings from the drive mode,
-  announcements on the display, reports and answers from the display, settings both ways. New permission: Bluetooth, and the
-  background mode `bluetooth-central`. Firmware updates for the display are **not** included.
+* **New in beta 2:** the **TN display** over Bluetooth. It is **off until you switch it on** (Settings → Extensions → "TN-Display unterstützen");
+  then Settings → Display: live speed limit and warnings from the drive mode, announcements on the display, reports and answers from
+  the display, settings both ways (sound, volume, night dimming, picture cache, time) and **firmware updates** (check on a tap or once a day if
+  you allow it; installing always needs a tap and is not offered while driving; the release is not signed, the app says so). New permission:
+  Bluetooth, and the background mode `bluetooth-central`. The update source (the display project's GitHub releases) is private today, so the
+  check says so until it is public.
+* **Smoother interface:** iOS-style transitions and scrolling, press feedback and light haptics, a calmer settings page and drive start page.
 * **Connecting to a server:** Settings → Connect to server → *Scan code* / *Paste code* (join code from your server's "App verbinden"
   page, or a `trafficnetwork://join?…` link). Without a server the app runs in emergency mode.
 * **Map:** background map from OpenStreetMap tiles (the same source as the server's web map), credit "© OpenStreetMap contributors".

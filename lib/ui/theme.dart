@@ -158,6 +158,10 @@ ThemeData buildTheme(TnColors c) {
     canvasColor: c.background,
     dividerColor: c.border,
     splashFactory: NoSplash.splashFactory,
+    pageTransitionsTheme: const PageTransitionsTheme(builders: {
+      TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+    }),
     extensions: [c],
   );
   return base.copyWith(

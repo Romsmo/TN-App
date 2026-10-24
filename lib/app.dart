@@ -30,6 +30,7 @@ class TnApp extends StatelessWidget {
         themeMode: ThemeMode.system,
         home: const _StartupGate(child: _Shell()),
         onGenerateRoute: _linkRoute,
+        scrollBehavior: const _AppScroll(),
       ),
     );
   }
@@ -158,8 +159,17 @@ class _Shell extends StatefulWidget {
   State<_Shell> createState() => _ShellState();
 }
 
-class _ShellState extends State<_Shell> {
+class _ShellState extends State<_Shell> with SingleTickerProviderStateMixin {
   int _index = 0;
+
+  /// A short fade when the tab changes; the tabs themselves stay alive (the map keeps its state).
+  late final AnimationController _fade = AnimationController(vsync: this, duration: const Duration(milliseconds: 240), value: 1);
+
+  @override
+  void dispose() {
+    _fade.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,18 +185,25 @@ class _ShellState extends State<_Shell> {
         return Scaffold(
           backgroundColor: driving && _index == 1 ? DrivePalette.background : c.background,
           extendBody: true,
-          body: IndexedStack(
-            index: _index,
-            children: [
-              MapScreen(active: _index == 0),
-              const DriveScreen(),
-              const LockGuard(child: SettingsScreen()),
-            ],
+          body: FadeTransition(
+            opacity: CurvedAnimation(parent: _fade, curve: Curves.easeOut),
+            child: IndexedStack(
+              index: _index,
+              children: [
+                MapScreen(active: _index == 0),
+                const DriveScreen(),
+                const LockGuard(child: SettingsScreen()),
+              ],
+            ),
           ),
           bottomNavigationBar: FloatingTabBar(
             index: _index,
             dark: driving,
-            onSelect: (i) => setState(() => _index = i),
+            onSelect: (i) {
+              if (i == _index) return;
+              setState(() => _index = i);
+              _fade.forward(from: 0.35);
+            },
             items: [
               (label: context.t('tabs.map'), icon: 'map-outline', iconActive: 'map'),
               (label: context.t('tabs.drive'), icon: 'speedometer', iconActive: 'speedometer'),
@@ -197,4 +214,18 @@ class _ShellState extends State<_Shell> {
       },
     );
   }
+}
+
+/// The rubber-band scrolling of iOS everywhere, without the glow or a visible scroll bar.
+class _AppScroll extends MaterialScrollBehavior {
+  const _AppScroll();
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) => const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+
+  @override
+  Widget buildScrollbar(BuildContext context, Widget child, ScrollableDetails details) => child;
+
+  @override
+  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) => child;
 }

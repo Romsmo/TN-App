@@ -9,6 +9,7 @@ import 'package:tn_core/tn_core.dart';
 import 'package:tn_display_protocol/tn_display_protocol.dart' as d;
 import 'package:tnviewer/app_scope.dart';
 import 'package:tnviewer/screens/display_screen.dart';
+import 'package:tnviewer/screens/settings_screen.dart';
 import 'package:tnviewer/services/app_config.dart';
 import 'package:tnviewer/services/display_controller.dart';
 import 'package:tnviewer/services/drive_controller.dart';
@@ -83,6 +84,7 @@ void main() {
     expect(s.drive.phoneSoundAllowed(), isTrue); // not connected: the phone plays
 
     await tester.runAsync(() async {
+      await s.settings.update((x) => x.copyWith(displayFeature: true));
       await s.display.choose(const DisplayFound(id: 'AA:BB', name: 'BlitzerdeDsp'));
       for (var i = 0; i < 30; i++) {
         await Future<void>.delayed(Duration.zero);
@@ -131,5 +133,73 @@ void main() {
     final bad = parseSettings('{"displaySound":"nonsense","displayVolume":900}');
     expect(bad.displaySound, DisplaySoundTarget.auto);
     expect(bad.displayVolume, 100); // clamped
+  });
+
+  testWidgets('the display feature is invisible and inactive until it is switched on in the settings', (tester) async {
+    final t = _Transport();
+    final s = (await tester.runAsync(() => _services(t)))!;
+    tester.view.physicalSize = const Size(900, 3200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(AppScope(services: s, child: MaterialApp(theme: buildTheme(TnColors.light), home: const Scaffold(body: SettingsScreen()))));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+
+    // off: no row, no wording of the feature besides the switch itself, nothing connects, nothing is touched
+    expect(s.settings.value.displayFeature, isFalse);
+    expect(find.text('TN-Display per Bluetooth'), findsNothing);
+    expect(find.text('TN-Display unterstützen'), findsOneWidget);
+    expect(s.display.summary, 'off');
+    expect(t.writes, isEmpty);
+
+    // a chosen device alone does not connect while the feature is off
+    await tester.runAsync(() async {
+      await s.settings.update((x) => x.copyWith(displayEnabled: true, displayDeviceId: 'AA:BB', displayName: 'BlitzerdeDsp'));
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    });
+    expect(s.display.connected, isFalse);
+    expect(t.writes, isEmpty);
+    expect(s.drive.phoneSoundAllowed(), isTrue);
+
+    // on: the Display row appears and the link comes up
+    await tester.runAsync(() async {
+      await s.settings.update((x) => x.copyWith(displayFeature: true));
+      for (var i = 0; i < 30; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    });
+    await tester.pump();
+    expect(find.text('Display'), findsWidgets);
+    expect(s.display.connected, isTrue);
+
+    // off again: the link is dropped at once, the chosen device stays remembered
+    await tester.runAsync(() async {
+      await s.settings.update((x) => x.copyWith(displayFeature: false));
+      for (var i = 0; i < 30; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    });
+    expect(s.display.connected, isFalse);
+    expect(s.settings.value.displayDeviceId, 'AA:BB');
+    expect(s.drive.phoneSoundAllowed(), isTrue);
+    s.display.dispose();
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  test('the new display settings survive the settings file and bad values fall back', () {
+    const s = Settings(displayFeature: true, displayNightStart: 22, displayNightEnd: 5, displayCacheMinutes: 30, displayAutoUpdateCheck: true, displayLastUpdateCheck: 12345);
+    final back = parseSettings(encodeSettings(s));
+    expect(back.displayFeature, isTrue);
+    expect(back.displayNightStart, 22);
+    expect(back.displayNightEnd, 5);
+    expect(back.displayCacheMinutes, 30);
+    expect(back.displayAutoUpdateCheck, isTrue);
+    expect(back.displayLastUpdateCheck, 12345);
+    final bad = parseSettings('{"displayNightStart":99,"displayCacheMinutes":7,"displayFeature":"yes"}');
+    expect(bad.displayNightStart, 20);
+    expect(bad.displayCacheMinutes, 10);
+    expect(bad.displayFeature, isFalse);
   });
 }

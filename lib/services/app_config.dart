@@ -20,5 +20,9 @@ const BuildConfig buildConfig = BuildConfig(
   allowInsecureServer: bool.fromEnvironment('ALLOW_INSECURE_SERVER'),
 );
 
+/// Where the display firmware releases are published (`--dart-define=DISPLAY_UPDATE_BASE=...` to change it). The repository has to
+/// be public for the app to read it without a token; the app never carries one.
+const String displayUpdateBase = String.fromEnvironment('DISPLAY_UPDATE_BASE', defaultValue: 'https://github.com/Romsmo/TN-DSP');
+
 /// The app version shown in the settings (kept in step with pubspec.yaml).
 const String appVersion = '0.1.0-beta.2';

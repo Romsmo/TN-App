@@ -55,7 +55,6 @@ String _osmStyle(String background, bool dark) => jsonEncode({
           'tiles': ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
           'tileSize': 256,
           'maxzoom': 19,
-          'attribution': mapAttribution,
         },
       },
       'layers': [
@@ -69,7 +68,7 @@ String _osmStyle(String background, bool dark) => jsonEncode({
           'type': 'raster',
           'source': 'osm',
           'paint': dark
-              ? {'raster-brightness-max': 0.45, 'raster-saturation': -0.4, 'raster-contrast': 0.1}
+              ? {'raster-brightness-max': 0.6, 'raster-saturation': -0.45, 'raster-contrast': 0.15}
               : <String, Object>{},
         },
       ],
@@ -379,7 +378,9 @@ class _TnMapViewState extends State<TnMapView> {
       rotateGesturesEnabled: true,
       tiltGesturesEnabled: false,
       logoEnabled: false,
+      // the credit is shown by the app itself (map_screen.dart); the library's own button would only repeat it
       attributionButtonPosition: AttributionButtonPosition.bottomLeft,
+      attributionButtonColor: Colors.transparent,
       onMapCreated: (c) {
         _c = c;
         widget.handle._controller = c;

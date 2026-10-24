@@ -26,6 +26,13 @@ VzNr codes of `sign-rules.json`. I found no such table; until there is one the c
 `DisplayController` (feeds the display from the drive mode, settings both ways, sound routing), the page *Settings → Display*,
 the permissions in `Info.plist` and the Android manifest. **Never run on a phone or against the display.**
 
+## Updated 2026-10-24 (second round)
+
+The owner asked for the display to be switched on in the settings (and invisible otherwise), well integrated, with automatic and manual
+updates and the display's own settings. Built: the feature switch, the Display page (state, scan, sound target, volume, voice, night
+dimming, picture cache, time, test sound, firmware), the update flow (check on tap or daily, install on tap, never while driving) and
+the status rows. Still blocked by the project, not by code: the repository `TN-DSP` is private and no manifest signature exists.
+
 ## What is not built yet (needs decisions below)
 
 firmware and voice-pack update (questions 3 and 4), the developer area (question 7), sign columns (no mapping).

@@ -15,4 +15,10 @@ Needs the TN display with firmware `0.1.0` (or newer) and the phone with this ap
    with `location` + `audio` + `bluetooth-central` is not verified.) Note the battery use.
 8. A speed camera category appears on the display only with cameras switched on in the app.
 9. *Forget display*: the phone stops using it; remove any pairing in the iOS Bluetooth settings.
-10. Firmware update and voice pack: not built (update source and signed manifest are open).
+10. Settings → Extensions → "TN-Display unterstützen" is off at first: no Display row, no Display line on the drive page. Switch it on: both appear.
+11. Display page: night hours, picture cache, *Send time*, *Test sound* (a short tone on the display).
+12. Firmware: *Check for update*. While `TN-DSP` is private the page says the source is not reachable. Once a release is public and newer
+    than the display: *Install update* (confirmation, progress, restart, "Fertig: Version …"). Not while driving. A display that rolls back is
+    reported as failed, not as done.
+13. Automatic check: switch it on, reconnect; at most once a day it looks by itself and shows the badge on the Display row.
+14. Voice pack: not built (none exists).

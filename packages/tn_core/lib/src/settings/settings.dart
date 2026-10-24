@@ -17,12 +17,18 @@ class Settings {
     this.camerasNoticeSeen,
     this.driveNoticeSeen = false,
     this.driveLockEnabled = true,
+    this.displayFeature = false,
     this.displayEnabled = false,
     this.displayDeviceId,
     this.displayName,
     this.displaySound = DisplaySoundTarget.auto,
     this.displayVolume = 70,
     this.displayVoice = false,
+    this.displayNightStart = 20,
+    this.displayNightEnd = 6,
+    this.displayCacheMinutes = 10,
+    this.displayAutoUpdateCheck = false,
+    this.displayLastUpdateCheck,
   });
 
   /// A server the user entered ("Server verbinden"); null = use discovery from the built-in seeds.
@@ -57,6 +63,10 @@ class Settings {
   /// The speed lock. On by default, also on a fresh install (no settings file) and after resetting the device identity.
   final bool driveLockEnabled;
 
+  /// The display feature as a whole. Off by default: nothing of it is visible and Bluetooth is not touched until the user switches
+  /// it on in the settings.
+  final bool displayFeature;
+
   /// The TN display (Bluetooth): the drive mode feeds it while it is on and a device is chosen.
   final bool displayEnabled;
 
@@ -71,6 +81,18 @@ class Settings {
   final int displayVolume;
   final bool displayVoice;
 
+  /// The display's night dimming hours (0..23) and how long it shows a cached picture without the app (minutes).
+  final int displayNightStart;
+  final int displayNightEnd;
+  final int displayCacheMinutes;
+
+  /// Look for a display firmware update by itself (once a day while the display is connected). Off by default: it is a request to
+  /// GitHub. Installing always needs a tap.
+  final bool displayAutoUpdateCheck;
+
+  /// When the last update check ran (milliseconds since the epoch).
+  final int? displayLastUpdateCheck;
+
   Settings copyWith({
     Object? serverAddress = _unset,
     List<String>? hiddenHazardTypes,
@@ -84,12 +106,18 @@ class Settings {
     Object? camerasNoticeSeen = _unset,
     bool? driveNoticeSeen,
     bool? driveLockEnabled,
+    bool? displayFeature,
     bool? displayEnabled,
     Object? displayDeviceId = _unset,
     Object? displayName = _unset,
     DisplaySoundTarget? displaySound,
     int? displayVolume,
     bool? displayVoice,
+    int? displayNightStart,
+    int? displayNightEnd,
+    int? displayCacheMinutes,
+    bool? displayAutoUpdateCheck,
+    Object? displayLastUpdateCheck = _unset,
   }) =>
       Settings(
         serverAddress: identical(serverAddress, _unset) ? this.serverAddress : serverAddress as String?,
@@ -104,12 +132,18 @@ class Settings {
         camerasNoticeSeen: identical(camerasNoticeSeen, _unset) ? this.camerasNoticeSeen : camerasNoticeSeen as String?,
         driveNoticeSeen: driveNoticeSeen ?? this.driveNoticeSeen,
         driveLockEnabled: driveLockEnabled ?? this.driveLockEnabled,
+        displayFeature: displayFeature ?? this.displayFeature,
         displayEnabled: displayEnabled ?? this.displayEnabled,
         displayDeviceId: identical(displayDeviceId, _unset) ? this.displayDeviceId : displayDeviceId as String?,
         displayName: identical(displayName, _unset) ? this.displayName : displayName as String?,
         displaySound: displaySound ?? this.displaySound,
         displayVolume: displayVolume ?? this.displayVolume,
         displayVoice: displayVoice ?? this.displayVoice,
+        displayNightStart: displayNightStart ?? this.displayNightStart,
+        displayNightEnd: displayNightEnd ?? this.displayNightEnd,
+        displayCacheMinutes: displayCacheMinutes ?? this.displayCacheMinutes,
+        displayAutoUpdateCheck: displayAutoUpdateCheck ?? this.displayAutoUpdateCheck,
+        displayLastUpdateCheck: identical(displayLastUpdateCheck, _unset) ? this.displayLastUpdateCheck : displayLastUpdateCheck as int?,
       );
 
   Map<String, Object?> toJson() => {
@@ -130,12 +164,18 @@ class Settings {
   /// What is written to the settings file: [toJson] (the fields the shared test vectors pin) plus the display fields added later.
   Map<String, Object?> toStorageJson() => {
         ...toJson(),
+        'displayFeature': displayFeature,
         'displayEnabled': displayEnabled,
         'displayDeviceId': displayDeviceId,
         'displayName': displayName,
         'displaySound': displaySound.name,
         'displayVolume': displayVolume,
         'displayVoice': displayVoice,
+        'displayNightStart': displayNightStart,
+        'displayNightEnd': displayNightEnd,
+        'displayCacheMinutes': displayCacheMinutes,
+        'displayAutoUpdateCheck': displayAutoUpdateCheck,
+        'displayLastUpdateCheck': displayLastUpdateCheck,
       };
 }
 
@@ -150,6 +190,8 @@ List<String> _stringList(Object? v, List<String> fallback) =>
     v is List ? [for (final e in v) if (e is String) e] : fallback;
 
 bool _bool(Object? v, bool fallback) => v is bool ? v : fallback;
+
+int _hour(Object? v, int fallback) => v is int && v >= 0 && v <= 23 ? v : fallback;
 
 /// Reads stored JSON tolerantly: anything missing or of the wrong type falls back to the default.
 /// Only an explicit `false` switches the lock off, and only if the build allows it.
@@ -176,12 +218,18 @@ Settings parseSettings(String? raw, {bool allowDisableDriveLock = true}) {
     camerasNoticeSeen: o['camerasNoticeSeen'] is String && (o['camerasNoticeSeen'] as String).isNotEmpty ? o['camerasNoticeSeen'] as String : null,
     driveNoticeSeen: _bool(o['driveNoticeSeen'], d.driveNoticeSeen),
     driveLockEnabled: allowDisableDriveLock && o['driveLockEnabled'] == false ? false : true,
+    displayFeature: _bool(o['displayFeature'], d.displayFeature),
     displayEnabled: _bool(o['displayEnabled'], d.displayEnabled),
     displayDeviceId: o['displayDeviceId'] is String && (o['displayDeviceId'] as String).isNotEmpty ? o['displayDeviceId'] as String : null,
     displayName: o['displayName'] is String && (o['displayName'] as String).isNotEmpty ? o['displayName'] as String : null,
     displaySound: DisplaySoundTarget.values.firstWhere((t) => t.name == o['displaySound'], orElse: () => d.displaySound),
     displayVolume: o['displayVolume'] is int ? (o['displayVolume'] as int).clamp(0, 100) : d.displayVolume,
     displayVoice: _bool(o['displayVoice'], d.displayVoice),
+    displayNightStart: _hour(o['displayNightStart'], d.displayNightStart),
+    displayNightEnd: _hour(o['displayNightEnd'], d.displayNightEnd),
+    displayCacheMinutes: const [5, 10, 30, 60].contains(o['displayCacheMinutes']) ? o['displayCacheMinutes'] as int : d.displayCacheMinutes,
+    displayAutoUpdateCheck: _bool(o['displayAutoUpdateCheck'], d.displayAutoUpdateCheck),
+    displayLastUpdateCheck: o['displayLastUpdateCheck'] is int ? o['displayLastUpdateCheck'] as int : null,
   );
 }
 

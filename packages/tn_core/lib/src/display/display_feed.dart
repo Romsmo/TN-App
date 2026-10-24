@@ -160,6 +160,10 @@ class DisplayFeed {
   int _cueSinceMs = 0;
   final Map<String, WarnLevel> _announced = {};
   bool _promptAnnounced = false;
+  bool _testCue = false;
+
+  /// The next packet carries a short information cue ("test the sound" in the settings).
+  void queueTestCue() => _testCue = true;
 
   /// A new connection: `stateSeq` starts again at 1 and everything is sent afresh.
   void reset() {
@@ -280,6 +284,10 @@ class DisplayFeed {
       fresh ??= d.AudioCue(seq: 0, mode: mode, event: d.AudioEvent.confirmPrompt, speedUnit: unit);
     }
     if (!prompt) _promptAnnounced = false;
+    if (_testCue) {
+      _testCue = false;
+      fresh ??= d.AudioCue(seq: 0, mode: d.AudioMode.tones, event: d.AudioEvent.info, speedUnit: unit);
+    }
     if (fresh != null && cueOk) {
       _cueSeq += 1;
       _cue = d.AudioCue(

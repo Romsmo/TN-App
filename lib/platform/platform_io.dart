@@ -8,6 +8,8 @@ import 'package:trafficnetwork_flutter/trafficnetwork_flutter.dart' as tn;
 
 import '../services/demo_backend.dart';
 import '../services/display_ble.dart';
+import '../services/display_update_http.dart';
+import '../services/display_update_source.dart';
 
 /// Whether this build answers from the demo backend (development only: `--dart-define=TN_DEMO=true`).
 const bool demoMode = bool.fromEnvironment('TN_DEMO');
@@ -18,6 +20,9 @@ const bool devTools = demoMode || bool.fromEnvironment('TN_DEV_TOOLS');
 
 /// The Bluetooth transport for the TN display on a phone; null where there is none.
 DisplayTransport? createDisplayTransport() => isMobile ? UniversalBleDisplayTransport() : null;
+
+/// Where display firmware releases are read from; null where there is no Bluetooth either.
+DisplayUpdateSource? createDisplayUpdateSource() => isMobile ? DisplayUpdateHttp() : null;
 
 Future<File> _settingsFile() async {
   final dir = await getApplicationDocumentsDirectory();

@@ -53,24 +53,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final app = context.app;
-    final c = context.colors;
     return ListenableBuilder(
-      listenable: Listenable.merge([app.settings, app.tn]),
+      listenable: Listenable.merge([app.settings, app.tn, app.display]),
       builder: (context, _) {
         final s = app.settings.value;
         final policy = app.tn.policy;
         final warnTypes = [...interimCatalog.types(), if (s.camerasEnabled) 'cameras'];
-        void toggleWarn(String category, bool on) {
-          final off = {...s.warnOffCategories};
-          on ? off.remove(category) : off.add(category);
-          _set((x) => x.copyWith(warnOffCategories: off.toList()));
-        }
 
         return SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(Space.lg, Space.md, Space.lg, tabBarClearance + 16),
             children: [
               ScreenTitle(context.t('tabs.settings')),
+              const SizedBox(height: Space.sm),
+              Group(children: [
+                _LinkRow(
+                  icon: Icons.dns,
+                  color: const Color(0xFF5856D6),
+                  title: context.t('settings.server'),
+                  value: _serverStatus(context, app),
+                  onTap: () => _open(const LockGuard(child: ServerScreen())),
+                ),
+                if (s.displayFeature)
+                  _LinkRow(
+                    icon: Icons.bluetooth,
+                    color: const Color(0xFF0A84FF),
+                    title: context.t('settings.display'),
+                    value: context.t('display.summary.${app.display.summary}'),
+                    badge: app.display.updateAvailable ? context.t('display.updateBadge') : null,
+                    onTap: () => _open(const LockGuard(child: DisplayScreen())),
+                  ),
+              ]),
               SectionLabel(context.t('settings.section.drive')),
               Group(children: [
                 Padding(
@@ -114,15 +127,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ]),
                 ),
               ]),
-              SectionLabel(context.t('settings.warnCategories')),
+              const SizedBox(height: Space.md),
               Group(children: [
-                for (final category in warnTypes)
-                  SwitchRow(
-                    leading: IconTile(icon: iconFor(hazardIconKey(category)), color: _color(category)),
-                    title: context.t('settings.warnCategory', {'type': category == 'cameras' ? context.t('settings.section.cameras') : app.texts.hazardLabel(category)}),
-                    value: !s.warnOffCategories.contains(category),
-                    onChanged: (on) => toggleWarn(category, on),
-                  ),
+                _LinkRow(
+                  icon: Icons.notifications_active,
+                  color: const Color(0xFFFF3B30),
+                  title: context.t('settings.warnOpen'),
+                  value: context.t('settings.warnSummary', {'on': warnTypes.where((t) => !s.warnOffCategories.contains(t)).length, 'total': warnTypes.length}),
+                  onTap: () => _open(const LockGuard(child: _WarnCategoriesScreen())),
+                ),
               ]),
               SectionLabel(context.t('settings.section.cameras')),
               Group(children: [
@@ -142,26 +155,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 else
                   Padding(padding: const EdgeInsets.all(Space.lg), child: Hint(context.t('lockSwitch.always'))),
               ]),
+              SectionLabel(context.t('settings.section.extensions')),
+              Group(children: [
+                SwitchRow(
+                  leading: const IconTile(icon: Icons.bluetooth, color: Color(0xFF0A84FF)),
+                  title: context.t('settings.displayFeature'),
+                  hint: context.t('settings.displayFeatureHint'),
+                  value: s.displayFeature,
+                  onChanged: (on) => _set((x) => x.copyWith(displayFeature: on)),
+                ),
+              ]),
               SectionLabel(context.t('settings.section.more')),
               Group(children: [
-                for (final e in [
-                  (context.t('settings.server'), context.t('settings.serverHint'), Icons.dns, const Color(0xFF5856D6), () => _open(const LockGuard(child: ServerScreen()))),
-                  (context.t('settings.display'), context.t('settings.displayHint'), Icons.bluetooth, const Color(0xFF0A84FF), () => _open(const LockGuard(child: DisplayScreen()))),
-                  (context.t('settings.data'), context.t('settings.dataHint'), Icons.cloud_download, const Color(0xFF30B0C7), () => _open(const LockGuard(child: DataScreen()))),
-                  (context.t('settings.info'), context.t('settings.infoHint'), Icons.info, const Color(0xFF007AFF), () => _open(const LockGuard(child: InfoScreen()))),
-                ])
-                  Semantics(
-                    link: true,
-                    label: '${e.$1}, ${e.$2}',
-                    excludeSemantics: true,
-                    child: Row3(
-                      leading: IconTile(icon: e.$3, color: e.$4),
-                      title: e.$1,
-                      hint: e.$2,
-                      trailing: Icon(Icons.chevron_right, size: 20, color: c.textSecondary),
-                      onTap: e.$5,
-                    ),
-                  ),
+                _LinkRow(
+                  icon: Icons.cloud_download,
+                  color: const Color(0xFF30B0C7),
+                  title: context.t('settings.data'),
+                  hint: context.t('settings.dataHint'),
+                  onTap: () => _open(const LockGuard(child: DataScreen())),
+                ),
+                _LinkRow(
+                  icon: Icons.info,
+                  color: const Color(0xFF007AFF),
+                  title: context.t('settings.info'),
+                  hint: context.t('settings.infoHint'),
+                  onTap: () => _open(const LockGuard(child: InfoScreen())),
+                ),
               ]),
               SectionLabel(context.t('settings.section.data')),
               Group(children: [
@@ -183,7 +202,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Color _color(String category) => category == 'cameras' ? hazardColorHex('fixedSpeedCamera') : hazardColorHex(category);
+  String _serverStatus(BuildContext context, AppServices app) {
+    final conn = app.tn.snapshot.sync?.connection;
+    return conn == null ? context.t('status.starting') : context.t('server.connection.${conn.name}');
+  }
+
 }
 
 Color hazardColorHex(String type) => Color(int.parse('FF${hazardColor(type).substring(1)}', radix: 16));
@@ -284,5 +307,81 @@ class _CamerasSwitch extends StatelessWidget {
         ]),
       ),
     ]);
+  }
+}
+
+
+/// A settings row that opens a page: icon tile, title, a short value or hint, an optional badge and the chevron.
+class _LinkRow extends StatelessWidget {
+  const _LinkRow({required this.icon, required this.color, required this.title, required this.onTap, this.value, this.hint, this.badge});
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String? value;
+  final String? hint;
+  final String? badge;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Semantics(
+      link: true,
+      label: [title, ?value, ?badge, ?hint].join(', '),
+      excludeSemantics: true,
+      child: Row3(
+        leading: IconTile(icon: icon, color: color),
+        title: title,
+        hint: hint,
+        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+          if (badge != null)
+            Container(
+              margin: const EdgeInsets.only(right: Space.sm),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(color: c.tint, borderRadius: BorderRadius.circular(10)),
+              child: Text(badge!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c.onTint)),
+            ),
+          if (value != null) Text(value!, style: TnText.body.copyWith(color: c.textSecondary)),
+          const SizedBox(width: 4),
+          Icon(Icons.chevron_right, size: 20, color: c.textSecondary),
+        ]),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+/// The per-category warning switches, on a page of their own so the settings stay short.
+class _WarnCategoriesScreen extends StatelessWidget {
+  const _WarnCategoriesScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final app = context.app;
+    return ListenableBuilder(
+      listenable: app.settings,
+      builder: (context, _) {
+        final s = app.settings.value;
+        final types = [...interimCatalog.types(), if (s.camerasEnabled) 'cameras'];
+        return SubPage(
+          title: context.t('settings.warnOpen'),
+          children: [
+            Group(children: [
+              for (final category in types)
+                SwitchRow(
+                  leading: IconTile(icon: iconFor(hazardIconKey(category)), color: category == 'cameras' ? hazardColorHex('fixedSpeedCamera') : hazardColorHex(category)),
+                  title: context.t('settings.warnCategory', {'type': category == 'cameras' ? context.t('settings.section.cameras') : app.texts.hazardLabel(category)}),
+                  value: !s.warnOffCategories.contains(category),
+                  onChanged: (on) {
+                    final off = {...s.warnOffCategories};
+                    on ? off.remove(category) : off.add(category);
+                    app.settings.update((x) => x.copyWith(warnOffCategories: off.toList()));
+                  },
+                ),
+            ]),
+          ],
+        );
+      },
+    );
   }
 }

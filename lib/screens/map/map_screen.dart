@@ -494,10 +494,14 @@ class _MapScreenState extends State<MapScreen> {
                               onCancel: _closeReport,
                             ),
                           Padding(
-                            padding: const EdgeInsets.only(left: 4, top: 6),
+                            padding: const EdgeInsets.only(left: 2, top: 6),
                             child: Semantics(
                               label: mapAttribution,
-                              child: Text(context.t('map.attribution'), style: TextStyle(fontSize: 11, color: c.textSecondary)),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(color: c.surface.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(8)),
+                                child: Text(context.t('map.attribution'), style: TextStyle(fontSize: 11, color: c.textSecondary)),
+                              ),
                             ),
                           ),
                         ],

@@ -44,6 +44,7 @@ flutter build ios --release --no-codesign   # on macOS (the workflow ios-beta.ym
 | `MAP_STYLE_URL`, `MAP_STYLE_URL_DARK` | optional MapLibre style URL; the default is OpenStreetMap tiles (see `docs/decisions.md`, D-N5) |
 | `ALLOW_DISABLE_DRIVE_LOCK` | `false` removes the option to switch the speed lock off (cautious review build) |
 | `DRIVE_FEEDS_TILES` | `false` stops the drive mode from handing its position to the library (see D-N1) |
+| `DISPLAY_UPDATE_BASE` | where display firmware releases are read from (default `https://github.com/Romsmo/TN-DSP`; public repository needed) |
 | `TN_DEV_TOOLS` | `true` shows the simulated drive (never in a release) |
 | `TN_DEMO` | **development only:** answer from an invented data set instead of the library |
 

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:tn_core/tn_core.dart';
 
 import '../services/demo_backend.dart';
+import '../services/display_update_source.dart';
 
 /// The browser preview always answers from the demo backend; it is a development aid, never shipped.
 const bool demoMode = true;
@@ -11,6 +12,8 @@ const bool devTools = true;
 
 /// No Bluetooth in the browser preview.
 DisplayTransport? createDisplayTransport() => null;
+
+DisplayUpdateSource? createDisplayUpdateSource() => null;
 
 String? _settings;
 

@@ -30,7 +30,9 @@ Legend — **Code**: done / partial / open. **Test**: what exists. **Device**: a
 | Signing and install with xtool (WSL) | done | installed on one iPhone (iOS 26.4.1), the app starts | Part B of `ios-install.md` |
 | Join code: parse, derive, confirm, store, scan, link | done (code) | unit (shared vectors + 300 server-made codes), widget | **never run against a real server**; scan and link never run on a device (`join-device-test.md`) |
 | Display (Bluetooth): connect, live State from the drive mode, events, settings both ways, time, "Display" page | done (code) | 85 contract tests, 15 feed tests, 7 link tests (fake transport), 3 widget tests | **never run against the real display or on a phone**; `universal_ble` calls untested; iOS background behaviour unverified (`display-device-test.md`) |
-| Display: firmware / voice-pack update, developer area, sign columns | **open** | — | update source is a private repository and no signed manifest exists (`display-gate0.md`) |
+| Display: firmware update (check on tap or daily, install on tap, SHA-256, version check after reboot) | done (code) | manifest/version/verdict tests, OTA transfer against a fake display, controller flow tests | **never run against the real display**; the repository `TN-DSP` is private (check says so) and the manifest is unsigned |
+| Display feature switch (off by default, invisible until on) | done | widget test | |
+| Display: voice pack, developer area, sign columns, manual file pick | **open** | — | no voice pack exists; developer area (question 7); sign mapping missing |
 | Map background (OpenStreetMap tiles) | done | style unit-free; analysis only | **not looked at on a device yet** |
 | Android build | **open** | — | Android SDK on this PC lacks cmdline-tools and accepted licences |
 | Store submission | **open** | — | only after written approval |
