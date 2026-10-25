@@ -47,7 +47,7 @@ tested without hardware; **not run** = nothing of it has run against the real di
 | H5 | Chime without clips | done | voice mode only if the display has a card |
 | H6 | Master gate, no cue outside a trip | done | the stream sends no cue without a trip |
 | H7 | Volume | done | slider, live |
-| H8 | Upload voice clips | done (transfer) | Display page → Sounds and voice files; the five tones are bundled, **the voice clips are not yet** (they have to be generated with a distributable voice) |
+| H8 | Upload voice clips | done | Display page → Sounds and voice files: the five tones and the 18 German clips (Piper, Thorsten voice, CC0 data; `docs/audio-sources.md`) are in the app; never heard on the real display |
 | I1 | Settings fields | done | sound, mode, volume, unit, filter, night hours, cache minutes |
 | I2 | On-device toggles reflected | done | sound, unit, general hazard filter |
 | I3 | Factory reset on the display | done | the app reconnects; the page explains the pairing record |

@@ -260,20 +260,15 @@ void main() {
     expect(controller.updatePhase, DisplayUpdatePhase.available);
   });
 
-  test('the sounds in the app are copied to the card: tones only until voice clips are bundled', () async {
+  test('the sounds in the app are copied to the card: five tones and eighteen voice clips, all in the display format', () async {
     await setUpController();
     await controller.loadPack();
-    expect(controller.packFiles, 5); // the five event tones
-    expect(controller.packVoiceFiles, 0);
+    expect(controller.packFiles, displayAudioFiles.length);
+    expect(controller.packFiles, 23);
+    expect(controller.packVoiceFiles, 18);
     expect(controller.packBlocker, isNull);
     await controller.uploadPack();
     expect(controller.packPhase, DisplayPackPhase.done);
-    expect(display.assetBegins, [
-      'audio/tones/warn.wav',
-      'audio/tones/alert.wav',
-      'audio/tones/confirm.wav',
-      'audio/tones/info.wav',
-      'audio/tones/clear.wav',
-    ]);
-  }, timeout: const Timeout(Duration(seconds: 30)));
+    expect(display.assetBegins, displayAudioFiles);
+  }, timeout: const Timeout(Duration(seconds: 60)));
 }
