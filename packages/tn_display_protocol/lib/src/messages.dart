@@ -90,6 +90,7 @@ class AudioCue {
 class DisplayState {
   const DisplayState({
     this.internetConnected = false,
+    this.driveActive = true,
     this.networkPeers = 0,
     this.speedLimit,
     this.speedLimitUnit = SpeedUnit.kmh,
@@ -110,6 +111,10 @@ class DisplayState {
   });
 
   final bool internetConnected;
+
+  /// Is a trip (Fahrt) running? `false` = the app is connected but idle: the display shows its
+  /// logo and offers only Settings. Encoded as key 14 only when false; absent means true.
+  final bool driveActive;
   final int networkPeers;
   final int? speedLimit;
   final int speedLimitUnit;
@@ -152,6 +157,7 @@ class DisplayState {
       if (leftSigns.isNotEmpty) 11: leftSigns.take(signListMax).toList(),
       if (rightSigns.isNotEmpty) 12: rightSigns.take(signListMax).toList(),
       if (audioCue != null) 13: audioCue!.toMap(),
+      if (!driveActive) 14: false,
     };
     final out = cborEncode(m);
     if (out.length > maxPayloadBytes) {
@@ -167,6 +173,7 @@ class DisplayState {
     final cue = m[13];
     return DisplayState(
       internetConnected: _flag(f, 0),
+      driveActive: m[14] != false,
       directionArrows: _flag(f, 1),
       hazardActive: _flag(f, 2),
       confirmPromptActive: _flag(f, 3),
@@ -197,6 +204,7 @@ class DisplayState {
 
   Map<String, Object?> toJson() => {
         'internetConnected': internetConnected,
+        'driveActive': driveActive,
         'networkPeers': networkPeers,
         'speedLimit': speedLimit,
         'speedLimitUnit': speedLimitUnit,

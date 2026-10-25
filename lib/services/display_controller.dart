@@ -98,6 +98,10 @@ class DisplayController extends ChangeNotifier {
   DisplayCompat? get compat => _link?.compat;
   d.DeviceSettings? get deviceSettings => _link?.deviceSettings;
   int get mtu => _link?.mtu ?? 0;
+  d.UiConfig? get uiConfig => _link?.uiConfig;
+
+  /// Connect attempts in a row that failed while the display is meant to be connected.
+  int get failedAttempts => _link?.failedAttempts ?? 0;
   int get sentCount => _link?.sentCount ?? 0;
   DateTime? get lastSent => _link?.lastSentMs == null ? null : DateTime.fromMillisecondsSinceEpoch(_link!.lastSentMs!);
 
@@ -188,11 +192,21 @@ class DisplayController extends ChangeNotifier {
 
   Future<void> setEnabled(bool on) => settings.update((s) => s.copyWith(displayEnabled: on));
 
+  /// Switches one persistent feature of the display on or off (the developer switches of the UiConfig characteristic).
+  Future<void> setUiBit(int bit, bool on) async {
+    final link = _link;
+    final current = link?.uiConfig;
+    if (link == null || current == null) return;
+    try {
+      await link.writeUiConfig(current.withBit(bit, on));
+    } catch (_) {}
+  }
+
   /// Sends the time again.
   Future<void> syncTime() async => _link?.syncTime();
 
   /// A short information cue on the display, to check the volume.
-  Future<void> testSound() async => _link?.feed.queueTestCue();
+  Future<void> testSound() async => _link?.feed.queueTestCue(_nowMs());
 
   // ------------------------------------------------------------------------------------------------------------- the link
 

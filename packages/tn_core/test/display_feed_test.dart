@@ -200,4 +200,77 @@ void main() {
       expect((h.handle(const d.DeviceEvent(d.EventTag.heartbeat, uptimeS: 30), 0) as DisplayHeartbeat).uptimeS, 30);
     });
   });
+
+  group('trip mode (contract 1.1.0: driveActive)', () {
+    test('without a trip the display is told it is idle and nothing but the keep-alive is sent', () {
+      final f = DisplayFeed();
+      // not driving, but stale warnings and a limit are around: none of it is sent
+      const idle = DriveSnapshot(limit: (value: 50, unit: SpeedUnit.kmh), prompt: DrivePrompt(id: 'p', hazardType: 'accident', since: 0));
+      final a = f.next(input(snapshot: idle), 0, epochS: 1)!;
+      expect(a.driveActive, isFalse);
+      expect(a.speedLimit, isNull);
+      expect(a.hazardActive, isFalse);
+      expect(a.confirmPromptActive, isFalse);
+      expect(a.audioCue, isNull);
+      // on the wire: key 14 is false, and it survives a round trip
+      final back = d.DisplayState.decode(a.encode());
+      expect(back.driveActive, isFalse);
+      // idle keeps talking: a keep-alive within 5 seconds, so the display does not drop to Offline
+      expect(f.next(input(snapshot: idle), 1000, epochS: 1), isNull);
+      expect(f.next(input(snapshot: idle), 4000, epochS: 1)!.stateSeq, 2);
+    });
+
+    test('a trip sends driveActive true, which is the absence of the key on the wire', () {
+      final s = DisplayFeed().next(input(), 0, epochS: 1)!;
+      expect(s.driveActive, isTrue);
+      expect(d.DisplayState.decode(s.encode()).driveActive, isTrue);
+    });
+
+    test('starting and ending a trip is a change that is sent at once, and a cue never plays outside a trip', () {
+      final f = DisplayFeed();
+      final trip = DriveSnapshot(active: true, warnings: [warn('a', 'accident')]);
+      expect(f.next(input(snapshot: trip), 0, epochS: 1)!.audioCue, isNotNull);
+      final ended = f.next(input(snapshot: const DriveSnapshot()), 600, epochS: 1)!;
+      expect(ended.driveActive, isFalse);
+      expect(ended.audioCue, isNull);
+      expect(ended.hazardActive, isFalse);
+      // the next trip announces the same hazard again
+      final again = f.next(input(snapshot: trip), 1200, epochS: 1)!;
+      expect(again.driveActive, isTrue);
+      expect(again.audioCue, isNotNull);
+    });
+
+    test('the cleared tone: an announced hazard that is behind us, without a prompt following', () {
+      final f = DisplayFeed();
+      final withHazard = DriveSnapshot(active: true, warnings: [warn('a', 'accident')]);
+      expect(f.next(input(snapshot: withHazard), 0, epochS: 1)!.audioCue!.event, d.AudioEvent.hazardApproach);
+      final gone = f.next(input(snapshot: const DriveSnapshot(active: true)), 3000, epochS: 1)!;
+      expect(gone.audioCue!.event, d.AudioEvent.cleared);
+    });
+
+    test('a hazard that is followed by the confirm prompt gets the prompt tone, not the cleared tone', () {
+      final f = DisplayFeed();
+      final withHazard = DriveSnapshot(active: true, warnings: [warn('a', 'accident')]);
+      f.next(input(snapshot: withHazard), 0, epochS: 1);
+      const prompt = DrivePrompt(id: 'a', hazardType: 'accident', since: 0);
+      final next = f.next(input(snapshot: const DriveSnapshot(active: true, prompt: prompt)), 3000, epochS: 1)!;
+      expect(next.audioCue!.event, d.AudioEvent.confirmPrompt);
+    });
+  
+    test('"test the sound" works while idle: a short trip-state with one information cue, then idle again', () {
+      final f = DisplayFeed();
+      f.next(input(snapshot: const DriveSnapshot()), 0, epochS: 1);
+      f.queueTestCue(1000);
+      final test = f.next(input(snapshot: const DriveSnapshot()), 1000, epochS: 1)!;
+      expect(test.driveActive, isTrue);
+      expect(test.audioCue!.event, d.AudioEvent.info);
+      final seq = test.audioCue!.seq;
+      // the cue stays in the following packets (same seq) while the window is open
+      final held = f.next(input(snapshot: const DriveSnapshot()), 1600, epochS: 1);
+      expect(held == null || held.audioCue == null || held.audioCue!.seq == seq, isTrue);
+      final after = f.next(input(snapshot: const DriveSnapshot()), 4000, epochS: 1)!;
+      expect(after.driveActive, isFalse);
+      expect(after.audioCue, isNull);
+    });
+  });
 }

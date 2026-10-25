@@ -32,7 +32,8 @@ Legend — **Code**: done / partial / open. **Test**: what exists. **Device**: a
 | Display (Bluetooth): connect, live State from the drive mode, events, settings both ways, time, "Display" page | done (code) | 85 contract tests, 15 feed tests, 7 link tests (fake transport), 3 widget tests | **never run against the real display or on a phone**; `universal_ble` calls untested; iOS background behaviour unverified (`display-device-test.md`) |
 | Display: firmware update (check on tap or daily, install on tap, SHA-256, version check after reboot) | done (code) | manifest/version/verdict tests, OTA transfer against a fake display, controller flow tests | **never run against the real display**; the repository `TN-DSP` is private (check says so) and the manifest is unsigned |
 | Display feature switch (off by default, invisible until on) | done | widget test | |
-| Display: voice pack, developer area, sign columns, manual file pick | **open** | — | no voice pack exists; developer area (question 7); sign mapping missing |
+| Display: trip mode (contract 1.1.0), cleared tone, developer switches (UiConfig), connect-failure hint | done (code) | feed, controller and widget tests | see `display-checklist.md`; firmware 0.2 needed for trip mode |
+| Display: voice pack, sign columns, hazard speed limit, manual file pick | **open** | — | no voice pack; no source for context signs or the enforced limit; see `display-checklist.md` |
 | Map background (OpenStreetMap tiles) | done | style unit-free; analysis only | **not looked at on a device yet** |
 | Android build | **open** | — | Android SDK on this PC lacks cmdline-tools and accepted licences |
 | Store submission | **open** | — | only after written approval |

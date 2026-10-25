@@ -19,6 +19,8 @@ class _Display implements DisplayTransport {
   bool rollBack = false;
   bool refuse = false;
   int dataFrames = 0;
+  final uiWrites = <d.UiConfig>[];
+  final states = <d.DisplayState>[];
   final _conn = StreamController<bool>.broadcast();
   final _notify = <int, StreamController<Uint8List>>{};
 
@@ -46,6 +48,8 @@ class _Display implements DisplayTransport {
 
   @override
   Future<void> write(int slot, Uint8List data, {required bool withResponse}) async {
+    if (slot == d.Slot.uiConfig) uiWrites.add(d.UiConfig.decode(data));
+    if (slot == d.Slot.state) states.add(d.DisplayState.decode(data));
     if (slot != d.Slot.ota) return;
     switch (data[0]) {
       case 0x01:
@@ -200,5 +204,26 @@ void main() {
     }
     expect(controller.updatePhase, DisplayUpdatePhase.available);
     expect(settings.value.displayLastUpdateCheck, isNotNull);
+  });
+
+  test('a developer switch of the display is written as the complete UiConfig with that one bit changed', () async {
+    await setUpController();
+    expect(controller.uiConfig!.isOn(d.UiBit.hazardOverlay), isTrue);
+    await controller.setUiBit(d.UiBit.hazardOverlay, false);
+    expect(controller.uiConfig!.isOn(d.UiBit.hazardOverlay), isFalse);
+    expect(controller.uiConfig!.isOn(d.UiBit.meldenPage), isTrue); // the rest is unchanged
+    expect(display.uiWrites.last.isOn(d.UiBit.hazardOverlay), isFalse);
+    await controller.setUiBit(d.UiBit.hazardOverlay, true);
+    expect(display.uiWrites.last.isOn(d.UiBit.hazardOverlay), isTrue);
+  });
+
+  test('without a trip the display link keeps sending the idle keep-alive, with the trip flag off', () async {
+    await setUpController();
+    for (var i = 0; i < 20 && display.states.isEmpty; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    expect(display.states, isNotEmpty);
+    expect(display.states.first.driveActive, isFalse);
+    expect(display.states.first.stateSeq, 1);
   });
 }

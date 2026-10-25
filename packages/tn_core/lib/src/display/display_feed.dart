@@ -161,9 +161,14 @@ class DisplayFeed {
   final Map<String, WarnLevel> _announced = {};
   bool _promptAnnounced = false;
   bool _testCue = false;
+  int _testUntilMs = 0;
 
-  /// The next packet carries a short information cue ("test the sound" in the settings).
-  void queueTestCue() => _testCue = true;
+  /// "Test the sound" in the settings: the display plays no cue outside a trip, so for about two and a half seconds the stream
+  /// says "trip" and carries one information cue, then it goes back to idle.
+  void queueTestCue(int nowMs) {
+    _testCue = true;
+    _testUntilMs = nowMs + 2500;
+  }
 
   /// A new connection: `stateSeq` starts again at 1 and everything is sent afresh.
   void reset() {
@@ -179,22 +184,26 @@ class DisplayFeed {
   /// The packet to send now, or null when nothing is due.
   d.DisplayState? next(DisplayInput input, int nowMs, {required int epochS}) {
     final s = input.snapshot;
-    final warning = _pickWarning(s.warnings, input);
+    // No trip: the display is connected but idle (its logo, only Settings). It ignores hazards, prompts and cues then, so none is
+    // sent; the packets still go out (keep-alive), otherwise it would fall back to "Offline" after 8 seconds.
+    final trip = s.active || nowMs < _testUntilMs;
+    final warning = trip ? _pickWarning(s.warnings, input) : null;
     final hazardId = warning == null ? null : displayHazardId(warning.category);
-    _updateCue(input, warning, hazardId, nowMs);
+    _updateCue(input, warning, hazardId, nowMs, trip: trip);
 
-    final limit = s.limit;
+    final limit = trip ? s.limit : null;
     final mph = limit?.unit == SpeedUnit.mph;
-    final prompt = s.prompt != null && !input.snapshot.muted;
+    final prompt = trip && s.prompt != null && !input.snapshot.muted;
     final content = d.DisplayState(
+      driveActive: trip,
       internetConnected: input.online,
       networkPeers: input.peers,
       speedLimit: limit?.value.round(),
       speedLimitUnit: mph ? d.SpeedUnit.mph : d.SpeedUnit.kmh,
       useMph: mph,
-      directionArrows: input.directionArrows,
-      leftSigns: input.leftSigns,
-      rightSigns: input.rightSigns,
+      directionArrows: trip && input.directionArrows,
+      leftSigns: trip ? input.leftSigns : const [],
+      rightSigns: trip ? input.rightSigns : const [],
       hazardActive: hazardId != null,
       hazardType: hazardId,
       hazardDistanceM: warning?.distanceM,
@@ -214,6 +223,7 @@ class DisplayFeed {
     _lastSentMs = nowMs;
     _lastContent = key;
     return d.DisplayState(
+      driveActive: content.driveActive,
       internetConnected: content.internetConnected,
       networkPeers: content.networkPeers,
       speedLimit: content.speedLimit,
@@ -257,7 +267,15 @@ class DisplayFeed {
 
   int _rank(ActiveWarning w) => (w.level == WarnLevel.second ? 0 : 1) * 10000000 + (w.distanceM ?? 9999999);
 
-  void _updateCue(DisplayInput input, ActiveWarning? warning, int? hazardId, int nowMs) {
+  void _updateCue(DisplayInput input, ActiveWarning? warning, int? hazardId, int nowMs, {required bool trip}) {
+    if (!trip) {
+      // outside a trip no cue is played; a new trip starts without memory of the last one
+      _announced.clear();
+      _promptAnnounced = false;
+      _testCue = false;
+      _cue = null;
+      return;
+    }
     final cueOk = input.soundOnDisplay && input.caps.audio && !input.snapshot.muted;
     final mode = input.voice && input.caps.sd ? d.AudioMode.voice : d.AudioMode.tones;
     final unit = input.snapshot.limit?.unit == SpeedUnit.mph ? d.SpeedUnit.mph : d.SpeedUnit.kmh;
@@ -277,8 +295,13 @@ class DisplayFeed {
       }
     }
     final ids = input.snapshot.warnings.map((w) => w.id).toSet();
+    final gone = _announced.keys.where((id) => !ids.contains(id)).toList();
     _announced.removeWhere((id, _) => !ids.contains(id));
     final prompt = input.snapshot.prompt != null;
+    if (gone.isNotEmpty && fresh == null && !prompt && !_promptAnnounced) {
+      // the announced hazard is behind us and nothing else is asked: the display may play its "cleared" tone
+      fresh = d.AudioCue(seq: 0, mode: mode, event: d.AudioEvent.cleared, speedUnit: unit);
+    }
     if (prompt && !_promptAnnounced) {
       _promptAnnounced = true;
       fresh ??= d.AudioCue(seq: 0, mode: mode, event: d.AudioEvent.confirmPrompt, speedUnit: unit);

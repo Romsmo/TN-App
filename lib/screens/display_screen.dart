@@ -47,6 +47,8 @@ class DisplayScreen extends StatelessWidget {
               _ShowCard(controller: d),
               SectionLabel(context.t('display.section.update')),
               _UpdateCard(controller: d),
+              SectionLabel(context.t('display.advanced')),
+              _AdvancedCard(controller: d),
             ],
             const SizedBox(height: Space.lg),
             Notice(text: context.t('display.security'), icon: Icons.info_outline),
@@ -100,6 +102,8 @@ class _Hero extends StatelessWidget {
       const SizedBox(height: Space.md),
       if (!d.supported) Notice(text: context.t('display.unsupported'), icon: Icons.bluetooth_disabled),
       if (d.problem != null) Notice(text: context.t('display.problem.off'), icon: Icons.bluetooth_disabled, color: c.warn),
+      if (d.connected && !context.app.drive.isActive) Padding(padding: const EdgeInsets.only(bottom: Space.sm), child: Hint(context.t('display.idleHint'))),
+      if (chosen && s.displayEnabled && !d.connected && d.failedAttempts >= 2) Notice(text: context.t('display.connectFailing'), icon: Icons.bluetooth_disabled, color: c.warn),
       if (d.compat == DisplayCompat.appTooOld) Notice(text: context.t('display.compat.appTooOld'), icon: Icons.system_update, color: c.warn),
       if (d.compat == DisplayCompat.displayTooOld) Notice(text: context.t('display.compat.displayTooOld'), icon: Icons.system_update, color: c.warn),
       const SizedBox(height: Space.sm),
@@ -368,4 +372,44 @@ class _Line extends StatelessWidget {
         const SizedBox(width: Space.sm),
         Expanded(child: Body(text)),
       ]);
+}
+
+
+/// The developer switches of the display (UiConfig, ten persistent bits), hidden until asked for. Only while connected.
+class _AdvancedCard extends StatefulWidget {
+  const _AdvancedCard({required this.controller});
+  final DisplayController controller;
+
+  @override
+  State<_AdvancedCard> createState() => _AdvancedCardState();
+}
+
+class _AdvancedCardState extends State<_AdvancedCard> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final d = widget.controller;
+    final config = d.uiConfig;
+    return CardSection(children: [
+      SoftButton(
+        icon: _open ? Icons.expand_less : Icons.tune,
+        label: _open ? context.t('display.advancedHide') : context.t('display.advancedShow'),
+        onPressed: () => setState(() => _open = !_open),
+      ),
+      if (_open) ...[
+        Hint(context.t('display.advancedHint')),
+        if (!d.connected || config == null)
+          Hint(context.t('display.connectedOnly'))
+        else
+          for (var bit = 0; bit < 10; bit++)
+            SwitchRow(
+              title: context.t('display.ui.$bit'),
+              value: config.isOn(bit),
+              onChanged: (on) => d.setUiBit(bit, on),
+            ),
+        Hint(context.t('display.resetHint')),
+      ],
+    ]);
+  }
 }

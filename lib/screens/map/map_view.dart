@@ -223,7 +223,14 @@ class _TnMapViewState extends State<TnMapView> {
     await c.addFillLayer('zones', 'zones-fill', const FillLayerProperties(fillColor: '#862E9C', fillOpacity: 0.22), enableInteraction: false);
     await c.addLineLayer('zones', 'zones-line', const LineLayerProperties(lineColor: '#862E9C', lineWidth: 2, lineDasharray: [2, 2]), enableInteraction: false);
     await c.addLineLayer('interval', 'interval-line', const LineLayerProperties(lineColor: '#0A84FF', lineWidth: 5, lineOpacity: 0.8), enableInteraction: false);
-    await c.addCircleLayer('signs', 'signs-dot', const CircleLayerProperties(circleColor: '#868E96', circleRadius: 4), enableInteraction: false);
+    // the speed-limit signs are many: they show only when zoomed in to street level, small and light, so they never clutter the overview
+    await c.addCircleLayer(
+      'signs',
+      'signs-dot',
+      const CircleLayerProperties(circleColor: '#868E96', circleRadius: 3, circleOpacity: 0.7, circleStrokeColor: '#FFFFFF', circleStrokeWidth: 1),
+      minzoom: 15,
+      enableInteraction: false,
+    );
     await c.addCircleLayer(
       'draft',
       'draft-ring',

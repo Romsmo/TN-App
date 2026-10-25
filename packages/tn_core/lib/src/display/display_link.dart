@@ -101,6 +101,9 @@ class DisplayLink {
   int sentCount = 0;
   String? lastError;
 
+  /// Connect attempts in a row that failed (the display is off, out of range, or already connected to another phone).
+  int failedAttempts = 0;
+
   String? _id;
   int _generation = 0;
   final List<StreamSubscription<Object?>> _subs = [];
@@ -157,10 +160,13 @@ class DisplayLink {
         if (!_alive(generation)) return;
         if (state == DisplayLinkState.incompatible) return;
         pause = 2;
+        failedAttempts = 0;
         await dropped.future; // until the link drops
         lastError = null;
       } catch (e) {
         lastError = e.runtimeType.toString(); // never the content
+        failedAttempts++;
+        onChange?.call();
       }
       if (!_alive(generation)) return;
       await _cancel();

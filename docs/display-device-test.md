@@ -22,3 +22,10 @@ Needs the TN display with firmware `0.1.0` (or newer) and the phone with this ap
     reported as failed, not as done.
 13. Automatic check: switch it on, reconnect; at most once a day it looks by itself and shows the badge on the Display row.
 14. Voice pack: not built (none exists).
+15. Trip mode (contract 1.1.0, needs firmware 0.2): connected without a drive: the display shows the TNV logo and only Settings; start the
+    drive mode: the driving screen appears; stop it: the logo again. The display never drops to "Offline" while the app is connected.
+16. *Test sound* works without a drive (the display shows the driving screen for a moment, plays one tone).
+17. After a warning is behind you and no question follows, the display plays its "cleared" tone.
+18. Display page → Advanced: switch off *Hazard display*, then drive the simulation: no overlay; switch it on again.
+19. Map: the small grey sign dots appear only when zoomed in to street level.
+
