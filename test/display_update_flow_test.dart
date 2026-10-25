@@ -213,17 +213,6 @@ void main() {
     expect(settings.value.displayLastUpdateCheck, isNotNull);
   });
 
-  test('a developer switch of the display is written as the complete UiConfig with that one bit changed', () async {
-    await setUpController();
-    expect(controller.uiConfig!.isOn(d.UiBit.hazardOverlay), isTrue);
-    await controller.setUiBit(d.UiBit.hazardOverlay, false);
-    expect(controller.uiConfig!.isOn(d.UiBit.hazardOverlay), isFalse);
-    expect(controller.uiConfig!.isOn(d.UiBit.meldenPage), isTrue); // the rest is unchanged
-    expect(display.uiWrites.last.isOn(d.UiBit.hazardOverlay), isFalse);
-    await controller.setUiBit(d.UiBit.hazardOverlay, true);
-    expect(display.uiWrites.last.isOn(d.UiBit.hazardOverlay), isTrue);
-  });
-
   test('without a trip the display link keeps sending the idle keep-alive, with the trip flag off', () async {
     await setUpController();
     for (var i = 0; i < 20 && display.states.isEmpty; i++) {

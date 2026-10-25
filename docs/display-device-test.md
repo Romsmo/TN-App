@@ -26,6 +26,5 @@ Needs the TN display with firmware `0.1.0` (or newer) and the phone with this ap
     drive mode: the driving screen appears; stop it: the logo again. The display never drops to "Offline" while the app is connected.
 16. *Test sound* works without a drive (the display shows the driving screen for a moment, plays one tone).
 17. After a warning is behind you and no question follows, the display plays its "cleared" tone.
-18. Display page → Advanced: switch off *Hazard display*, then drive the simulation: no overlay; switch it on again.
 19. Map: the small grey sign dots appear only when zoomed in to street level.
 

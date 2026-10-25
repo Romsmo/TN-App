@@ -35,13 +35,13 @@ tested without hardware; **not run** = nothing of it has run against the real di
 | E4-E5 | 11 categories, unknown types | done | unknown app categories are not sent |
 | E6 | Camera group | done | only with the user's switch, the country rule and the firmware's camera code |
 | E7 | User filter | done | both directions |
-| E8 | Overlay strip (UiConfig) | done | developer switch |
+| E8 | Overlay strip (UiConfig) | not offered | the app has no switch for the display's persistent features (removed on request) |
 | F1-F3 | "Gesehen?" prompt and answer | done | prompt stays set; the answer is counted |
-| F4 | Prompt strip (UiConfig) | done | developer switch |
+| F4 | Prompt strip (UiConfig) | not offered | see E8 |
 | G1 | `ReportPressed` | done | no action needed |
 | G2 | `ReportSubmitted` | done | one report, never a camera category, doubled events ignored; only during a trip with a recent position |
 | G3 | Speed value in mph | display side | the known issue is the display's |
-| G4 | Melden page strip (UiConfig) | done | developer switch |
+| G4 | Melden page strip (UiConfig) | not offered | see E8 |
 | H1-H3 | Audio cues | done | approach, imminent, prompt, **cleared** (new), info; same cue repeated for 1.5 s |
 | H4 | Voice composition | display side | |
 | H5 | Chime without clips | done | voice mode only if the display has a card |
@@ -51,7 +51,7 @@ tested without hardware; **not run** = nothing of it has run against the real di
 | I1 | Settings fields | done | sound, mode, volume, unit, filter, night hours, cache minutes |
 | I2 | On-device toggles reflected | done | sound, unit, general hazard filter |
 | I3 | Factory reset on the display | done | the app reconnects; the page explains the pairing record |
-| I4 | UiConfig developer switches | done | Display page → Advanced (ten switches) |
+| I4 | UiConfig developer switches | not offered | the display's UiConfig is read at connect and left alone; the Advanced card was removed on request |
 | J1 | Clock | done | |
 | K1-K2 | Detect an update | done | check on a tap or daily; the repository is public now |
 | K3 | Push the image | done | begin, wait for the erase notification, paced frames, end; tested against a fake display |
