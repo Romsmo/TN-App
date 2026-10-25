@@ -25,4 +25,4 @@ const BuildConfig buildConfig = BuildConfig(
 const String displayUpdateBase = String.fromEnvironment('DISPLAY_UPDATE_BASE', defaultValue: 'https://github.com/Romsmo/TN-DSP');
 
 /// The app version shown in the settings (kept in step with pubspec.yaml).
-const String appVersion = '0.1.0-beta.2';
+const String appVersion = '0.1.0-beta.3';
