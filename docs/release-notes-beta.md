@@ -3,7 +3,10 @@
 * The `.ipa` is **unsigned**. It is for sideloading on your own iPhone with your own Apple ID (for example with
   [xtool](https://github.com/xtool-org/xtool), see `docs/ios-install.md`); with a free Apple account the profile lasts 7 days.
   It is not on TestFlight or the App Store. Minimum iOS 13.1.
-* **New in beta 2:** the **TN display** over Bluetooth. It is **off until you switch it on** (Settings → Extensions → "TN-Display unterstützen");
+* **New in beta 3:** the display contract 1.1.0 (needs display firmware 0.2 for the trip mode): without a trip the display shows its logo,
+  with a trip the driving screen; a "cleared" tone; the display's persistent switches (Display page → Advanced); a hint when the display
+  cannot be reached. The small grey sign dots on the map now appear only when zoomed in to street level.
+* **Since beta 2:** the **TN display** over Bluetooth. It is **off until you switch it on** (Settings → Extensions → "TN-Display unterstützen");
   then Settings → Display: live speed limit and warnings from the drive mode, announcements on the display, reports and answers from
   the display, settings both ways (sound, volume, night dimming, picture cache, time) and **firmware updates** (check on a tap or once a day if
   you allow it; installing always needs a tap and is not offered while driving; the release is not signed, the app says so). New permission:
