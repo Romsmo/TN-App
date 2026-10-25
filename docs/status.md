@@ -33,7 +33,8 @@ Legend — **Code**: done / partial / open. **Test**: what exists. **Device**: a
 | Display: firmware update (check on tap or daily, install on tap, SHA-256, version check after reboot) | done (code) | manifest/version/verdict tests, OTA transfer against a fake display, controller flow tests | **never run against the real display**; the repository `TN-DSP` is private (check says so) and the manifest is unsigned |
 | Display feature switch (off by default, invisible until on) | done | widget test | |
 | Display: trip mode (contract 1.1.0), cleared tone, developer switches (UiConfig), connect-failure hint | done (code) | feed, controller and widget tests | see `display-checklist.md`; firmware 0.2 needed for trip mode |
-| Display: voice pack, sign columns, hazard speed limit, manual file pick | **open** | — | no voice pack; no source for context signs or the enforced limit; see `display-checklist.md` |
+| Display: manifest signature (Ed25519), sound/voice upload to the card, camera limit on the overlay | done (code) | RFC 8032 vectors, the real fw-v0.1.0 manifest, fake-display tests | never run against the real display; **voice clips not generated yet**; `fw-v0.1.0.sig` not uploaded (`display-signing.md`) |
+| Display: sign columns, manual file pick | **open** | — | context signs need a data source: the requirement for the server project is `requests/anforderung-kontextschilder.md` (outside the repo) |
 | Map background (OpenStreetMap tiles) | done | style unit-free; analysis only | **not looked at on a device yet** |
 | Android build | **open** | — | Android SDK on this PC lacks cmdline-tools and accepted licences |
 | Store submission | **open** | — | only after written approval |

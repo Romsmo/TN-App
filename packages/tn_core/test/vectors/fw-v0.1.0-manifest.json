@@ -1,0 +1,34 @@
+{
+  "manifestVersion": 1,
+  "firmware": {
+    "version": "0.1.0",
+    "gitCommit": "3e108fc05b540d012ceec5f17c0efec61ffd0c81",
+    "minFromVersion": "0.1.0",
+    "image": {
+      "file": "tn-display-0.1.0.bin",
+      "sizeBytes": 1975424,
+      "sha256": "f9598c02d8bdf7acb929e6293705e3892a136448a6c717247470d5e5850dc500"
+    }
+  },
+  "protocol": {
+    "version": 1,
+    "minAppProtocol": 1
+  },
+  "releasedAt": "2026-10-24",
+  "changes": {
+    "de": [
+      "Erstes Release: komplette Anzeige (Tempo, Gefahren-Overlay, Gesehen?-Abfrage, Melden-Krone, Einstellungen, Kopplung)",
+      "BLE-Schnittstelle in Protokollversion 1 (acht Characteristics inkl. OTA-Update und SD-Dateiupload)",
+      "Straßenbild statt grüner Pfeile, Unfall-Symbol, Töne und Sprachansagen mit einstellbarer Lautstärke"
+    ],
+    "en": [
+      "First release: complete display (speed, hazard overlay, confirm prompt, report crown, settings, pairing)",
+      "BLE interface at protocol version 1 (eight characteristics incl. OTA update and SD file upload)",
+      "Road picture instead of green chevrons, accident glyph, chimes and voice announcements with adjustable volume"
+    ]
+  },
+  "audioPack": {
+    "included": false
+  },
+  "signature": null
+}

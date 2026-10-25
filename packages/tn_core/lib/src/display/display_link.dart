@@ -371,4 +371,74 @@ class DisplayLink {
       onChange?.call();
     }
   }
+
+  /// Copies files to the display's card over the Asset characteristic: per file `begin` (path), paced data frames, `end`, wait for
+  /// the display's `ok`; a pause between files (the card shares a bus with the screen). A file that fails stops the upload; a file
+  /// that was cut off by a dropped link stays incomplete on the card and is overwritten by the next `begin`.
+  Future<AssetUploadResult> runAssetUpload(
+    List<DisplayFile> files, {
+    void Function(int fileIndex, int sentBytes, int fileBytes)? onProgress,
+    bool Function()? isCancelled,
+    Duration fileTimeout = const Duration(seconds: 20),
+  }) async {
+    if (state != DisplayLinkState.ready || updating) return const AssetUploadResult(sent: 0, outcome: OtaOutcome.lostLink);
+    updating = true;
+    onChange?.call();
+    final dropped = _droppedNow;
+    var verdict = Completer<bool>();
+    var sentFiles = 0;
+    late final StreamSubscription<Uint8List> sub;
+    try {
+      sub = transport.subscribe(d.Slot.asset).listen((b) {
+        final r = d.parseAssetNotify(b);
+        if (r != null && !verdict.isCompleted) verdict.complete(r == d.AssetResult.ok);
+      });
+      for (var i = 0; i < files.length; i++) {
+        final f = files[i];
+        if (isCancelled?.call() == true) return AssetUploadResult(sent: sentFiles, failedPath: f.path, outcome: OtaOutcome.cancelled);
+        verdict = Completer<bool>();
+        await transport.write(d.Slot.asset, d.AssetFrames.begin(f.path), withResponse: false);
+        final chunk = (mtu - 3 < 244 ? mtu - 3 : 244) - 1;
+        var sent = 0;
+        var n = 0;
+        for (final frame in d.AssetFrames.dataFrames(f.bytes, chunk: chunk < 19 ? 19 : chunk)) {
+          if (isCancelled?.call() == true || (dropped != null && dropped.isCompleted)) {
+            try {
+              await transport.write(d.Slot.asset, d.AssetFrames.abort(), withResponse: false);
+            } catch (_) {}
+            return AssetUploadResult(
+              sent: sentFiles,
+              failedPath: f.path,
+              outcome: isCancelled?.call() == true ? OtaOutcome.cancelled : OtaOutcome.lostLink,
+            );
+          }
+          await transport.write(d.Slot.asset, frame, withResponse: false);
+          sent += frame.length - 1;
+          onProgress?.call(i, sent, f.bytes.length);
+          if (++n % 10 == 0) await _delay(const Duration(milliseconds: 40));
+        }
+        await transport.write(d.Slot.asset, d.AssetFrames.end(), withResponse: false);
+        final ok = await Future.any<bool?>([
+          verdict.future,
+          _delay(fileTimeout).then((_) => null),
+          if (dropped != null) dropped.future.then((_) => null),
+        ]);
+        if (ok != true) {
+          return AssetUploadResult(sent: sentFiles, failedPath: f.path, outcome: ok == null ? OtaOutcome.timeout : OtaOutcome.deviceError);
+        }
+        sentFiles++;
+        await _delay(const Duration(milliseconds: 250));
+      }
+      return AssetUploadResult(sent: sentFiles);
+    } catch (e) {
+      lastError = e.runtimeType.toString();
+      return AssetUploadResult(sent: sentFiles, failedPath: 'link', outcome: OtaOutcome.lostLink);
+    } finally {
+      try {
+        await sub.cancel();
+      } catch (_) {}
+      updating = false;
+      onChange?.call();
+    }
+  }
 }

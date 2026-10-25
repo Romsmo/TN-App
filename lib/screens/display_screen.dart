@@ -47,6 +47,8 @@ class DisplayScreen extends StatelessWidget {
               _ShowCard(controller: d),
               SectionLabel(context.t('display.section.update')),
               _UpdateCard(controller: d),
+              SectionLabel(context.t('display.pack.title')),
+              _PackCard(controller: d),
               SectionLabel(context.t('display.advanced')),
               _AdvancedCard(controller: d),
             ],
@@ -283,7 +285,9 @@ class _UpdateCard extends StatelessWidget {
     final ok = await confirmDialog(
       context,
       title: context.t('display.update.confirmTitle'),
-      message: '${context.t('display.update.confirmBody', {'version': m.version})}\n\n${context.t('display.update.unsigned')}',
+      message: d.signature == SignatureStatus.valid
+          ? context.t('display.update.confirmBody', {'version': m.version})
+          : '${context.t('display.update.confirmBody', {'version': m.version})}\n\n${context.t('display.update.unsigned')}',
       confirmLabel: context.t('display.update.confirm'),
     );
     if (ok) {
@@ -316,6 +320,12 @@ class _UpdateCard extends StatelessWidget {
           DisplayUpdatePhase.available => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               _Line(Icons.system_update, c.tint, context.t('display.update.available', {'version': m?.version ?? ''})),
               if (changes.isNotEmpty) Padding(padding: const EdgeInsets.only(top: Space.xs), child: Hint(context.t('display.update.changes', {'list': changes.join(' · ')}))),
+              Padding(
+                padding: const EdgeInsets.only(top: Space.xs),
+                child: d.signature == SignatureStatus.valid
+                    ? _Line(Icons.verified_user, c.success, context.t('display.update.signed'))
+                    : _Line(Icons.gpp_maybe, c.warn, context.t('display.update.unsignedShort')),
+              ),
             ]),
           DisplayUpdatePhase.downloading => _Line(Icons.download, c.tint, context.t('display.update.downloading')),
           DisplayUpdatePhase.installing => _Line(Icons.bluetooth_connected, c.tint, context.t('display.update.installing')),
@@ -329,6 +339,7 @@ class _UpdateCard extends StatelessWidget {
           DisplayUpdatePhase.sourceUnavailable => _Line(Icons.cloud_off, c.warn, context.t('display.update.sourceUnavailable')),
           DisplayUpdatePhase.offline => _Line(Icons.wifi_off, c.warn, context.t('display.update.offline')),
           DisplayUpdatePhase.badRelease => _Line(Icons.error_outline, c.danger, context.t('display.update.badRelease')),
+          DisplayUpdatePhase.badSignature => _Line(Icons.gpp_bad, c.danger, context.t('display.update.badSignature')),
           DisplayUpdatePhase.needsIntermediate => _Line(Icons.info_outline, c.warn, context.t('display.update.needsIntermediate')),
           DisplayUpdatePhase.appTooOld => _Line(Icons.info_outline, c.warn, context.t('display.update.appTooOld')),
           DisplayUpdatePhase.notPossible => _Line(Icons.info_outline, c.warn, context.t('display.update.notPossible')),
@@ -410,6 +421,49 @@ class _AdvancedCardState extends State<_AdvancedCard> {
             ),
         Hint(context.t('display.resetHint')),
       ],
+    ]);
+  }
+}
+
+
+/// Copies the event tones and the voice clips to the display's SD card.
+class _PackCard extends StatefulWidget {
+  const _PackCard({required this.controller});
+  final DisplayController controller;
+
+  @override
+  State<_PackCard> createState() => _PackCardState();
+}
+
+class _PackCardState extends State<_PackCard> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.loadPack();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final d = widget.controller;
+    final busy = d.packPhase == DisplayPackPhase.uploading;
+    final blocker = d.packBlocker;
+    return CardSection(children: [
+      Hint(context.t('display.pack.hint')),
+      Body(context.t('display.pack.inApp', {'n': d.packFiles, 'voice': d.packVoiceFiles})),
+      if (d.packVoiceFiles == 0 && d.packFiles > 0) Hint(context.t('display.pack.noVoice')),
+      if (busy) LinearProgressIndicator(value: d.packProgress, minHeight: 6, borderRadius: BorderRadius.circular(3)),
+      switch (d.packPhase) {
+        DisplayPackPhase.done => _Line(Icons.check_circle, c.success, context.t('display.pack.done')),
+        DisplayPackPhase.failed => _Line(Icons.error_outline, c.danger, context.t('display.pack.failed', {'file': d.packFailedPath ?? ''})),
+        DisplayPackPhase.cancelled => _Line(Icons.info_outline, c.warn, context.t('display.pack.cancelled')),
+        _ => const SizedBox.shrink(),
+      },
+      if (busy)
+        SoftButton(label: context.t('display.update.cancel'), onPressed: d.cancelPack)
+      else
+        SoftButton(icon: Icons.sd_storage, label: context.t('display.pack.send'), onPressed: blocker == null ? d.uploadPack : null),
+      if (!busy && blocker != null) Hint(context.t('display.pack.blocker.$blocker')),
     ]);
   }
 }

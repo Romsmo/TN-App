@@ -31,7 +31,7 @@ tested without hardware; **not run** = nothing of it has run against the real di
 | D1-D5 | Sign rules | package only | in the vendored package and tested there; unused while C5 is open |
 | E1 | Hazard overlay | done | nearest, second-stage first; trip only |
 | E2 | Distance | done | zones send no distance |
-| E3 | Enforced limit (`hazardSpeedLimit`) | **open** | the warning engine has no such value |
+| E3 | Enforced limit (`hazardSpeedLimit`) | done | for speed-camera hazards: the limit of the road (the one the drive mode shows), in the sign unit |
 | E4-E5 | 11 categories, unknown types | done | unknown app categories are not sent |
 | E6 | Camera group | done | only with the user's switch, the country rule and the firmware's camera code |
 | E7 | User filter | done | both directions |
@@ -47,17 +47,17 @@ tested without hardware; **not run** = nothing of it has run against the real di
 | H5 | Chime without clips | done | voice mode only if the display has a card |
 | H6 | Master gate, no cue outside a trip | done | the stream sends no cue without a trip |
 | H7 | Volume | done | slider, live |
-| H8 | Upload voice clips | **open** | no pack exists; the Asset framing is in the vendored package, not wired |
+| H8 | Upload voice clips | done (transfer) | Display page → Sounds and voice files; the five tones are bundled, **the voice clips are not yet** (they have to be generated with a distributable voice) |
 | I1 | Settings fields | done | sound, mode, volume, unit, filter, night hours, cache minutes |
 | I2 | On-device toggles reflected | done | sound, unit, general hazard filter |
 | I3 | Factory reset on the display | done | the app reconnects; the page explains the pairing record |
 | I4 | UiConfig developer switches | done | Display page → Advanced (ten switches) |
 | J1 | Clock | done | |
-| K1-K2 | Detect an update | done | check on a tap or daily; **the repository is private, so it cannot be read** |
+| K1-K2 | Detect an update | done | check on a tap or daily; the repository is public now |
 | K3 | Push the image | done | begin, wait for the erase notification, paced frames, end; tested against a fake display |
 | K4 | After the reboot | done | success only when the new version was read |
-| K5 | Image trust | **open** | no signature exists; SHA-256 and size only, the confirmation says so |
-| K6 | File upload | open | see H8 |
+| K5 | Image trust | done | Ed25519 signature of the manifest, checked in the app (`display-signing.md`); an unsigned release is installed only after a warning, a bad one never; `fw-v0.1.0` is signed locally but the `.sig` is not uploaded yet |
+| K6 | File upload | done | Asset frames, one file after the other, a pause between files; tested against a fake display |
 | K7 | Progress on the display | display side | |
 
 Test with the real display: `display-device-test.md`.

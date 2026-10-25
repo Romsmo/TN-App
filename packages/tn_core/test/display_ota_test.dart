@@ -15,6 +15,10 @@ class OtaFake implements DisplayTransport {
   bool dropAfterBegin = false;
   int received = 0;
   bool cancelled = false;
+  final assetFrames = <Uint8List>[];
+  String? failAssetPath;
+  String _currentAsset = '';
+  bool assetSilent = false;
 
   StreamController<Uint8List> _ctl(int slot) => _notify.putIfAbsent(slot, () => StreamController<Uint8List>.broadcast());
 
@@ -40,6 +44,15 @@ class OtaFake implements DisplayTransport {
 
   @override
   Future<void> write(int slot, Uint8List data, {required bool withResponse}) async {
+    if (slot == d.Slot.asset) {
+      assetFrames.add(data);
+      if (data[0] == 0x01) _currentAsset = String.fromCharCodes(data.sublist(2, 2 + data[1]));
+      if (data[0] == 0x03 && !assetSilent) {
+        final bad = failAssetPath == _currentAsset;
+        Timer.run(() => _ctl(d.Slot.asset).add(Uint8List.fromList([bad ? 0x12 : 0x11])));
+      }
+      return;
+    }
     if (slot != d.Slot.ota) return;
     frames.add(data);
     switch (data[0]) {
@@ -163,5 +176,75 @@ void main() {
     expect(t.frames.length, before);
     link.start('AA');
     await settle();
+  });
+
+  group('file upload to the card (Asset)', () {
+    Uint8List wav(int n) {
+      final b = Uint8List(44 + n);
+      final v = ByteData.sublistView(b);
+      b.setRange(0, 4, 'RIFF'.codeUnits);
+      v.setUint32(4, 36 + n, Endian.little);
+      b.setRange(8, 16, 'WAVEfmt '.codeUnits);
+      v.setUint32(16, 16, Endian.little);
+      v.setUint16(20, 1, Endian.little);
+      v.setUint16(22, 1, Endian.little);
+      v.setUint32(24, 16000, Endian.little);
+      v.setUint32(28, 32000, Endian.little);
+      v.setUint16(32, 2, Endian.little);
+      v.setUint16(34, 16, Endian.little);
+      b.setRange(36, 40, 'data'.codeUnits);
+      v.setUint32(40, n, Endian.little);
+      for (var i = 0; i < n; i++) {
+        b[44 + i] = i % 251;
+      }
+      return b;
+    }
+
+    test('the WAV check accepts the display format only', () {
+      expect(isDisplayWav(wav(100)), isTrue);
+      expect(isDisplayWav(Uint8List(10)), isFalse);
+      final stereo = wav(100);
+      ByteData.sublistView(stereo).setUint16(22, 2, Endian.little);
+      expect(isDisplayWav(stereo), isFalse);
+      final rate = wav(100);
+      ByteData.sublistView(rate).setUint32(24, 22050, Endian.little);
+      expect(isDisplayWav(rate), isFalse);
+    });
+
+    test('every file: begin with its path, ordered data, end, ok; the card paths are the contract\'s', () async {
+      final files = [DisplayFile('audio/tones/warn.wav', wav(1000)), DisplayFile('audio/voice/de/in.wav', wav(300))];
+      final progress = <int>[];
+      final r = await link.runAssetUpload(files, onProgress: (i, sent, total) => progress.add(i));
+      expect(r.ok, isTrue);
+      expect(r.sent, 2);
+      final begins = t.assetFrames.where((f) => f[0] == 0x01).map((f) => String.fromCharCodes(f.sublist(2))).toList();
+      expect(begins, ['audio/tones/warn.wav', 'audio/voice/de/in.wav']);
+      expect(t.assetFrames.where((f) => f[0] == 0x03), hasLength(2));
+      expect(t.assetFrames.where((f) => f[0] == 0x02).every((f) => f.length <= 244), isTrue);
+      expect(progress, containsAll([0, 1]));
+      expect(link.updating, isFalse);
+    });
+
+    test('a file the card refuses stops the upload and names the file', () async {
+      t.failAssetPath = 'audio/voice/de/in.wav';
+      final files = [DisplayFile('audio/tones/warn.wav', wav(200)), DisplayFile('audio/voice/de/in.wav', wav(200)), DisplayFile('audio/voice/de/achtung.wav', wav(200))];
+      final r = await link.runAssetUpload(files);
+      expect(r.ok, isFalse);
+      expect(r.sent, 1);
+      expect(r.failedPath, 'audio/voice/de/in.wav');
+      expect(r.outcome, OtaOutcome.deviceError);
+      expect(t.assetFrames.where((f) => f[0] == 0x01), hasLength(2)); // the third was never started
+    });
+
+    test('a display that never says ok is a timeout; the user can cancel', () async {
+      t.assetSilent = true;
+      final r = await link.runAssetUpload([DisplayFile('audio/tones/warn.wav', wav(200))], fileTimeout: Duration.zero);
+      expect(r.outcome, OtaOutcome.timeout);
+      var n = 0;
+      t.assetSilent = false;
+      final c = await link.runAssetUpload([DisplayFile('audio/tones/warn.wav', wav(2000))], isCancelled: () => ++n > 2);
+      expect(c.outcome, OtaOutcome.cancelled);
+      expect(t.assetFrames.any((f) => f[0] == 0x04), isTrue);
+    });
   });
 }

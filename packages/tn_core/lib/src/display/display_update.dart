@@ -15,7 +15,6 @@ class DisplayManifest {
     required this.minAppProtocol,
     required this.changesDe,
     required this.changesEn,
-    required this.signed,
     this.releasedAt,
   });
 
@@ -32,9 +31,6 @@ class DisplayManifest {
   final List<String> changesDe;
   final List<String> changesEn;
 
-  /// The manifest names a signature. The app cannot verify it yet (no scheme and no key are defined), so this never counts as
-  /// verified; it only changes what the screen says.
-  final bool signed;
   final String? releasedAt;
 
   /// Reads a manifest; null when it is not one this app understands (wrong version, missing or malformed fields).
@@ -71,7 +67,6 @@ class DisplayManifest {
         minAppProtocol: minApp,
         changesDe: changes is Map ? list(changes['de']) : const [],
         changesEn: changes is Map ? list(changes['en']) : const [],
-        signed: j['signature'] is Map,
         releasedAt: j['releasedAt'] is String ? j['releasedAt'] as String : null,
       );
     } catch (_) {
@@ -150,4 +145,56 @@ class OtaResult {
   /// The display's error code (1 no slot, 2 begin, 3 write, 4 SHA-256, 5 finalise) for [OtaOutcome.deviceError].
   final int? errorCode;
   bool get ok => outcome == OtaOutcome.accepted;
+}
+
+/// One file for the display's SD card; [path] is relative to the card root (`audio/voice/de/achtung.wav`).
+class DisplayFile {
+  const DisplayFile(this.path, this.bytes);
+  final String path;
+  final Uint8List bytes;
+}
+
+/// The clips the display plays, as paths on its card (`docs/audio-assets.md` of the display project): five event chimes and the
+/// German voice vocabulary. Format of every clip: WAV, 16-bit PCM, mono, 16 kHz.
+const List<String> displayAudioFiles = [
+  'audio/tones/warn.wav',
+  'audio/tones/alert.wav',
+  'audio/tones/confirm.wav',
+  'audio/tones/info.wav',
+  'audio/tones/clear.wav',
+  'audio/voice/de/achtung.wav',
+  'audio/voice/de/in.wav',
+  'audio/voice/de/blitzer_fest.wav',
+  'audio/voice/de/blitzer_mobil.wav',
+  'audio/voice/de/blitzer_anhaenger.wav',
+  'audio/voice/de/blitzer_rotlicht.wav',
+  'audio/voice/de/blitzer_abstand.wav',
+  'audio/voice/de/gefahr_stau.wav',
+  'audio/voice/de/gefahr_glaette.wav',
+  'audio/voice/de/gefahr_unfall.wav',
+  'audio/voice/de/gefahr_baustelle.wav',
+  'audio/voice/de/gefahr_panne.wav',
+  'audio/voice/de/gefahr_hindernis.wav',
+  'audio/voice/de/d_100.wav',
+  'audio/voice/de/d_200.wav',
+  'audio/voice/de/d_300.wav',
+  'audio/voice/de/d_500.wav',
+  'audio/voice/de/d_800.wav',
+];
+
+/// True when [bytes] is a WAV file in the format the display needs (PCM, mono, 16 kHz, 16 bit).
+bool isDisplayWav(Uint8List bytes) {
+  if (bytes.length < 44) return false;
+  final b = ByteData.sublistView(bytes);
+  String tag(int o) => String.fromCharCodes(bytes.sublist(o, o + 4));
+  if (tag(0) != 'RIFF' || tag(8) != 'WAVE' || tag(12) != 'fmt ') return false;
+  return b.getUint16(20, Endian.little) == 1 && b.getUint16(22, Endian.little) == 1 && b.getUint32(24, Endian.little) == 16000 && b.getUint16(34, Endian.little) == 16;
+}
+
+class AssetUploadResult {
+  const AssetUploadResult({required this.sent, this.failedPath, this.outcome = OtaOutcome.accepted});
+  final int sent;
+  final String? failedPath;
+  final OtaOutcome outcome;
+  bool get ok => failedPath == null && outcome == OtaOutcome.accepted;
 }

@@ -273,4 +273,31 @@ void main() {
       expect(after.audioCue, isNull);
     });
   });
+
+  group('the limit of a speed camera (E3)', () {
+    test('a camera hazard carries the limit of the road, in the sign unit; other hazards and a missing limit send none', () {
+      const kmh = (value: 80, unit: SpeedUnit.kmh);
+      final camera = DisplayFeed().next(
+        input(snapshot: DriveSnapshot(active: true, limit: kmh, warnings: [warn('c', 'mobileSpeedCamera')]), cameras: true),
+        0,
+        epochS: 1,
+      )!;
+      expect(camera.hazardType, d.HazardType.mobileSpeedCamera);
+      expect(camera.hazardSpeedLimit, 80);
+      expect(d.DisplayState.decode(camera.encode()).hazardSpeedLimit, 80);
+
+      final mph = DisplayFeed().next(
+        input(snapshot: DriveSnapshot(active: true, limit: (value: 30, unit: SpeedUnit.mph), warnings: [warn('c', 'fixedSpeedCamera')]), cameras: true),
+        0,
+        epochS: 1,
+      )!;
+      expect(mph.hazardSpeedLimit, 30);
+      expect(mph.speedLimitUnit, d.SpeedUnit.mph);
+
+      final accident = DisplayFeed().next(input(snapshot: DriveSnapshot(active: true, limit: kmh, warnings: [warn('a', 'accident')])), 0, epochS: 1)!;
+      expect(accident.hazardSpeedLimit, isNull);
+      final noLimit = DisplayFeed().next(input(snapshot: DriveSnapshot(active: true, warnings: [warn('c', 'mobileSpeedCamera')]), cameras: true), 0, epochS: 1)!;
+      expect(noLimit.hazardSpeedLimit, isNull);
+    });
+  });
 }

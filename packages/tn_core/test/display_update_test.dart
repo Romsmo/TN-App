@@ -27,7 +27,6 @@ void main() {
       expect(m.imageSize, 1974912);
       expect(m.minFromVersion, '0.1.0');
       expect(m.changesDe, hasLength(2));
-      expect(m.signed, isFalse);
     });
 
     test('anything unexpected is rejected, not guessed', () {
@@ -40,9 +39,9 @@ void main() {
       expect(DisplayManifest.tryParse(manifestJson(sha: 'xyz')), isNull);
     });
 
-    test('a named signature is noted but never counts as verified', () {
-      final m = DisplayManifest.tryParse(manifestJson(signature: '{"alg":"ed25519","keyId":"k","file":"manifest.json.sig"}'))!;
-      expect(m.signed, isTrue);
+    test('a "signature" field in the manifest changes nothing: only the signature file counts', () {
+      final m = DisplayManifest.tryParse(manifestJson(signature: '{"alg":"ed25519","keyId":"k","file":"manifest.json.sig"}'));
+      expect(m, isNotNull);
     });
   });
 

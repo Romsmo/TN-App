@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:tn_core/tn_core.dart';
 import 'package:tn_display_protocol/tn_display_protocol.dart' as d;
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -27,12 +28,18 @@ enum DisplayUpdatePhase {
   /// No connection to the release source.
   offline,
   badRelease,
+
+  /// The signature of the release is wrong or from a key the app does not trust: nothing is installed.
+  badSignature,
   downloading,
   installing,
   verifying,
   success,
   failed,
 }
+
+/// State of copying the sounds to the display's card.
+enum DisplayPackPhase { idle, uploading, done, failed, cancelled }
 
 /// The TN display (Bluetooth) as the app sees it: choosing a device, the connection, feeding it from the drive mode and updating
 /// its firmware. Lives outside the widget tree. **The whole feature is off until the user switches it on in the settings**
@@ -80,12 +87,27 @@ class DisplayController extends ChangeNotifier {
   DisplayUpdatePhase updatePhase = DisplayUpdatePhase.idle;
   DisplayManifest? manifest;
 
+  /// What the signature of the shown release says (valid, missing = unsigned, ...).
+  SignatureStatus signature = SignatureStatus.missing;
+
   /// 0..1 while downloading and installing.
   double updateProgress = 0;
 
   /// The OTA error code of the display (1..5) when an update failed on the display's side.
   int? updateErrorCode;
   bool _cancelUpdate = false;
+
+  // ------------------------------------------------------------------------------------------- sounds for the card
+
+  DisplayPackPhase packPhase = DisplayPackPhase.idle;
+  double packProgress = 0;
+  String? packFailedPath;
+
+  /// Which clips of [displayAudioFiles] this app carries (loaded on demand; the voice clips only when they were added to the build).
+  List<DisplayFile>? _pack;
+  int get packFiles => _pack?.length ?? 0;
+  int get packVoiceFiles => _pack?.where((f) => f.path.startsWith('audio/voice/')).length ?? 0;
+  bool _cancelPack = false;
 
   /// Whether the whole display feature is switched on in the settings.
   bool get featureOn => settings.value.displayFeature;
@@ -200,6 +222,65 @@ class DisplayController extends ChangeNotifier {
     try {
       await link.writeUiConfig(current.withBit(bit, on));
     } catch (_) {}
+  }
+
+  /// Reads the bundled sound files (once). A file that is missing or not in the display's WAV format is left out.
+  Future<void> loadPack() async {
+    if (_pack != null) return;
+    final files = <DisplayFile>[];
+    for (final path in displayAudioFiles) {
+      try {
+        final data = await rootBundle.load('assets/display_audio/$path');
+        final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        if (isDisplayWav(bytes)) files.add(DisplayFile(path, bytes));
+      } catch (_) {}
+    }
+    _pack = files;
+    notifyListeners();
+  }
+
+  /// Why the sounds cannot be copied right now, or null.
+  String? get packBlocker {
+    if (!connected) return 'notConnected';
+    if (!caps.sd) return 'noCard';
+    if (drive.isActive) return 'driving';
+    if (packFiles == 0) return 'empty';
+    return null;
+  }
+
+  void cancelPack() => _cancelPack = true;
+
+  /// Copies the tones and voice clips to the card (a few minutes at most). Only on a tap, not while driving.
+  Future<void> uploadPack() async {
+    final link = _link;
+    final files = _pack;
+    if (link == null || files == null || packBlocker != null || packPhase == DisplayPackPhase.uploading) return;
+    _cancelPack = false;
+    packFailedPath = null;
+    packProgress = 0;
+    packPhase = DisplayPackPhase.uploading;
+    notifyListeners();
+    _wake(true);
+    try {
+      final total = files.fold<int>(0, (a, f) => a + f.bytes.length);
+      final before = List<int>.generate(files.length, (i) => files.take(i).fold<int>(0, (a, f) => a + f.bytes.length));
+      final r = await link.runAssetUpload(files, isCancelled: () => _cancelPack || drive.isActive, onProgress: (i, sent, _) {
+        packProgress = total > 0 ? (before[i] + sent) / total : 0;
+        notifyListeners();
+      });
+      if (r.ok) {
+        packProgress = 1;
+        packPhase = DisplayPackPhase.done;
+      } else {
+        packFailedPath = r.failedPath;
+        packPhase = r.outcome == OtaOutcome.cancelled ? DisplayPackPhase.cancelled : DisplayPackPhase.failed;
+      }
+    } catch (_) {
+      packPhase = DisplayPackPhase.failed;
+    } finally {
+      _wake(false);
+      notifyListeners();
+    }
   }
 
   /// Sends the time again.
@@ -393,9 +474,17 @@ class DisplayController extends ChangeNotifier {
     updateErrorCode = null;
     notifyListeners();
     try {
-      final m = await src.manifest();
+      final fetched = await src.manifest();
+      final m = fetched.manifest;
       await settings.update((s) => s.copyWith(displayLastUpdateCheck: _nowMs()));
       manifest = m;
+      signature = fetched.signature;
+      if (signature == SignatureStatus.invalid || signature == SignatureStatus.unknownKey) {
+        // a bad signature is never offered for installing, whatever the version says
+        updatePhase = automatic ? DisplayUpdatePhase.idle : DisplayUpdatePhase.badSignature;
+        notifyListeners();
+        return;
+      }
       final installed = info?.fwVersion ?? '';
       updatePhase = switch (judgeUpdate(m, installed: installed, hasOta: caps.ota)) {
         DisplayUpdateVerdict.available => DisplayUpdatePhase.available,

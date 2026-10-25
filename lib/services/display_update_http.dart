@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -18,12 +19,22 @@ class DisplayUpdateHttp implements DisplayUpdateSource {
 
   Uri _imageUri(DisplayManifest m) => Uri.parse('$base/releases/download/fw-v${m.version}/${m.imageFile}');
 
+  Uri get _signatureUri => Uri.parse('$base/releases/latest/download/manifest.json.sig');
+
   @override
-  Future<DisplayManifest> manifest() async {
+  Future<FetchedManifest> manifest() async {
     final bytes = await _get(_manifestUri, maxBytes: 64 * 1024);
-    final m = DisplayManifest.tryParse(String.fromCharCodes(bytes));
+    final m = DisplayManifest.tryParse(utf8.decode(bytes, allowMalformed: true));
     if (m == null) throw const UpdateFetchException(UpdateFetchProblem.badAnswer);
-    return m;
+    // No signature file (404) is an unsigned release; any other failure is a failure.
+    String? sig;
+    try {
+      sig = utf8.decode(await _get(_signatureUri, maxBytes: 4 * 1024), allowMalformed: true);
+    } on UpdateFetchException catch (e) {
+      if (e.problem != UpdateFetchProblem.notFound) rethrow;
+    }
+    final trusted = [for (final k in displayTrustedKeys) ?parsePublicKey(k)];
+    return FetchedManifest(m, verifyManifestSignature(bytes, sig, trusted));
   }
 
   @override

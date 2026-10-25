@@ -78,6 +78,8 @@ flutter:
     - assets/texts/
     - assets/sounds/
     - assets/images/
+    - assets/display_audio/audio/tones/
+    - assets/display_audio/audio/voice/de/
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

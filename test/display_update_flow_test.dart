@@ -20,6 +20,7 @@ class _Display implements DisplayTransport {
   bool refuse = false;
   int dataFrames = 0;
   final uiWrites = <d.UiConfig>[];
+  final assetBegins = <String>[];
   final states = <d.DisplayState>[];
   final _conn = StreamController<bool>.broadcast();
   final _notify = <int, StreamController<Uint8List>>{};
@@ -50,6 +51,11 @@ class _Display implements DisplayTransport {
   Future<void> write(int slot, Uint8List data, {required bool withResponse}) async {
     if (slot == d.Slot.uiConfig) uiWrites.add(d.UiConfig.decode(data));
     if (slot == d.Slot.state) states.add(d.DisplayState.decode(data));
+    if (slot == d.Slot.asset) {
+      if (data[0] == 0x01) assetBegins.add(String.fromCharCodes(data.sublist(2)));
+      if (data[0] == 0x03) Timer.run(() => _ctl(d.Slot.asset).add(Uint8List.fromList([0x11])));
+      return;
+    }
     if (slot != d.Slot.ota) return;
     switch (data[0]) {
       case 0x01:
@@ -81,11 +87,12 @@ class _Source implements DisplayUpdateSource {
   String manifestText;
   UpdateFetchProblem? failWith;
   Uint8List? served;
+  SignatureStatus signature = SignatureStatus.valid;
 
   @override
-  Future<DisplayManifest> manifest() async {
+  Future<FetchedManifest> manifest() async {
     if (failWith != null) throw UpdateFetchException(failWith!);
-    return DisplayManifest.tryParse(manifestText)!;
+    return FetchedManifest(DisplayManifest.tryParse(manifestText)!, signature);
   }
 
   @override
@@ -226,4 +233,47 @@ void main() {
     expect(display.states.first.driveActive, isFalse);
     expect(display.states.first.stateSeq, 1);
   });
+
+  test('a release with a bad signature or from an unknown key is never offered for installing', () async {
+    await setUpController();
+    source.signature = SignatureStatus.invalid;
+    await controller.checkForUpdate();
+    expect(controller.updatePhase, DisplayUpdatePhase.badSignature);
+    await controller.installUpdate();
+    expect(display.dataFrames, 0);
+    source.signature = SignatureStatus.unknownKey;
+    await controller.checkForUpdate();
+    expect(controller.updatePhase, DisplayUpdatePhase.badSignature);
+    // an automatic check says nothing about it
+    await controller.checkForUpdate(automatic: true);
+    expect(controller.updatePhase, DisplayUpdatePhase.idle);
+  });
+
+  test('a good signature is shown; an unsigned release can still be installed, with the warning in the confirmation', () async {
+    await setUpController();
+    await controller.checkForUpdate();
+    expect(controller.signature, SignatureStatus.valid);
+    expect(controller.updatePhase, DisplayUpdatePhase.available);
+    source.signature = SignatureStatus.missing;
+    await controller.checkForUpdate();
+    expect(controller.signature, SignatureStatus.missing);
+    expect(controller.updatePhase, DisplayUpdatePhase.available);
+  });
+
+  test('the sounds in the app are copied to the card: tones only until voice clips are bundled', () async {
+    await setUpController();
+    await controller.loadPack();
+    expect(controller.packFiles, 5); // the five event tones
+    expect(controller.packVoiceFiles, 0);
+    expect(controller.packBlocker, isNull);
+    await controller.uploadPack();
+    expect(controller.packPhase, DisplayPackPhase.done);
+    expect(display.assetBegins, [
+      'audio/tones/warn.wav',
+      'audio/tones/alert.wav',
+      'audio/tones/confirm.wav',
+      'audio/tones/info.wav',
+      'audio/tones/clear.wav',
+    ]);
+  }, timeout: const Timeout(Duration(seconds: 30)));
 }

@@ -207,6 +207,8 @@ class DisplayFeed {
       hazardActive: hazardId != null,
       hazardType: hazardId,
       hazardDistanceM: warning?.distanceM,
+      // A speed camera enforces the limit of the road it stands on, which is the limit the drive mode shows (same unit as the sign).
+      hazardSpeedLimit: hazardId != null && d.HazardType.isSpeedCamera(hazardId) ? limit?.value.round() : null,
       confirmPromptActive: prompt,
       confirmPromptTimeoutS: input.confirmTimeoutS,
       nightMode: input.nightMode,
@@ -235,6 +237,7 @@ class DisplayFeed {
       hazardActive: content.hazardActive,
       hazardType: content.hazardType,
       hazardDistanceM: content.hazardDistanceM,
+      hazardSpeedLimit: content.hazardSpeedLimit,
       confirmPromptActive: content.confirmPromptActive,
       confirmPromptTimeoutS: content.confirmPromptTimeoutS,
       nightMode: content.nightMode,
