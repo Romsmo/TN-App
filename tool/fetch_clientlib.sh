@@ -9,7 +9,7 @@
 # Needs the GitHub CLI (`gh`, logged in) or curl. Nothing is built and nothing is changed outside packages/.
 set -euo pipefail
 
-VERSION="${TN_CLIENTLIB_VERSION:-1.2.1}"
+VERSION="${TN_CLIENTLIB_VERSION:-1.3.0}"
 REPO="Romsmo/Trafficnetwork"
 TAG="client-lib-v${VERSION}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

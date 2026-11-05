@@ -117,6 +117,9 @@ class _SimDataSource implements DriveDataSource {
   Future<bool> limitCovered(double lat, double lng) async => true;
 
   @override
+  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading) async => const [];
+
+  @override
   Future<SpeedLimitAnswer?> speedLimit(double lat, double lng, double? heading) async =>
       SpeedLimitAnswer(value: simLimitAt(_distanceAlong(lat, lng)), unit: SpeedUnit.kmh, segmentId: 'sim-segment');
 }

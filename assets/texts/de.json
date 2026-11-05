@@ -370,6 +370,8 @@
  "display.section.device": "Display",
  "display.section.show": "Anzeige",
  "display.section.update": "Firmware",
+ "display.signs": "Verkehrsschilder anzeigen",
+ "display.signsHint": "Zeigt Schilder wie Überholverbot oder Wildwechsel, die auf der Strecke gelten. Nur Schilder, die mehrere Geräte bestätigt haben.",
  "display.night": "Nachtabdunklung",
  "display.nightFrom": "Von {hour} Uhr",
  "display.nightTo": "bis {hour} Uhr",

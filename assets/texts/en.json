@@ -370,6 +370,8 @@
  "display.section.device": "Display",
  "display.section.show": "Screen",
  "display.section.update": "Firmware",
+ "display.signs": "Show traffic signs",
+ "display.signsHint": "Shows signs such as no overtaking or wild animals that apply on the road. Only signs several devices have confirmed.",
  "display.night": "Night dimming",
  "display.nightFrom": "From {hour}:00",
  "display.nightTo": "to {hour}:00",

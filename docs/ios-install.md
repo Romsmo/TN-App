@@ -28,7 +28,7 @@ per 7 days; secondary sources only: [Corellium](https://support.corellium.com/fe
 ## Part A: the cloud build (`.github/workflows/ios-beta.yml`)
 
 Runs on `macos-26` (Xcode 26.6; an Xcode 27 exists only as a beta there). Public repository: standard runners are free there (GitHub's
-billing page; it does not name macOS explicitly). It fetches client-lib 1.2.1 with checksum check, runs analysis and tests, builds with
+billing page; it does not name macOS explicitly). It fetches client-lib 1.3.0 with checksum check, runs analysis and tests, builds with
 `flutter build ios --release --no-codesign`, zips `Payload/Runner.app` to `TNViewer-unsigned.ipa` and keeps it as an artifact for 7 days.
 The server values are repository variables (`TN_DEFAULT_NODE`, `TN_APP_CLIENT_ID`, `TN_NETWORK_ROOT_KEY`, `MAP_STYLE_URL`,
 `MAP_STYLE_URL_DARK`) and the secret `TN_APP_CLIENT_SECRET`; **the owner types them**. Without them the app runs in emergency mode.
@@ -54,7 +54,7 @@ Part A is done (see below). Part B has no Swift toolchain and no Xcode download 
 
 Unsigned `TNViewer-unsigned.ipa`, 18,104,588 bytes (artifact zip 18,023,116 bytes, SHA-256 `f44d81b6…8237d33f`, checked). Inside: bundle id
 `info.trafficnetwork.tnviewer`, version 0.1.0 (1), built with iphoneos 26.5 / Xcode 26.6, minimum iOS 13.1, arm64; `UIBackgroundModes` =
-`location`, `audio`; only `NSLocationWhenInUseUsageDescription`; `TrafficNetworkDart.framework` 1.2.1 embedded as a dynamic arm64 library
+`location`, `audio`; only `NSLocationWhenInUseUsageDescription`; `TrafficNetworkDart.framework` 1.3.0 embedded as a dynamic arm64 library
 with the `frb_*` symbols; no code signature and no provisioning profile (as intended).
 
 ## Result of Part B (2026-10-24)

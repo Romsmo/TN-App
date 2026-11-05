@@ -24,11 +24,11 @@ tested without hardware; **not run** = nothing of it has run against the real di
 | C2 | Internet flag | done | from the server connection |
 | C3 | Peer count | done | from the network status |
 | C4 | Free-road picture | done | trip without a warning |
-| C5 | Context sign columns | **open** | the library reports only speed-limit signs (`speedLimit50`...), which the display already shows as the big sign; no source for the other signs exists. Columns stay empty. |
+| C5 | Context sign columns | done (untested on the display) | `getContextSigns` of library 1.3.0 every ~3 s / 30 m while driving; `signColumnsFor` (confirmed signs only, active now or within 100 m, oldest first) builds the columns with the package's `addSign`; switch *Settings → Display → Show traffic signs* (on by default). Needs a node on server 1.4.0 with entries; an empty stock shows empty columns. |
 | C6 | Night mode | done | the app decides from the night hours in the display settings |
 | C7 | `useMph` | done | follows the app's unit |
 | C8/C9 | `epochS`, `stateSeq` | done | |
-| D1-D5 | Sign rules | package only | in the vendored package and tested there; unused while C5 is open |
+| D1-D5 | Sign rules | done | side, replacement families, newest three, wire code, 58 vendored signs: used by `signColumnsFor` (`sign_columns.dart`, tests in `context_sign_test.dart`) |
 | E1 | Hazard overlay | done | nearest, second-stage first; trip only |
 | E2 | Distance | done | zones send no distance |
 | E3 | Enforced limit (`hazardSpeedLimit`) | done | for speed-camera hazards: the limit of the road (the one the drive mode shows), in the sign unit |

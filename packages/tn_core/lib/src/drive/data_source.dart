@@ -10,6 +10,9 @@ abstract interface class DriveDataSource {
   /// Whether the offline data answers for this spot. "No limit shown" is only a calm "no limit on record" where this is
   /// true; where it is false the drive mode says the limit is not available here instead of staying silent.
   Future<bool> limitCovered(double lat, double lng);
+
+  /// The traffic signs that apply here and just ahead (raw entries, nearest first). Empty where there are none or none are held.
+  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading);
 }
 
 /// Local reads only: the library answers both from its store without touching the network. The service is looked up at
@@ -33,4 +36,8 @@ class LibraryDataSource implements DriveDataSource {
     if (service == null) throw StateError('no client');
     return (await service.getCoverage(lat, lng)).covered;
   }
+
+  @override
+  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading) async =>
+      (await _getService()?.getContextSigns(lat, lng, heading: heading))?.signs ?? const [];
 }

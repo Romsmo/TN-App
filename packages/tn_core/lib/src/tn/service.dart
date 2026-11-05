@@ -137,6 +137,31 @@ class TnService {
         'to': {'lat': to.lat, 'lng': to.lng},
       }));
 
+  /// Which traffic signs apply here and just ahead (client library 1.3.0; local and offline). Unconfirmed entries are only asked for
+  /// on request. Where the node has no context signs the answer is an empty, not covered one.
+  Future<ContextSigns> getContextSigns(double lat, double lng, {double? heading, double? aheadMeters, bool includeUnconfirmed = false}) async =>
+      ContextSigns.fromJson(_obj(await _call('getContextSigns', {
+        'lat': lat,
+        'lng': lng,
+        'heading': heading,
+        'aheadMeters': aheadMeters,
+        'includeUnconfirmed': includeUnconfirmed,
+      })));
+
+  /// "This sign is right here" ([agrees]) or "it is not", for an entry from [getContextSigns]. Queued like every write; returns the
+  /// local queue id.
+  Future<String> voteContextSign(String id, bool agrees) async =>
+      '${_obj(await _call('voteContextSign', {'id': id, 'agrees': agrees}))['localId']}';
+
+  /// Proposes a context sign (`{signType, from, to?, direction, heading?, validity?, value?, unit?}` as in api.md). Queued like every
+  /// write; returns the local queue id.
+  Future<String> reportContextSign(Map<String, Object?> request) async =>
+      '${_obj(await _call('reportContextSign', request))['localId']}';
+
+  /// The stretch of road the picked points of a context sign mean, and similar entries (needs the network).
+  Future<Map<String, Object?>> resolveContextSign(Map<String, Object?> request) async =>
+      _obj(await _call('resolveContextSign', request));
+
   Future<OfflineSettings> getOfflineSettings() async => OfflineSettings.fromJson(_obj(await _call('getOfflineSettings')));
 
   /// Chooses what is kept of the static data; applied with the next sync. [regions] without a mode switches to `regions`.

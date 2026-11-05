@@ -3,7 +3,7 @@
 View, report and get warned about traffic events from the open *Trafficnetwork*: a map of reports, one-tap reporting, a drive
 mode with speed, speed limit and warnings ahead, speed-limit proposals and offline data. **No navigation, no analytics, no
 advertising SDK, no telemetry.** All data comes through the Trafficnetwork client library (Dart/Flutter package, release
-`client-lib-v1.2.1`); the app has no REST or WebSocket code of its own.
+`client-lib-v1.3.0`); the app has no REST or WebSocket code of its own.
 
 This is the Flutter rebuild of the Expo/React Native app (`Romsmo/TN-App`, commit `069040f`). The functional specification
 is the export `TNViewer-export-2026-10-22` (`spec/`, `texts/`, `drive-core/`).
@@ -25,7 +25,7 @@ is the export `TNViewer-export-2026-10-22` (`spec/`, `texts/`, `drive-core/`).
 ## Build
 
 ```bash
-tool/fetch_clientlib.sh          # fetches client-lib 1.2.1 and checks it against the release's checksums.txt
+tool/fetch_clientlib.sh          # fetches client-lib 1.3.0 and checks it against the release's checksums.txt
 flutter pub get
 flutter analyze
 (cd packages/tn_core && dart test)

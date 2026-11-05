@@ -229,6 +229,13 @@ class _ShowCard extends StatelessWidget {
     final s = app.settings.value;
     final d = controller;
     return CardSection(children: [
+      SwitchRow(
+        title: context.t('display.signs'),
+        hint: context.t('display.signsHint'),
+        value: s.displaySigns,
+        onChanged: (on) => app.settings.update((x) => x.copyWith(displaySigns: on)),
+      ),
+      const Divider(height: Space.xl),
       Body(context.t('display.night')),
       _Stepper(
         label: context.t('display.nightFrom', {'hour': s.displayNightStart}),

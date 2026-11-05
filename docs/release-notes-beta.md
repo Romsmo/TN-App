@@ -3,7 +3,11 @@
 * The `.ipa` is **unsigned**. It is for sideloading on your own iPhone with your own Apple ID (for example with
   [xtool](https://github.com/xtool-org/xtool), see `docs/ios-install.md`); with a free Apple account the profile lasts 7 days.
   It is not on TestFlight or the App Store. Minimum iOS 13.1.
-* **New in beta 4:** a speed camera on the display now carries the limit of its road; display firmware updates are checked against a
+* **New in beta 5:** the display's sign columns are filled with the traffic signs that apply on the road (no overtaking, no stopping,
+  wild animals, roadworks ...), from the Trafficnetwork's new context signs (client library 1.3.0, node with server 1.4.0). Only signs
+  several devices have confirmed are shown; the switch is *Settings → Display → Show traffic signs*. A node that has no entries shows
+  nothing. Entering and confirming signs is not in the app yet (it is on the website).
+* **Since beta 4:** a speed camera on the display now carries the limit of its road; display firmware updates are checked against a
   **signature** (Ed25519; a good one is shown, an unsigned release asks for an extra confirmation, a bad one is refused; the release
   `fw-v0.1.0` of the display project counts as unsigned until its `.sig` is uploaded); *Settings → Display → Sounds and voice files*
   copies five tones and 18 German voice clips (synthetic voice: Piper with the CC0 Thorsten data) to the display's memory card. The

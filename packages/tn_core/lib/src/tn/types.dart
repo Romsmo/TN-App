@@ -665,3 +665,80 @@ class AppCredentials extends Credentials {
   @override
   Map<String, Object?> toJson() => {'type': 'app', 'appClientId': appClientId, 'appClientSecret': appClientSecret};
 }
+
+/// One entry of `getContextSigns` (client library 1.3.0): a traffic sign that applies on a stretch of road. Raw, as the library
+/// tells it: no column and no replacement of one sign by another (that is [signColumnsFor]).
+class ContextSign {
+  const ContextSign({
+    required this.id,
+    required this.signType,
+    required this.startsInM,
+    this.endsInM,
+    this.validUntil,
+    this.activeNow = true,
+    this.confirmed = false,
+    this.confirmations = 0,
+    this.value,
+    this.unit,
+  });
+
+  /// Reads one entry; null where the library's entry has no usable id, sign type or distance.
+  static ContextSign? fromJson(Object? j) {
+    if (j is! Map) return null;
+    final id = j['id'];
+    final type = j['signType'];
+    final starts = _od(j['startsInM']);
+    if (id is! String || type is! String || starts == null) return null;
+    final until = j['validUntil'];
+    return ContextSign(
+      id: id,
+      signType: type,
+      startsInM: starts,
+      endsInM: _od(j['endsInM']),
+      validUntil: until is String ? DateTime.tryParse(until) : null,
+      activeNow: j['activeNow'] != false,
+      confirmed: j['confirmed'] == true,
+      confirmations: _oi(j['confirmations']) ?? 0,
+      value: _od(j['value']),
+      unit: j['unit'] is String ? j['unit'] as String : null,
+    );
+  }
+
+  final String id;
+
+  /// Country-prefixed catalogue reference, `DE:276`, `DE:142-10`.
+  final String signType;
+
+  /// At most 0: the sign applies already (minus the metres driven along its stretch); above 0: it begins that far ahead.
+  final double startsInM;
+
+  /// Metres to where it ends in the direction of travel; null = unknown or open.
+  final double? endsInM;
+  final DateTime? validUntil;
+  final bool activeNow;
+  final bool confirmed;
+  final int confirmations;
+
+  /// The extra value some signs carry (weight, height ...) and its unit (`t`, `m`).
+  final double? value;
+  final String? unit;
+}
+
+/// The answer of `getContextSigns`.
+class ContextSigns {
+  const ContextSigns({this.signs = const [], this.covered = false});
+
+  factory ContextSigns.fromJson(Map<String, Object?> j) => ContextSigns(
+        signs: [
+          for (final s in (j['signs'] as List? ?? const [])) ...[
+            if (ContextSign.fromJson(s) case final sign?) sign,
+          ],
+        ],
+        covered: j['covered'] == true,
+      );
+
+  final List<ContextSign> signs;
+
+  /// The device holds the context signs of the place. `false`: nothing was downloaded for it (yet), which is not "no sign".
+  final bool covered;
+}

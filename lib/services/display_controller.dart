@@ -397,6 +397,7 @@ class DisplayController extends ChangeNotifier {
         ? hour >= s.displayNightStart && hour < s.displayNightEnd
         : hour >= s.displayNightStart || hour < s.displayNightEnd;
     final conn = tn.snapshot.sync?.connection;
+    final signs = s.displaySigns ? signColumnsFor(snap.contextSigns) : const SignColumns.empty();
     return DisplayInput(
       snapshot: snap,
       caps: _link?.caps ?? const DisplayCaps(),
@@ -407,6 +408,8 @@ class DisplayController extends ChangeNotifier {
       soundOnDisplay: _soundOnDisplay && s.driveSound,
       voice: s.displayVoice,
       directionArrows: snap.active && snap.warnings.isEmpty,
+      leftSigns: signs.left,
+      rightSigns: signs.right,
     );
   }
 

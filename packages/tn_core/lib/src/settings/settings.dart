@@ -29,6 +29,7 @@ class Settings {
     this.displayCacheMinutes = 10,
     this.displayAutoUpdateCheck = false,
     this.displayLastUpdateCheck,
+    this.displaySigns = true,
   });
 
   /// A server the user entered ("Server verbinden"); null = use discovery from the built-in seeds.
@@ -93,6 +94,10 @@ class Settings {
   /// When the last update check ran (milliseconds since the epoch).
   final int? displayLastUpdateCheck;
 
+  /// Show the traffic signs that apply on the road (no overtaking, no stopping ...) in the display's sign columns. Only signs that
+  /// several devices confirmed.
+  final bool displaySigns;
+
   Settings copyWith({
     Object? serverAddress = _unset,
     List<String>? hiddenHazardTypes,
@@ -117,6 +122,7 @@ class Settings {
     int? displayNightEnd,
     int? displayCacheMinutes,
     bool? displayAutoUpdateCheck,
+    bool? displaySigns,
     Object? displayLastUpdateCheck = _unset,
   }) =>
       Settings(
@@ -143,6 +149,7 @@ class Settings {
         displayNightEnd: displayNightEnd ?? this.displayNightEnd,
         displayCacheMinutes: displayCacheMinutes ?? this.displayCacheMinutes,
         displayAutoUpdateCheck: displayAutoUpdateCheck ?? this.displayAutoUpdateCheck,
+        displaySigns: displaySigns ?? this.displaySigns,
         displayLastUpdateCheck: identical(displayLastUpdateCheck, _unset) ? this.displayLastUpdateCheck : displayLastUpdateCheck as int?,
       );
 
@@ -175,6 +182,7 @@ class Settings {
         'displayNightEnd': displayNightEnd,
         'displayCacheMinutes': displayCacheMinutes,
         'displayAutoUpdateCheck': displayAutoUpdateCheck,
+        'displaySigns': displaySigns,
         'displayLastUpdateCheck': displayLastUpdateCheck,
       };
 }
@@ -229,6 +237,7 @@ Settings parseSettings(String? raw, {bool allowDisableDriveLock = true}) {
     displayNightEnd: _hour(o['displayNightEnd'], d.displayNightEnd),
     displayCacheMinutes: const [5, 10, 30, 60].contains(o['displayCacheMinutes']) ? o['displayCacheMinutes'] as int : d.displayCacheMinutes,
     displayAutoUpdateCheck: _bool(o['displayAutoUpdateCheck'], d.displayAutoUpdateCheck),
+    displaySigns: _bool(o['displaySigns'], d.displaySigns),
     displayLastUpdateCheck: o['displayLastUpdateCheck'] is int ? o['displayLastUpdateCheck'] as int : null,
   );
 }

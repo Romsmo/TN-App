@@ -345,6 +345,9 @@ class _EmptyData implements DriveDataSource {
   Future<SpeedLimitAnswer?> speedLimit(double lat, double lng, double? heading) async => null;
   @override
   Future<bool> limitCovered(double lat, double lng) async => true;
+
+  @override
+  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading) async => const [];
 }
 
 class _NoFeedback implements Feedback {

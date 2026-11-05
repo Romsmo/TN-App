@@ -34,7 +34,8 @@ Legend — **Code**: done / partial / open. **Test**: what exists. **Device**: a
 | Display feature switch (off by default, invisible until on) | done | widget test | |
 | Display: trip mode (contract 1.1.0), cleared tone, connect-failure hint | done (code) | feed, controller and widget tests | see `display-checklist.md`; firmware 0.2 needed for trip mode |
 | Display: manifest signature (Ed25519), sound/voice upload to the card, camera limit on the overlay | done (code) | RFC 8032 vectors, the real fw-v0.1.0 manifest, fake-display tests | never run against the real display; voice clips generated and bundled but **never listened to on the display**; `fw-v0.1.0.sig` not uploaded (`display-signing.md`) |
-| Display: sign columns, manual file pick | **open** | — | context signs need a data source: the requirement for the server project is `requests/anforderung-kontextschilder.md` (outside the repo) |
+| Display: sign columns from context signs (library 1.3.0) | done (code) | column builder, library entries from the shared vectors, service and drive-session tests | never run against a node with entries or the real display; entering/confirming signs not in the app (website only) |
+| Display: manual file pick | **open** | — | |
 | Map background (OpenStreetMap tiles) | done | style unit-free; analysis only | **not looked at on a device yet** |
 | Android build | **open** | — | Android SDK on this PC lacks cmdline-tools and accepted licences |
 | Store submission | **open** | — | only after written approval |

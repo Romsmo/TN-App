@@ -29,7 +29,9 @@ class RecordingFeedback implements Feedback {
 }
 
 class FakeData implements DriveDataSource {
-  FakeData(this.items, this.limitValue, this.covered);
+  FakeData(this.items, this.limitValue, this.covered, {this.signs = const []});
+  List<ContextSign> signs;
+  bool failSigns = false;
   final List<NearbyItem> items;
   final int? limitValue;
   final bool covered;
@@ -43,6 +45,12 @@ class FakeData implements DriveDataSource {
 
   @override
   Future<bool> limitCovered(double lat, double lng) async => covered;
+
+  @override
+  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading) async {
+    if (failSigns) throw StateError('no signs');
+    return signs;
+  }
 }
 
 HazardItem hazardAt(double northM, {String id = 'h1', String type = 'accident', bool pending = false}) {
@@ -61,12 +69,12 @@ HazardItem hazardAt(double northM, {String id = 'h1', String type = 'accident', 
 }
 
 class Harness {
-  Harness({List<NearbyItem>? items, int? limitValue = 100, bool covered = true, DriveSettings? settings, bool submitOk = true, Texts? texts}) {
+  Harness({List<NearbyItem>? items, int? limitValue = 100, bool covered = true, DriveSettings? settings, bool submitOk = true, Texts? texts, List<ContextSign> signs = const []}) {
     this.texts = texts ?? makeTexts('en');
     current = settings ?? const DriveSettings();
     feedback = RecordingFeedback();
     session = DriveSession(DriveDeps(
-      data: FakeData(items ?? [hazardAt(1500)], limitValue, covered),
+      data: data = FakeData(items ?? [hazardAt(1500)], limitValue, covered, signs: signs),
       feedback: feedback,
       texts: this.texts,
       getSettings: () => current,
@@ -82,6 +90,7 @@ class Harness {
     ));
   }
 
+  late final FakeData data;
   late final Texts texts;
   late DriveSettings current;
   late final RecordingFeedback feedback;

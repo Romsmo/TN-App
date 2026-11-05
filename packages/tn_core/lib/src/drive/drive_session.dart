@@ -82,6 +82,7 @@ class DriveSnapshot {
     this.locked = false,
     this.speedLocked = false,
     this.gpsLost = false,
+    this.contextSigns = const [],
   });
 
   final bool active;
@@ -108,6 +109,9 @@ class DriveSnapshot {
   /// No position for a while.
   final bool gpsLost;
 
+  /// The traffic signs that apply here and just ahead (raw entries of the library; the display's columns are built from them).
+  final List<ContextSign> contextSigns;
+
   DriveSnapshot copyWith({
     bool? active,
     bool? simulated,
@@ -122,6 +126,7 @@ class DriveSnapshot {
     bool? locked,
     bool? speedLocked,
     bool? gpsLost,
+    List<ContextSign>? contextSigns,
   }) =>
       DriveSnapshot(
         active: active ?? this.active,
@@ -137,6 +142,7 @@ class DriveSnapshot {
         locked: locked ?? this.locked,
         speedLocked: speedLocked ?? this.speedLocked,
         gpsLost: gpsLost ?? this.gpsLost,
+        contextSigns: contextSigns ?? this.contextSigns,
       );
 }
 
@@ -366,6 +372,14 @@ class DriveSession {
         _set(_snap.copyWith(limit: limit, limitUnavailable: unavailable, speedState: speedState(_snap.speedKmh, limit)));
       } catch (_) {
         // no limit shown rather than a wrong one, and no claim about coverage that could not be read
+      }
+      try {
+        final signs = await deps.data.contextSigns(fix.lat, fix.lng, fix.heading);
+        if (!_snap.active) return;
+        _set(_snap.copyWith(contextSigns: signs));
+      } catch (_) {
+        // no sign shown rather than an old one: a sign that no longer applies must not stay on the display
+        if (_snap.active && _snap.contextSigns.isNotEmpty) _set(_snap.copyWith(contextSigns: const []));
       }
     }
   }
