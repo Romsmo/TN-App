@@ -57,3 +57,13 @@ fine/coarse location and a foreground service with a notification while the driv
 * No analytics, no telemetry.
 * **Update signature:** next to `manifest.json` the app also asks for `manifest.json.sig` (same host, same request data). The check happens on the phone against a public key built into the app.
 
+## Added 2026-11-05: traffic signs by camera (draft for a lawyer)
+
+* **Camera:** with *Signs by camera* on, the camera runs during a real drive (not in the simulation, not outside the drive mode). Each frame
+  is turned into a small picture in memory, read and dropped. Nothing is stored, nothing leaves the device. `NSCameraUsageDescription` names the use.
+* ⚠ **Automatic reports (own switch, off at first start):** a sign the camera recognised reliably is **confirmed** (the database holds it) or
+  **proposed** (it does not) without a tap. What is sent through the library's queue: sign type, **exact coordinate** of the sign (an estimate
+  from the car's position, the viewing angle and an assumed sign size), the direction of travel; for a ban also the coordinate of its end.
+  Signed with the device key, on the next sync. No image, no speed. This is the one place where the app sends an exact coordinate **without a
+  deliberate action** (the table above says "only on a deliberate action": not true for this switch); the switch is the deliberate action.
+  At most 40 per trip.

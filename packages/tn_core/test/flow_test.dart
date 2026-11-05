@@ -347,7 +347,7 @@ class _EmptyData implements DriveDataSource {
   Future<bool> limitCovered(double lat, double lng) async => true;
 
   @override
-  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading) async => const [];
+  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading, {bool includeUnconfirmed = false}) async => const [];
 }
 
 class _NoFeedback implements Feedback {

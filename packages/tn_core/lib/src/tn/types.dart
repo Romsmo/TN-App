@@ -680,6 +680,7 @@ class ContextSign {
     this.confirmations = 0,
     this.value,
     this.unit,
+    this.fromCamera = false,
   });
 
   /// Reads one entry; null where the library's entry has no usable id, sign type or distance.
@@ -722,6 +723,9 @@ class ContextSign {
   /// The extra value some signs carry (weight, height ...) and its unit (`t`, `m`).
   final double? value;
   final String? unit;
+
+  /// The sign was read by the phone's camera, not taken from the library's database (see `signColumnsFor`).
+  final bool fromCamera;
 }
 
 /// The answer of `getContextSigns`.

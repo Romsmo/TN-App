@@ -54,3 +54,7 @@ packages/dart/
 packages/flutter/
 *.ipa
 .env*
+
+# sign model training output (the installed model lives in assets/models)
+tool/signs_model/out/
+tool/signs_model/__pycache__/

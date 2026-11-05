@@ -7,6 +7,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../platform/platform.dart';
 import 'feedback.dart';
 import 'location.dart';
+import 'sign_pipeline.dart';
 import 'stores.dart';
 import 'tn_controller.dart';
 
@@ -26,6 +27,7 @@ class DriveController extends ChangeNotifier {
     );
     _host.subscribe(_onHost);
     settings.addListener(_onSettings);
+    pipeline.addListener(notifyListeners);
   }
 
   final TnController tn;
@@ -38,10 +40,17 @@ class DriveController extends ChangeNotifier {
   late final DeviceFeedback _feedback;
   late final GeolocatorBackend _backend;
   late final DriveHost _host;
+
+  /// The sign camera: runs only during a real drive, when the owner switched it on and calibrated it.
+  late final SignPipeline pipeline = SignPipeline(calibration: () => settings.value.cameraCalibration);
+  SignVision? _vision;
+  DriveSession? _cameraSession;
   bool _finished = false;
   bool _wake = false;
 
   DriveSnapshot? get snapshot => _host.snapshot;
+
+  CameraStatus get cameraStatus => pipeline.status;
 
   bool get isActive => _host.isActive;
 
@@ -74,7 +83,9 @@ class DriveController extends ChangeNotifier {
     final DriveDataSource data = simulated
         ? createSimDataSource(demoRoute, camerasEnabled: settings.value.camerasEnabled)
         : LibraryDataSource(() => tn.service);
+    _vision = !simulated && _cameraWanted ? _buildVision() : null;
     return DriveSession(DriveDeps(
+      vision: _vision,
       data: data,
       feedback: _feedback,
       texts: texts,
@@ -95,8 +106,51 @@ class DriveController extends ChangeNotifier {
     ));
   }
 
+  bool get _cameraWanted => settings.value.cameraSigns && settings.value.cameraCalibration.isCalibrated;
+
+  /// Recognition and reporting of the camera's signs. Reports and confirmations are queued like every other write; the library
+  /// signs them with the device key when it syncs. What leaves the phone is decided by the reporter (see `SignReporter`) and only
+  /// while the owner's report switch is on.
+  SignVision _buildVision() {
+    final data = LibraryDataSource(() => tn.service);
+    return SignVision(
+      recognizer: SignRecognizer(calibration: settings.value.cameraCalibration),
+      reporter: SignReporter(
+        readDb: (lat, lng, heading) => data.contextSigns(lat, lng, heading, includeUnconfirmed: true),
+        report: (request) async {
+          final s = tn.service;
+          if (s == null) return false;
+          await s.reportContextSign(request);
+          return true;
+        },
+        vote: (id, agrees) async {
+          final s = tn.service;
+          if (s == null) return false;
+          await s.voteContextSign(id, agrees);
+          return true;
+        },
+        enabled: () => settings.value.cameraSignsReport,
+      ),
+    );
+  }
+
+  /// The camera runs exactly as long as the drive it belongs to.
+  void _syncCamera() {
+    final session = _host.current;
+    final vision = _vision;
+    if (isActive && vision != null && session != null) {
+      if (identical(_cameraSession, session)) return;
+      _cameraSession = session;
+      unawaited(pipeline.start((ms, detections) => session.onFrame(ms, detections)));
+    } else if (_cameraSession != null) {
+      _cameraSession = null;
+      unawaited(pipeline.stop());
+    }
+  }
+
   void _onHost() {
     _syncWakeLock();
+    _syncCamera();
     notifyListeners();
   }
 
@@ -123,7 +177,9 @@ class DriveController extends ChangeNotifier {
   @override
   void dispose() {
     settings.removeListener(_onSettings);
+    pipeline.removeListener(notifyListeners);
     _host.stop();
+    pipeline.dispose();
     _feedback.dispose();
     super.dispose();
   }

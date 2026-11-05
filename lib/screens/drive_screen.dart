@@ -520,6 +520,27 @@ class _DriveViewState extends State<DriveView> {
                           ),
                         ),
                       ),
+                      if (s.recognizedSigns.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.videocam, size: 16, color: DrivePalette.textSecondary),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  context.t('camera.drive.recognized', {
+                                    'signs': [for (final r in s.recognizedSigns) signNameOf(r.signType) ?? r.signType].join(', '),
+                                  }),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 14, color: DrivePalette.textSecondary),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       if (s.prompt != null) ...[
                         _PromptCard(
                           prompt: s.prompt!,

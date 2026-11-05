@@ -47,7 +47,7 @@ class FakeData implements DriveDataSource {
   Future<bool> limitCovered(double lat, double lng) async => covered;
 
   @override
-  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading) async {
+  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading, {bool includeUnconfirmed = false}) async {
     if (failSigns) throw StateError('no signs');
     return signs;
   }
@@ -69,7 +69,7 @@ HazardItem hazardAt(double northM, {String id = 'h1', String type = 'accident', 
 }
 
 class Harness {
-  Harness({List<NearbyItem>? items, int? limitValue = 100, bool covered = true, DriveSettings? settings, bool submitOk = true, Texts? texts, List<ContextSign> signs = const []}) {
+  Harness({List<NearbyItem>? items, int? limitValue = 100, bool covered = true, DriveSettings? settings, bool submitOk = true, Texts? texts, List<ContextSign> signs = const [], SignVision? vision}) {
     this.texts = texts ?? makeTexts('en');
     current = settings ?? const DriveSettings();
     feedback = RecordingFeedback();
@@ -87,6 +87,7 @@ class Harness {
         votes.add({'reportId': id, 'stillThere': still});
         return true;
       },
+      vision: vision,
     ));
   }
 

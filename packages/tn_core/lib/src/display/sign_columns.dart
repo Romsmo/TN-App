@@ -5,6 +5,9 @@ import '../tn/types.dart';
 /// A sign that begins less than this far ahead is already shown: it is the distance at which the sign itself stands in sight.
 const double signsShownAheadM = 100;
 
+/// A sign the camera read wins against a conflicting database sign that begins within this many metres after it.
+const double cameraPriorityM = 30;
+
 /// The two columns of the display, as wire codes (oldest first).
 class SignColumns {
   const SignColumns(this.left, this.right);
@@ -54,12 +57,17 @@ String? signNameOf(String signType) {
 /// shown (better one sign too few than an invented one). The ones that began longest ago come first, so a sign that begins later is
 /// the newer one and wins where two replace each other (276 then 280, 283 then 286), and the display's cap of three keeps the newest.
 /// Side, replacement and cap are the display contract's (`sign-rules.json`); the library hands out raw entries.
+///
+/// Signs the camera read ([ContextSign.fromCamera]) come first in priority: what the driver can see is what stands there now. A
+/// camera sign counts as [cameraPriorityM] newer than it is, so it also takes the place of a conflicting database sign that begins
+/// a little after it (the two positions are both estimates), while a database sign that clearly begins later still applies.
 SignColumns signColumnsFor(Iterable<ContextSign> signs) {
+  double key(ContextSign s) => s.startsInM + (s.fromCamera ? cameraPriorityM : 0);
   final shown = [
     for (final s in signs)
       if (s.activeNow && s.confirmed && s.startsInM <= signsShownAheadM && vzNrOf(s.signType) != null) s,
   ]..sort((a, b) {
-      final c = a.startsInM.compareTo(b.startsInM);
+      final c = key(a).compareTo(key(b));
       return c != 0 ? c : a.id.compareTo(b.id);
     });
   var lists = const d.SignLists.empty();

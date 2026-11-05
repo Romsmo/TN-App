@@ -10,6 +10,7 @@ import '../ui/widgets.dart';
 import 'common.dart';
 import 'data_screen.dart';
 import 'info_screen.dart';
+import 'camera_signs_screen.dart';
 import 'display_screen.dart';
 import 'server_screen.dart';
 
@@ -73,6 +74,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: context.t('settings.server'),
                   value: _serverStatus(context, app),
                   onTap: () => _open(const LockGuard(child: ServerScreen())),
+                ),
+                _LinkRow(
+                  icon: Icons.videocam,
+                  color: const Color(0xFFFF2D55),
+                  title: context.t('settings.camera'),
+                  value: cameraSummary(context, s, app.drive.pipeline.modelKnown),
+                  onTap: () => _open(const LockGuard(child: CameraSignsScreen())),
                 ),
                 if (s.displayFeature)
                   _LinkRow(

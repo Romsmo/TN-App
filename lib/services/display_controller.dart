@@ -397,7 +397,7 @@ class DisplayController extends ChangeNotifier {
         ? hour >= s.displayNightStart && hour < s.displayNightEnd
         : hour >= s.displayNightStart || hour < s.displayNightEnd;
     final conn = tn.snapshot.sync?.connection;
-    final signs = s.displaySigns ? signColumnsFor(snap.contextSigns) : const SignColumns.empty();
+    final signs = s.displaySigns ? signColumnsFor([...snap.contextSigns, ...snap.recognizedSigns]) : const SignColumns.empty();
     return DisplayInput(
       snapshot: snap,
       caps: _link?.caps ?? const DisplayCaps(),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../camera/camera_calibration.dart';
 import '../drive/units.dart';
 
 /// Local, non-secret settings. They live in an ordinary app file, never in the Keychain: that survives a reinstall on iOS.
@@ -30,6 +31,9 @@ class Settings {
     this.displayAutoUpdateCheck = false,
     this.displayLastUpdateCheck,
     this.displaySigns = true,
+    this.cameraSigns = false,
+    this.cameraSignsReport = false,
+    this.cameraCalibration = CameraCalibration.none,
   });
 
   /// A server the user entered ("Server verbinden"); null = use discovery from the built-in seeds.
@@ -98,6 +102,15 @@ class Settings {
   /// several devices confirmed.
   final bool displaySigns;
 
+  /// Read traffic signs with the phone's camera during a drive (off at first start; needs the calibration).
+  final bool cameraSigns;
+
+  /// Feed the database from the signs the camera read: confirm what it holds, propose what it lacks (off at first start).
+  final bool cameraSignsReport;
+
+  /// How the camera sits in the car; [CameraCalibration.none] until the owner calibrated it.
+  final CameraCalibration cameraCalibration;
+
   Settings copyWith({
     Object? serverAddress = _unset,
     List<String>? hiddenHazardTypes,
@@ -123,6 +136,9 @@ class Settings {
     int? displayCacheMinutes,
     bool? displayAutoUpdateCheck,
     bool? displaySigns,
+    bool? cameraSigns,
+    bool? cameraSignsReport,
+    CameraCalibration? cameraCalibration,
     Object? displayLastUpdateCheck = _unset,
   }) =>
       Settings(
@@ -150,6 +166,9 @@ class Settings {
         displayCacheMinutes: displayCacheMinutes ?? this.displayCacheMinutes,
         displayAutoUpdateCheck: displayAutoUpdateCheck ?? this.displayAutoUpdateCheck,
         displaySigns: displaySigns ?? this.displaySigns,
+        cameraSigns: cameraSigns ?? this.cameraSigns,
+        cameraSignsReport: cameraSignsReport ?? this.cameraSignsReport,
+        cameraCalibration: cameraCalibration ?? this.cameraCalibration,
         displayLastUpdateCheck: identical(displayLastUpdateCheck, _unset) ? this.displayLastUpdateCheck : displayLastUpdateCheck as int?,
       );
 
@@ -183,6 +202,9 @@ class Settings {
         'displayCacheMinutes': displayCacheMinutes,
         'displayAutoUpdateCheck': displayAutoUpdateCheck,
         'displaySigns': displaySigns,
+        'cameraSigns': cameraSigns,
+        'cameraSignsReport': cameraSignsReport,
+        'cameraCalibration': cameraCalibration.isCalibrated ? cameraCalibration.toJson() : null,
         'displayLastUpdateCheck': displayLastUpdateCheck,
       };
 }
@@ -238,6 +260,9 @@ Settings parseSettings(String? raw, {bool allowDisableDriveLock = true}) {
     displayCacheMinutes: const [5, 10, 30, 60].contains(o['displayCacheMinutes']) ? o['displayCacheMinutes'] as int : d.displayCacheMinutes,
     displayAutoUpdateCheck: _bool(o['displayAutoUpdateCheck'], d.displayAutoUpdateCheck),
     displaySigns: _bool(o['displaySigns'], d.displaySigns),
+    cameraSigns: _bool(o['cameraSigns'], d.cameraSigns),
+    cameraSignsReport: _bool(o['cameraSignsReport'], d.cameraSignsReport),
+    cameraCalibration: CameraCalibration.fromJson(o['cameraCalibration']),
     displayLastUpdateCheck: o['displayLastUpdateCheck'] is int ? o['displayLastUpdateCheck'] as int : null,
   );
 }

@@ -83,4 +83,6 @@ const String componentList = 'Flutter (BSD-3-Clause)\n'
     'geolocator (MIT), flutter_secure_storage (BSD-3-Clause)\n'
     'audioplayers (MIT), flutter_tts (MIT), wakelock_plus (BSD-3-Clause)\n'
     'connectivity_plus (BSD-3-Clause), path_provider (BSD-3-Clause)\n'
-    'url_launcher (BSD-3-Clause), intl (BSD-3-Clause)';
+    'url_launcher (BSD-3-Clause), intl (BSD-3-Clause)\n'
+    'camera (BSD-3-Clause), tflite_flutter (Apache-2.0)\n'
+    'Sign model: trained on the GTSRB and CIFAR-100 pictures, see docs/camera-signs.md';

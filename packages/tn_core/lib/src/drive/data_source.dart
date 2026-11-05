@@ -12,7 +12,9 @@ abstract interface class DriveDataSource {
   Future<bool> limitCovered(double lat, double lng);
 
   /// The traffic signs that apply here and just ahead (raw entries, nearest first). Empty where there are none or none are held.
-  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading);
+  ///
+  /// [includeUnconfirmed] also lists entries that too few devices agreed on (the camera confirms those too).
+  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading, {bool includeUnconfirmed = false});
 }
 
 /// Local reads only: the library answers both from its store without touching the network. The service is looked up at
@@ -38,6 +40,6 @@ class LibraryDataSource implements DriveDataSource {
   }
 
   @override
-  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading) async =>
-      (await _getService()?.getContextSigns(lat, lng, heading: heading))?.signs ?? const [];
+  Future<List<ContextSign>> contextSigns(double lat, double lng, double? heading, {bool includeUnconfirmed = false}) async =>
+      (await _getService()?.getContextSigns(lat, lng, heading: heading, includeUnconfirmed: includeUnconfirmed))?.signs ?? const [];
 }

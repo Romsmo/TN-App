@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import '../camera/sign_recognizer.dart';
+import '../camera/sign_vision.dart';
 import '../texts.dart';
 import '../tn/types.dart';
 import 'data_source.dart';
@@ -83,6 +85,7 @@ class DriveSnapshot {
     this.speedLocked = false,
     this.gpsLost = false,
     this.contextSigns = const [],
+    this.recognizedSigns = const [],
   });
 
   final bool active;
@@ -112,6 +115,9 @@ class DriveSnapshot {
   /// The traffic signs that apply here and just ahead (raw entries of the library; the display's columns are built from them).
   final List<ContextSign> contextSigns;
 
+  /// The signs the phone's camera read on the road (in force or just ahead). They come first where they differ from the database.
+  final List<ContextSign> recognizedSigns;
+
   DriveSnapshot copyWith({
     bool? active,
     bool? simulated,
@@ -127,6 +133,7 @@ class DriveSnapshot {
     bool? speedLocked,
     bool? gpsLost,
     List<ContextSign>? contextSigns,
+    List<ContextSign>? recognizedSigns,
   }) =>
       DriveSnapshot(
         active: active ?? this.active,
@@ -143,6 +150,7 @@ class DriveSnapshot {
         speedLocked: speedLocked ?? this.speedLocked,
         gpsLost: gpsLost ?? this.gpsLost,
         contextSigns: contextSigns ?? this.contextSigns,
+        recognizedSigns: recognizedSigns ?? this.recognizedSigns,
       );
 }
 
@@ -156,6 +164,7 @@ class DriveDeps {
     required this.submitReport,
     required this.vote,
     this.simulated = false,
+    this.vision,
   });
   final DriveDataSource data;
   final Feedback feedback;
@@ -170,6 +179,9 @@ class DriveDeps {
   /// Vote on a report; resolves true when stored.
   final Future<bool> Function(String reportId, bool stillThere) vote;
   final bool simulated;
+
+  /// The camera's sign recognition for this drive; null = the camera is not used.
+  final SignVision? vision;
 }
 
 const int warningShownMs = 12000;
@@ -248,6 +260,7 @@ class DriveSession {
     _previous = null;
     _limitAt = null;
     _lastFixAtMs = deps.now();
+    deps.vision?.start();
     _set(DriveSnapshot(active: true, simulated: deps.simulated));
   }
 
@@ -258,6 +271,7 @@ class DriveSession {
     _lastFix = null;
     _previous = null;
     _items = const [];
+    deps.vision?.start();
     _set(const DriveSnapshot());
   }
 
@@ -283,6 +297,7 @@ class DriveSession {
     if (fix.heading != null) _previous = fix;
     _lastFix = fix;
     _lastFixAtMs = now;
+    deps.vision?.onFix(fix);
 
     final speedLocked = _lock.update(fix.speedKmh, now);
     final locked = speedLocked && settings.lockEnabled;
@@ -300,7 +315,16 @@ class DriveSession {
       locked: locked,
       speedLocked: speedLocked,
       gpsLost: false,
+      recognizedSigns: deps.vision?.signs,
     ));
+  }
+
+  /// The detections of one camera frame (the detector's output). The recognised signs update at once.
+  void onFrame(int frameMs, List<RawDetection> detections) {
+    final vision = deps.vision;
+    if (!_snap.active || vision == null) return;
+    vision.onFrame(frameMs, detections);
+    _set(_snap.copyWith(recognizedSigns: vision.signs));
   }
 
   /// Regular heartbeat (about once a second): lets warnings and the prompt expire, releases a stale lock.
