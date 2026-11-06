@@ -7,6 +7,7 @@ import '../drive/fix.dart';
 import '../drive/geo.dart';
 import '../tn/types.dart';
 import 'camera_calibration.dart';
+import 'speed_signs.dart';
 
 /// One sign the detector found in one camera frame. [vz] is the catalogue number (`276`, `142-10`), the box is normalised to the
 /// upright frame: centre ([x], [y]) and size ([w], [h]).
@@ -43,6 +44,11 @@ class RecognizedSign {
   /// Where the sign stands, as metres driven on the trip's odometer (so "ahead" and "behind" stay right as the car moves).
   double signOdoM;
 
+  /// The point on the road abreast of the sign (the car's line, no lateral offset): where a speed limit starts. Equal to the
+  /// car's position when no heading is known.
+  double roadLat = 0;
+  double roadLng = 0;
+
   /// The sign's position and the direction the car drove in when it saw it. [heading] is null when the receiver gave none: then
   /// [lat]/[lng] are only the car's position and the sign must not be reported.
   double lat;
@@ -59,6 +65,19 @@ class RecognizedSign {
   bool finished = false;
 
   String get signType => 'DE:$vz';
+
+  /// The limit in km/h when this is a speed-limit sign.
+  int? get speedKmh => speedOfVz(vz);
+}
+
+/// The limit the camera read and that is in force now.
+class RecognizedSpeed {
+  const RecognizedSpeed({required this.id, required this.kmh, required this.startsInM});
+  final String id;
+  final int kmh;
+
+  /// Where the sign stands relative to the car (negative = behind).
+  final double startsInM;
 }
 
 /// How the recognition decides. The values are meant to be strict: a missing sign is better than an invented one.
@@ -75,6 +94,12 @@ class RecognizerConfig {
     this.fixMaxAgeMs = 5000,
     this.warningShownM = 400,
     this.otherShownM = 2000,
+    this.speedShownM = 1500,
+    this.speedLeadM = 20,
+    this.speedMinSpanM = 8,
+    this.speedMaxSignWidthM = 1.5,
+    this.speedMinSlopeShare = 0.6,
+    this.speedKeepAfterDbChangeM = 50,
   });
 
   final double minDetectionConfidence;
@@ -102,6 +127,24 @@ class RecognizerConfig {
   /// holds until its end sign (here: at most this far).
   final double warningShownM;
   final double otherShownM;
+
+  /// A speed limit the camera read stays in force this far, unless another limit, the end of all limits, or a change of what the
+  /// database holds for the road replaces it. (The camera does not see the end-of-limit signs, which have no red.)
+  final double speedShownM;
+
+  /// A limit counts from this far before its sign: the sign's position is an estimate, and the driver takes the limit at the sign.
+  final double speedLeadM;
+
+  /// A speed sign is accepted only when the track shows that it is a thing at the roadside the car drives up to, and not something
+  /// that moves with the car (a speed sticker on the back of a lorry): over at least [speedMinSpanM] driven, the sign's apparent size
+  /// must have grown at least [speedMinSlopeShare] of the rate a sign of [speedMaxSignWidthM] (the biggest real one) gives.
+  final double speedMinSpanM;
+  final double speedMaxSignWidthM;
+  final double speedMinSlopeShare;
+
+  /// A newer value of the database for the road gives way to a camera limit only for signs passed more than this far ago (the sign
+  /// stands where the road's limit changes, and both positions are rough).
+  final double speedKeepAfterDbChangeM;
 }
 
 class _Car {
@@ -126,6 +169,9 @@ class _Track {
   double bestDistance = 0;
   bool bestChanged = false;
   RecognizedSign? sign;
+
+  /// (odometer, apparent width) of every frame, for the check that a speed sign is approached.
+  final List<({double odo, double w})> samples = [];
 
   String get leader => (score.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).first.key;
 }
@@ -163,15 +209,35 @@ class SignRecognizer {
   /// The recognised signs that are in force or just ahead, as entries like the library's (for the display's columns).
   List<ContextSign> get signs => [
         for (final s in _active)
-          ContextSign(
-            id: s.id,
-            signType: s.signType,
-            startsInM: s.signOdoM - _odoM,
-            confirmed: true,
-            confirmations: 1,
-            fromCamera: true,
-          ),
+          if (s.speedKmh == null)
+            ContextSign(
+              id: s.id,
+              signType: s.signType,
+              startsInM: s.signOdoM - _odoM,
+              confirmed: true,
+              confirmations: 1,
+              fromCamera: true,
+            ),
       ];
+
+  /// The speed limit the camera read that applies now: the latest speed sign that is at the car or less than
+  /// [RecognizerConfig.speedLeadM] ahead. Null when the camera has read none (or it ended).
+  RecognizedSpeed? get speedLimit {
+    RecognizedSign? best;
+    for (final s in _active) {
+      if (s.speedKmh == null || s.signOdoM - _odoM > config.speedLeadM) continue;
+      if (best == null || s.signOdoM > best.signOdoM) best = s;
+    }
+    return best == null ? null : RecognizedSpeed(id: best.id, kmh: best.speedKmh!, startsInM: best.signOdoM - _odoM);
+  }
+
+  /// Drops the speed limits the car passed more than [passedM] ago: the database has a new value for the road, which is newer
+  /// than the sign. Returns whether one was dropped.
+  bool forgetSpeedPassedBeyond(double passedM) {
+    final n = _active.length;
+    _active.removeWhere((s) => s.speedKmh != null && _odoM - s.signOdoM > passedM);
+    return _active.length != n;
+  }
 
   List<RecognizedSign> get active => List.unmodifiable(_active);
 
@@ -211,7 +277,7 @@ class SignRecognizer {
     if (car == null) return;
     for (final det in detections) {
       if (det.confidence < config.minDetectionConfidence || det.w < config.minBoxWidth) continue;
-      if (vzNrOf('DE:${det.vz}') == null) continue;
+      if (vzNrOf('DE:${det.vz}') == null && !isSpeedVz(det.vz)) continue;
       final off = calibration.bearingOffsetDeg(det.x, det.y);
       if (off.abs() > config.maxBearingOffsetDeg) continue;
       final track = _match(det, frameMs) ?? _open(frameMs);
@@ -255,6 +321,7 @@ class SignRecognizer {
     t.lastX = det.x;
     t.lastY = det.y;
     t.lastW = det.w;
+    t.samples.add((odo: car.odoM, w: det.w));
     if (det.w > t.bestW) {
       t.bestW = det.w;
       t.bestCar = car;
@@ -274,6 +341,9 @@ class SignRecognizer {
     s.lat = pos.lat;
     s.lng = pos.lng;
     s.heading = h;
+    final road = h != null ? destination(car.pos, h, t.bestDistance * math.cos(rad)) : car.pos;
+    s.roadLat = road.lat;
+    s.roadLng = road.lng;
   }
 
   void _promote(int ms) {
@@ -285,6 +355,7 @@ class SignRecognizer {
       final known = t.sign;
       if (known == null) {
         if (n < config.minFrames || mean < config.minMeanConfidence || share < config.minShare || t.bestCar == null) continue;
+        if (isSpeedVz(lead) && !_approached(t)) continue;
         final s = RecognizedSign(
           id: 'cam:${t.id}',
           vz: lead,
@@ -311,6 +382,32 @@ class SignRecognizer {
         }
       }
     }
+  }
+
+  /// Whether the track's size grew as a fixed thing at the roadside does when the car drives up to it. 1 / width falls linearly with
+  /// the distance driven, at a rate of 1 / (focal length x sign width); this fits that line and asks for a slope of at least a share of
+  /// the one the biggest real sign gives. Something that keeps its distance to the car (the sticker on a lorry ahead) has a slope
+  /// near zero.
+  bool _approached(_Track t) {
+    final pts = t.samples;
+    if (pts.length < 3) return false;
+    if (pts.last.odo - pts.first.odo < config.speedMinSpanM) return false;
+    var mo = 0.0, mu = 0.0;
+    for (final p in pts) {
+      mo += p.odo;
+      mu += 1 / p.w;
+    }
+    mo /= pts.length;
+    mu /= pts.length;
+    var cov = 0.0, vr = 0.0;
+    for (final p in pts) {
+      cov += (p.odo - mo) * (1 / p.w - mu);
+      vr += (p.odo - mo) * (p.odo - mo);
+    }
+    if (vr <= 0) return false;
+    final slope = -cov / vr; // 1 / width falls as the odometer rises
+    final weakest = 1 / (config.speedMaxSignWidthM * calibration.focalInImageWidths);
+    return slope >= config.speedMinSlopeShare * weakest;
   }
 
   /// A new sign takes the place of the ones it conflicts with (by the display's rules). The same sign seen again is the same
@@ -346,7 +443,7 @@ class SignRecognizer {
   void _expire() {
     _active.removeWhere((s) {
       final major = d.signMajorOf(s.vz);
-      final limit = major < 200 ? config.warningShownM : config.otherShownM;
+      final limit = s.speedKmh != null ? config.speedShownM : (major < 200 ? config.warningShownM : config.otherShownM);
       return _odoM - s.signOdoM > limit;
     });
   }

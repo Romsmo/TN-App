@@ -450,29 +450,45 @@ class _DriveViewState extends State<DriveView> {
                           if (limit != null)
                             Semantics(
                               container: true,
-                              label: context.t('drive.limit', {'value': limit}),
+                              label: context.t(s.limitFromCamera ? 'drive.limitCamera' : 'drive.limit', {'value': limit}),
                               child: ExcludeSemantics(
-                                child: Container(
-                                  width: 96,
-                                  height: 96,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: DrivePalette.sign,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: DrivePalette.signRing,
-                                      width: 9,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    Container(
+                                      width: 96,
+                                      height: 96,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: DrivePalette.sign,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: DrivePalette.signRing,
+                                          width: 9,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '$limit',
+                                        style: const TextStyle(
+                                          fontSize: 38,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: -1,
+                                          color: DrivePalette.signInk,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  child: Text(
-                                    '$limit',
-                                    style: const TextStyle(
-                                      fontSize: 38,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: -1,
-                                      color: DrivePalette.signInk,
-                                    ),
-                                  ),
+                                    // the limit was read from a sign by the camera, not taken from the database
+                                    if (s.limitFromCamera)
+                                      const Positioned(
+                                        right: -4,
+                                        bottom: -4,
+                                        child: CircleAvatar(
+                                          radius: 13,
+                                          backgroundColor: DrivePalette.signInk,
+                                          child: Icon(Icons.photo_camera, size: 15, color: DrivePalette.sign),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ),

@@ -109,8 +109,8 @@ class DriveController extends ChangeNotifier {
   bool get _cameraWanted => settings.value.cameraSigns && settings.value.cameraCalibration.isCalibrated;
 
   /// Recognition and reporting of the camera's signs. Reports and confirmations are queued like every other write; the library
-  /// signs them with the device key when it syncs. What leaves the phone is decided by the reporter (see `SignReporter`) and only
-  /// while the owner's report switch is on.
+  /// signs them with the device key when it syncs. What leaves the phone is decided by the reporters (see `SignReporter` and
+  /// `SpeedLimitReporter`) and only while the owner's report switch is on.
   SignVision _buildVision() {
     final data = LibraryDataSource(() => tn.service);
     return SignVision(
@@ -127,6 +127,26 @@ class DriveController extends ChangeNotifier {
           final s = tn.service;
           if (s == null) return false;
           await s.voteContextSign(id, agrees);
+          return true;
+        },
+        enabled: () => settings.value.cameraSignsReport,
+      ),
+      speedReporter: SpeedLimitReporter(
+        readLimit: (lat, lng, heading) async {
+          final a = await data.speedLimit(lat, lng, heading);
+          return a == null ? null : (value: a.value, unit: a.unit);
+        },
+        covered: data.limitCovered,
+        reportWrong: (lat, lng, kmh) async {
+          final s = tn.service;
+          if (s == null) return false;
+          await s.reportWrongSpeedLimit(lat: lat, lng: lng, proposedValue: kmh, unit: SpeedUnit.kmh);
+          return true;
+        },
+        reportInterval: (from, to, kmh) async {
+          final s = tn.service;
+          if (s == null) return false;
+          await s.reportSpeedLimitInterval(from: from, to: to, value: kmh, unit: SpeedUnit.kmh);
           return true;
         },
         enabled: () => settings.value.cameraSignsReport,

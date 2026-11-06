@@ -7,6 +7,8 @@ export 'src/camera/sign_detector.dart';
 export 'src/camera/sign_recognizer.dart';
 export 'src/camera/sign_reporter.dart';
 export 'src/camera/sign_vision.dart';
+export 'src/camera/speed_reporter.dart';
+export 'src/camera/speed_signs.dart';
 export 'src/connection.dart';
 export 'src/display/display_feed.dart';
 export 'src/display/display_link.dart';

@@ -3,7 +3,13 @@
 * The `.ipa` is **unsigned**. It is for sideloading on your own iPhone with your own Apple ID (for example with
   [xtool](https://github.com/xtool-org/xtool), see `docs/ios-install.md`); with a free Apple account the profile lasts 7 days.
   It is not on TestFlight or the App Store. Minimum iOS 13.1.
-* **New in beta 6:** **traffic signs by camera** (*Settings -> Signs by camera*, off until you switch it on): during a drive the phone's
+* **New in beta 7:** the camera also reads **speed-limit signs** (20 to 130 km/h). The limit it reads is shown as the drive's limit (with a
+  small camera badge), takes the place of the database's limit, and counts for the over-the-limit warning and the display. It ends at the
+  next limit sign, after 1.5 km, or when the database later holds another value for the road; the signs that end a limit have no red and are
+  not read. With the report switch on, the app proposes the limit to the database when the database holds another value or none. **Not
+  tested on a road:** the limits 40, 90, 110 and 130 were trained on repainted pictures only, never tested on real signs; a lorry's speed
+  sticker is kept out by a check that is tested with made-up data only. Additional plates ("bei Nässe", "7-17 Uhr") are not read.
+* **Since beta 6:** **traffic signs by camera** (*Settings -> Signs by camera*, off until you switch it on): during a drive the phone's
   camera reads signs with a red border (warning and prohibition signs the display can draw); what it sees is shown on the display before
   the database's signs. Needs the **calibration** first (drag a cross onto the vanishing point of the road). A second switch lets the
   camera feed the database (confirm known signs, propose new ones; sign type, place and direction only, never an image). **Not tested

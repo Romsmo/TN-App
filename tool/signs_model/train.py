@@ -1,8 +1,9 @@
 """Trains the classifier that reads a cropped traffic-sign candidate (see docs/camera-signs.md).
 
 Input of the network: a 32 x 32 RGB crop, values 0..1 (NHWC), cut with a margin of 15 % around the red border of the sign, exactly as
-the app's candidate finder cuts it. Output: 44 probabilities, the 43 classes of the German Traffic Sign Recognition Benchmark (GTSRB) in
-its numbering plus "not a sign" (class 43). The classes are listed in `classes.py`.
+the app's candidate finder cuts it. Output: 48 probabilities, the 43 classes of the German Traffic Sign Recognition Benchmark (GTSRB) in
+its numbering, four more speed limits the GTSRB lacks (40, 90, 110, 130; classes 43-46, trained on made-up pictures from
+`speed_synth.py`) and "not a sign" (class 47). The classes are listed in `classes.py`.
 
 Real training needs data that is NOT part of this repository and whose terms of use you must check yourself first:
 
@@ -34,9 +35,10 @@ from PIL import Image
 
 sys.path.insert(0, os.path.dirname(__file__))
 import classes  # noqa: E402
+import speed_synth  # noqa: E402
 
 SIZE = classes.SIZE
-N_CLASSES = 44
+N_CLASSES = classes.N_CLASSES
 MARGIN = 0.15
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -106,6 +108,17 @@ def cifar_negatives(path, count, rng):
     flip = rng.random(len(out)) < 0.5
     out[flip] = out[flip][:, :, ::-1]
     return out
+
+
+def cifar_images(path, count, rng):
+    """Some CIFAR-100 pictures as they are, as backgrounds for the made-up speed signs."""
+    import io
+
+    import pyarrow.parquet as pq
+
+    col = pq.read_table(path, columns=["img"]).column("img").to_pylist()
+    pick = rng.choice(len(col), min(count, len(col)), replace=False)
+    return np.stack([np.asarray(Image.open(io.BytesIO(col[i]["bytes"])).convert("RGB")) for i in pick])
 
 
 def distractors(count, rng):
@@ -207,7 +220,7 @@ def load_background(root, gtsdb_gt, per_image_random=6, rng=None):
 
 
 def synthetic(rng):
-    """Class k is a ring of a fixed colour pattern (k mod 7) with a bar at a fixed angle (k mod 5); class 43 is noise and blobs."""
+    """Class k is a ring of a fixed colour pattern (k mod 7) with a bar at a fixed angle (k mod 5); the last class is noise and blobs."""
     xs, ys, tracks = [], [], []
     yy, xx = np.mgrid[0:SIZE, 0:SIZE]
     d = np.sqrt((xx - SIZE / 2 + 0.5) ** 2 + (yy - SIZE / 2 + 0.5) ** 2)
@@ -215,7 +228,7 @@ def synthetic(rng):
         for t in range(12):
             for _ in range(6):
                 img = np.full((SIZE, SIZE, 3), 120, np.float32) + rng.normal(0, 8, (SIZE, SIZE, 3))
-                if c < 43:
+                if c < classes.N_SIGN_CLASSES:
                     ring = (d <= 13) & (d >= 9)
                     img[ring] = (200, 20 + 10 * (c % 7), 25)
                     inner = d < 9
@@ -277,12 +290,17 @@ def main():
     ap.add_argument("--background")
     ap.add_argument("--gtsdb-gt")
     ap.add_argument("--synthetic", action="store_true")
+    ap.add_argument("--speed-new", type=int, default=2000, help="made-up and repainted pictures per limit the GTSRB lacks (40, 90, 110, 130)")
+    ap.add_argument("--speed-known", type=int, default=600, help="made-up and repainted pictures per limit the GTSRB has (so that 'made-up' is no hint)")
+    ap.add_argument("--speed-gap", action="store_true",
+                    help="experiment: leave the real pictures of the known limits out of the training; the official test then says how "
+                         "well made-up pictures alone teach the real signs (never installed)")
     ap.add_argument("--epochs", type=int, default=25)
     ap.add_argument("--out", default=os.path.join(HERE, "out"))
     ap.add_argument("--install", action="store_true", help="copy the result into assets/models/ (never with --synthetic)")
     args = ap.parse_args()
-    if args.synthetic and args.install:
-        sys.exit("a synthetic model is never installed")
+    if (args.synthetic or args.speed_gap) and args.install:
+        sys.exit("a synthetic model or a gap experiment is never installed")
     have_signs = args.gtsrb or args.gtsrb_parquet
     have_negatives = args.background or args.cifar
     if not args.synthetic and not (have_signs and have_negatives):
@@ -297,6 +315,35 @@ def main():
         x, y, tracks = synthetic(rng)
     else:
         x, y, tracks = load_parquet(args.gtsrb_parquet) if args.gtsrb_parquet else load_gtsrb(args.gtsrb)
+        # real speed crops with a red ring: the ground for repainted signs (the real crops of the known limits are removed first in the gap
+        # experiment, but still serve as ground: only their ring, light and blur are used, never their numbers)
+        sp = np.isin(y, list(classes.GTSRB_SPEEDS))
+        yy_, xx_ = np.mgrid[0:32, 0:32]
+        dist_ = np.hypot(xx_ - 15.5, yy_ - 15.5)
+        ring = (dist_ > 9.5) & (dist_ < 12.5)
+        red_share = is_sign_red(x[sp])[:, ring].mean(1)
+        bases = x[sp][red_share >= 0.35]
+        print("repaint grounds:", len(bases), "of", int(sp.sum()))
+        if args.speed_gap:
+            keep = ~sp
+            x, y, tracks = x[keep], y[keep], tracks[keep]
+        # speed signs for all twelve limits: real signs with new numbers, plus a share of made-up ones (the CIFAR pictures as grounds);
+        # the four limits the GTSRB lacks exist only like this
+        bgs = cifar_images(args.cifar, 3000, rng) if args.cifar else None
+        new_classes = range(43, 43 + len(classes.EXTRA_SPEEDS))
+        total = {v: (args.speed_new if c in new_classes else args.speed_known) for c, v in classes.SPEED_OF_CLASS.items()}
+        if args.speed_gap:
+            total = {v: args.speed_new for v in total}
+        made_up = {v: n // 4 for v, n in total.items()}
+        repainted = {v: n - n // 4 for v, n in total.items()}
+        rx, rv = speed_synth.make_repainted(bases, sorted(repainted), repainted, rng)
+        mx, mv = speed_synth.make(sorted(made_up), made_up, rng, bgs)
+        sx, sv = np.concatenate([rx, mx]), np.concatenate([rv, mv])
+        class_of_value = {v: c for c, v in classes.SPEED_OF_CLASS.items()}
+        sy = np.array([class_of_value[int(v)] for v in sv])
+        x = np.concatenate([x, sx])
+        y = np.concatenate([y, sy])
+        tracks = np.concatenate([tracks, 70000 + sy * 1000 + (np.arange(len(sy)) % 40)])
         want = max(2000, len(x) // 5)  # about one "not a sign" crop for every five sign crops
         parts = []
         if args.background:
@@ -343,7 +390,7 @@ def main():
     for c, vz in classes.VZ.items():
         m = yv == c
         if m.any():
-            used[vz] = {"name": classes.GTSRB_NAMES[c], "n": int(m.sum()), "recall": float((pred[m] == c).mean())}
+            used[vz] = {"name": classes.NAMES[c], "n": int(m.sum()), "recall": float((pred[m] == c).mean())}
     report["usedClasses"] = used
     # what the app does with a reading: only a confident one is taken
     conf = probs.max(1)
@@ -360,6 +407,21 @@ def main():
             "accuracyOfUsedClasses": float((pred_t[np.isin(ys_, list(classes.VZ))] == ys_[np.isin(ys_, list(classes.VZ))]).mean()),
             "readAsNotASign": float((pred_t == classes.BACKGROUND).mean()),
             "takenAt0.6": float((pt.max(1) >= 0.6).mean()),
+        }
+        # the classes of beta 6 (without the speed limits), to compare with the figure of that model
+        old = [c for c in classes.VZ if c not in classes.SPEED_OF_CLASS]
+        om = np.isin(ys_, old)
+        report["officialTest"]["accuracyOfBeta6Classes"] = float((pred_t[om] == ys_[om]).mean())
+        # the real speed signs of the official test (the GTSRB's eight limits): how often the right limit is read
+        spd = np.isin(ys_, list(classes.GTSRB_SPEEDS))
+        report["officialTestSpeed"] = {
+            "crops": int(spd.sum()),
+            "recall": float((pred_t[spd] == ys_[spd]).mean()),
+            "readAsAnotherSpeed": float(np.isin(pred_t[spd], list(classes.SPEED_OF_CLASS)).mean() - (pred_t[spd] == ys_[spd]).mean()),
+            "readAsNotASign": float((pred_t[spd] == classes.BACKGROUND).mean()),
+            "perLimit": {str(v): float((pred_t[ys_ == c] == c).mean()) for c, v in classes.GTSRB_SPEEDS.items()},
+            "ofThemAs": {str(v): {str(classes.SPEED_OF_CLASS.get(int(k), k)): int(n) for k, n in zip(*np.unique(pred_t[ys_ == c], return_counts=True))}
+                         for c, v in classes.GTSRB_SPEEDS.items()},
         }
     print(json.dumps(report, indent=1))
 

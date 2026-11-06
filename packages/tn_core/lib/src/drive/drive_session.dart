@@ -76,6 +76,8 @@ class DriveSnapshot {
     this.speedKmh,
     this.heading,
     this.limit,
+    this.limitFromCamera = false,
+    this.databaseLimit,
     this.limitUnavailable = false,
     this.speedState = SpeedState.ok,
     this.warnings = const [],
@@ -94,7 +96,15 @@ class DriveSnapshot {
 
   /// The direction of travel in degrees from north (0..360), or null while it is not known.
   final double? heading;
+
+  /// The limit shown and checked against: the one the camera read where it read one, else the database's.
   final Limit? limit;
+
+  /// The shown [limit] was read from a sign by the camera.
+  final bool limitFromCamera;
+
+  /// What the database holds for the road (the same as [limit] unless the camera read another one).
+  final Limit? databaseLimit;
 
   /// There is no limit shown because the offline data does not cover this spot (not because none is on record).
   final bool limitUnavailable;
@@ -124,6 +134,8 @@ class DriveSnapshot {
     Object? speedKmh = _unset,
     Object? heading = _unset,
     Object? limit = _unset,
+    bool? limitFromCamera,
+    Object? databaseLimit = _unset,
     bool? limitUnavailable,
     SpeedState? speedState,
     List<ActiveWarning>? warnings,
@@ -141,6 +153,8 @@ class DriveSnapshot {
         speedKmh: identical(speedKmh, _unset) ? this.speedKmh : speedKmh as double?,
         heading: identical(heading, _unset) ? this.heading : heading as double?,
         limit: identical(limit, _unset) ? this.limit : limit as Limit?,
+        limitFromCamera: limitFromCamera ?? this.limitFromCamera,
+        databaseLimit: identical(databaseLimit, _unset) ? this.databaseLimit : databaseLimit as Limit?,
         limitUnavailable: limitUnavailable ?? this.limitUnavailable,
         speedState: speedState ?? this.speedState,
         warnings: warnings ?? this.warnings,
@@ -237,6 +251,14 @@ class DriveSession {
   ({double lat, double lng, int at})? _limitAt;
   Map<String, String> _rawTypes = {};
 
+  /// What the database said about the road's limit, and whether its offline data covers the spot.
+  Limit? _dbLimit;
+  bool _dbUnavailable = false;
+
+  /// The camera limit that is shown and what the database held when it began to apply (to notice a newer database value).
+  String? _cameraLimitId;
+  Limit? _dbAtCameraLimit;
+
   void Function() subscribe(void Function() listener) {
     _listeners.add(listener);
     return () => _listeners.remove(listener);
@@ -259,6 +281,10 @@ class DriveSession {
     _lastFix = null;
     _previous = null;
     _limitAt = null;
+    _dbLimit = null;
+    _dbUnavailable = false;
+    _cameraLimitId = null;
+    _dbAtCameraLimit = null;
     _lastFixAtMs = deps.now();
     deps.vision?.start();
     _set(DriveSnapshot(active: true, simulated: deps.simulated));
@@ -307,16 +333,48 @@ class DriveSession {
     final warnings = _applyEvents(events, now, settings);
     _handlePassed(events, now, settings);
 
-    _set(_snap.copyWith(
+    _set(_withLimit(_snap.copyWith(
       speedKmh: fix.speedKmh,
       heading: fix.heading,
-      speedState: speedState(fix.speedKmh, _snap.limit),
       warnings: warnings,
       locked: locked,
       speedLocked: speedLocked,
       gpsLost: false,
       recognizedSigns: deps.vision?.signs,
-    ));
+    )));
+  }
+
+  /// The limit to show: what the camera read where it read one (its sign is the one the driver sees), else the database's. The speed
+  /// state follows the shown limit.
+  DriveSnapshot _withLimit(DriveSnapshot s) {
+    final vision = deps.vision;
+    final camera = vision?.speedLimit;
+    if (camera?.id != _cameraLimitId) {
+      _cameraLimitId = camera?.id;
+      _dbAtCameraLimit = _dbLimit;
+    }
+    final Limit? shown = camera != null ? (value: camera.kmh, unit: SpeedUnit.kmh) : _dbLimit;
+    return s.copyWith(
+      limit: shown,
+      limitFromCamera: camera != null,
+      databaseLimit: _dbLimit,
+      limitUnavailable: camera != null ? false : _dbUnavailable,
+      speedState: speedState(s.speedKmh, shown),
+    );
+  }
+
+  /// The database has a limit that differs from the one it held when the camera's sign began to apply, and from the camera's value,
+  /// for a road the car has driven on for a while: that is newer than the sign, so the camera's value gives way.
+  void _databaseChanged() {
+    final vision = deps.vision;
+    final camera = vision?.speedLimit;
+    final db = _dbLimit;
+    if (vision == null || camera == null || db == null) return;
+    final before = _dbAtCameraLimit;
+    final sameAsBefore = before != null && before.value == db.value && before.unit == db.unit;
+    final sameAsCamera = db.unit == SpeedUnit.kmh && db.value.round() == camera.kmh;
+    if (sameAsBefore || sameAsCamera) return;
+    vision.forgetSpeedPassedBeyond(vision.recognizer.config.speedKeepAfterDbChangeM);
   }
 
   /// The detections of one camera frame (the detector's output). The recognised signs update at once.
@@ -324,7 +382,7 @@ class DriveSession {
     final vision = deps.vision;
     if (!_snap.active || vision == null) return;
     vision.onFrame(frameMs, detections);
-    _set(_snap.copyWith(recognizedSigns: vision.signs));
+    _set(_withLimit(_snap.copyWith(recognizedSigns: vision.signs)));
   }
 
   /// Regular heartbeat (about once a second): lets warnings and the prompt expire, releases a stale lock.
@@ -393,7 +451,10 @@ class DriveSession {
         final Limit? limit = answer == null ? null : (value: answer.value, unit: answer.unit);
         final unavailable = limit == null ? !(await deps.data.limitCovered(fix.lat, fix.lng)) : false;
         if (!_snap.active) return;
-        _set(_snap.copyWith(limit: limit, limitUnavailable: unavailable, speedState: speedState(_snap.speedKmh, limit)));
+        _dbLimit = limit;
+        _dbUnavailable = unavailable;
+        _databaseChanged();
+        _set(_withLimit(_snap));
       } catch (_) {
         // no limit shown rather than a wrong one, and no claim about coverage that could not be read
       }

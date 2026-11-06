@@ -33,7 +33,7 @@ class FakeData implements DriveDataSource {
   List<ContextSign> signs;
   bool failSigns = false;
   final List<NearbyItem> items;
-  final int? limitValue;
+  int? limitValue;
   final bool covered;
 
   @override

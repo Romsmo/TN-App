@@ -45,6 +45,9 @@ class CameraCalibration {
   /// Focal length in units of the image width.
   double get _f => 0.5 / math.tan(hFovDeg * math.pi / 360);
 
+  /// The focal length in units of the image width: a thing of width W metres at a distance of D metres fills W * this / D of the image.
+  double get focalInImageWidths => _f;
+
   /// The point (x, y) with the roll taken out, as offsets from the vanishing point in units of the image width.
   ({double dx, double dy}) _level(double x, double y) {
     final p = _unrolled(x, y);

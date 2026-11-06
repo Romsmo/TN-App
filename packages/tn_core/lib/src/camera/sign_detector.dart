@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import '../display/sign_columns.dart';
 import 'camera_calibration.dart';
 import 'sign_recognizer.dart';
+import 'speed_signs.dart';
 
 /// One camera frame, upright, as plain RGB (three bytes per pixel, row after row).
 class SignFrame {
@@ -163,7 +164,7 @@ Float32List cropForClassifier(SignFrame frame, SignCandidate c, int size, {doubl
 }
 
 /// The detector the app runs: the candidate finder proposes regions, the classifier reads them, and what it reads as a sign the
-/// display can draw leaves as a detection.
+/// display can draw, or as a speed limit, leaves as a detection.
 class FinderSignDetector implements SignDetector {
   FinderSignDetector({
     required this.classifier,
@@ -175,8 +176,8 @@ class FinderSignDetector implements SignDetector {
 
   final SignClassifier classifier;
 
-  /// The catalogue number of each class (`276`, `142-10`), or null for a class the app does not use (a speed limit, a direction
-  /// sign). One entry per class except the last, which is "not a sign".
+  /// The catalogue number of each class (`276`, `142-10`; a speed limit is `274-<km/h>`), or null for a class the app does not use (a
+  /// direction sign). One entry per class except the last, which is "not a sign".
   final List<String?> labels;
   final CameraCalibration Function() calibration;
   final CandidateFinder finder;
@@ -199,7 +200,7 @@ class FinderSignDetector implements SignDetector {
       }
       if (best >= labels.length || p[best] < minProbability) continue; // "not a sign" or unsure
       final vz = labels[best];
-      if (vz == null || vzNrOf('DE:$vz') == null) continue;
+      if (vz == null || (vzNrOf('DE:$vz') == null && !isSpeedVz(vz))) continue;
       final c = candidates[i];
       out.add(RawDetection(
         vz: vz,

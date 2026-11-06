@@ -67,3 +67,8 @@ fine/coarse location and a foreground service with a notification while the driv
   Signed with the device key, on the next sync. No image, no speed. This is the one place where the app sends an exact coordinate **without a
   deliberate action** (the table above says "only on a deliberate action": not true for this switch); the switch is the deliberate action.
   At most 40 per trip.
+* ⚠ **Speed limits (beta 7, same switch):** a speed sign the camera read reliably is checked against the database's limit for the road
+  about 60 m after the sign. Another value -> "that limit is wrong" is proposed (the value and the **car's own coordinate** at that
+  moment, no heading, no image); no limit on record -> the stretch up to the next limit sign is proposed (value and the two road points
+  abreast of the two signs). Signed with the device key, on the next sync, through the library's queue like every write. At most 20 per
+  trip. The same limit as the database's sends nothing. As above this is an exact coordinate without a tap, behind the switch.

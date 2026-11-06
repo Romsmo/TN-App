@@ -111,7 +111,7 @@ void main() {
 
     test('a low-confidence reading and a sign the display cannot draw are ignored', () {
       see(r, '276', conf: 0.6);
-      see(r, '274', t0: 4000);
+      see(r, '274-33', t0: 4000); // not a limit a sign shows
       see(r, '999', t0: 6000);
       expect(r.signs, isEmpty);
     });
