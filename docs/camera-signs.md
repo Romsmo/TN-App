@@ -33,7 +33,7 @@ degrees, or the road does not lead to the middle.
 
 ## Speed limits (beta 7)
 
-The classifier reads the limits 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130 as `274-<km/h>`. They are not signs of the display's
+The classifier reads the limits 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130 as `274-<km/h>`. They are not signs of the display's
 catalogue (the display draws the limit from a number), so they never enter the sign columns; they set the limit of the drive.
 
 * **Shown:** the latest speed sign the car has reached (or is less than 20 m before) sets `DriveSnapshot.limit`, with `limitFromCamera`;
@@ -94,10 +94,10 @@ tracking above.
 Data used for the model in the app (see `docs/decisions.md` D-N27 for the figures and the licence question):
 
 * GTSRB: the Hugging Face mirror `bazyl/GTSRB` (train 236 MB, test 76 MB), the official test set only for the final numbers.
-* **Speed limits 40, 90, 110, 130** are not in the GTSRB. Their classes (43-46) are trained on **pictures made here** (`speed_synth.py`):
+* **Speed limits 40, 90, 110, 130 and the small 5, 10, 15, 25** (pedestrian zones, car parks, residential areas) are not in the GTSRB. Their classes (43-50) are trained on **pictures made here** (`speed_synth.py`):
   real GTSRB speed-sign crops whose number is wiped out and written again in a DIN-like face (Windows' Bahnschrift), so ring, light, blur
   and noise stay real (`repaint`), plus a quarter of fully drawn signs. The other eight limits get the same treatment for a share of their
-  pictures so that "painted" is no hint. **No real picture of a 40, 90, 110 or 130 sign was ever used or tested.**
+  pictures so that "painted" is no hint. **No real picture of a 5, 10, 15, 25, 40, 90, 110 or 130 sign was ever used or tested.**
 * "Not a sign": CIFAR-100 training pictures (`uoft-cs/cifar100`, 119 MB: vehicles, houses, plants, sky ...), the ones with the most red
   first, plus made-up red distractors (tail lights, banners, barriers) and sign crops moved off-centre.
 
@@ -108,15 +108,15 @@ python tool/signs_model/train.py --gtsrb-parquet train.parquet --gtsrb-test test
 (`--synthetic` tests the script without data; its model is never installed.) The result and its numbers are written to
 `out/report.json`.
 
-**Numbers of the model in the app** (beta 7, 48 classes; beta 6 had 44, see below; 30 epochs, `report.json`):
+**Numbers of the model in the app** (with the small limits 5, 10, 15, 25: 52 classes; beta 7 had 48, beta 6 had 44; 30 epochs, `report.json`):
 
-* **Official GTSRB test set, the eight real speed limits** (4,170 crops): 98.7 % read as the right limit, 1.0 % as another limit, 0.2 % as
-  "not a sign". Weakest: 60 (95.6 %, 18 of 450 read as 80). **For 40, 90, 110, 130 there is no real data to measure with.** The only
+* **Official GTSRB test set, the eight real speed limits** (4,170 crops): 98.9 % read as the right limit, 0.9 % as another limit, 0.1 % as
+  "not a sign". Weakest: 60 (97.3 %). **For 40, 90, 110, 130 and 5, 10, 15, 25 there is no real data to measure with.** The only
   estimate is an experiment (`train.py --speed-gap`): a network that never saw a real sign of the eight limits, only painted ones, read
   the real ones **82 %** right (with fully drawn signs only: 63 %); the weakest were the three-digit limits (100: 54 %, read as 120 or
-  130) and 80 (69 %). Expect the four new limits to be read worse than the other eight.
-* Held-out part of the training data: 99.1 % correct (includes painted crops, which says little about the road).
-* Official test set over all 43 classes: 97.7 %; over the 22 sign classes of beta 6: 96.7 % (beta 6: 96.9 %); 1.0 % read as "not a sign".
+  130) and 80 (69 %). Expect the eight new limits to be read worse than the other eight; 5 / 10 / 15 / 25 and 10 / 100 / 110 are the likeliest mix-ups (one or two digits are only a few pixels wide at 32 x 32).
+* Held-out part of the training data: 99.4 % correct (includes painted crops, which says little about the road).
+* Official test set over all 43 classes: 97.8 %; over the 22 sign classes of beta 6: 96.6 % (beta 6: 96.9 %); 1.0 % read as "not a sign".
 
 Numbers of the beta 6 model (kept for comparison, `tool/signs_model/out/report.json` then):
 

@@ -3,6 +3,7 @@
 * The `.ipa` is **unsigned**. It is for sideloading on your own iPhone with your own Apple ID (for example with
   [xtool](https://github.com/xtool-org/xtool), see `docs/ios-install.md`); with a free Apple account the profile lasts 7 days.
   It is not on TestFlight or the App Store. Minimum iOS 13.1.
+* **New in beta 8:** the camera also reads the **small speed limits** 5, 10, 15 and 25 km/h (pedestrian zones, car parks) - trained on repainted pictures only, never tested on real signs. The **tab bar** at the bottom now has a sliding highlight and can be dragged across the tabs like in iOS 26.
 * **New in beta 7:** the camera also reads **speed-limit signs** (20 to 130 km/h). The limit it reads is shown as the drive's limit (with a
   small camera badge), takes the place of the database's limit, and counts for the over-the-limit warning and the display. It ends at the
   next limit sign, after 1.5 km, or when the database later holds another value for the road; the signs that end a limit have no red and are

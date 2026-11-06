@@ -685,8 +685,10 @@ Future<T?> showSheet<T>(
   ),
 );
 
-/// The floating pill tab bar; blurred on iOS-like surfaces.
-class FloatingTabBar extends StatelessWidget {
+/// The floating pill tab bar; blurred on iOS-like surfaces. Like the tab bar of iOS 26 it has a highlight that slides between the tabs,
+/// and a finger resting on it can be dragged across the tabs: the highlight follows the finger (a tick on every tab it reaches) and the
+/// tab under it is opened when the finger lifts.
+class FloatingTabBar extends StatefulWidget {
   const FloatingTabBar({
     super.key,
     required this.index,
@@ -700,13 +702,57 @@ class FloatingTabBar extends StatelessWidget {
   final bool dark;
 
   @override
+  State<FloatingTabBar> createState() => _FloatingTabBarState();
+}
+
+class _FloatingTabBarState extends State<FloatingTabBar> {
+  /// Where the highlight is while a finger drags it, as a fractional tab index; null when no finger is on the bar.
+  double? _drag;
+  int? _reached;
+
+  int get _count => widget.items.length;
+
+  /// The fractional tab index under a horizontal position [x] of a bar [width] wide (the centre of tab i is i).
+  double _at(double x, double width) =>
+      (x / (width / _count) - 0.5).clamp(0, _count - 1).toDouble();
+
+  void _move(double x, double width) {
+    final pos = _at(x, width);
+    final tab = pos.round();
+    if (tab != _reached) {
+      _reached = tab;
+      HapticFeedback.selectionClick();
+    }
+    setState(() => _drag = pos);
+  }
+
+  void _release() {
+    final tab = (_drag ?? widget.index.toDouble()).round();
+    setState(() {
+      _drag = null;
+      _reached = null;
+    });
+    if (tab != widget.index) widget.onSelect(tab);
+  }
+
+  void _cancel() {
+    if (_drag == null) return;
+    setState(() {
+      _drag = null;
+      _reached = null;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final bg = dark
+    final bg = widget.dark
         ? const Color(0xFF1B2430)
         : c.surface.withValues(alpha: 0.82);
-    final active = dark ? const Color(0xFF5BB0F0) : c.tint;
-    final idle = dark ? const Color(0xFFA3AAB2) : c.textSecondary;
+    final active = widget.dark ? const Color(0xFF5BB0F0) : c.tint;
+    final idle = widget.dark ? const Color(0xFFA3AAB2) : c.textSecondary;
+    final items = widget.items;
+    final shown = _drag?.round() ?? widget.index; // the tab that looks selected
     return Padding(
       padding: EdgeInsets.fromLTRB(
         Space.lg,
@@ -728,66 +774,95 @@ class FloatingTabBar extends StatelessWidget {
                 width: 0.5,
               ),
             ),
-            child: Row(
-              children: [
-                for (var i = 0; i < items.length; i++)
-                  Expanded(
-                    child: Semantics(
-                      button: true,
-                      selected: i == index,
-                      label: items[i].label,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(Radii.pill),
-                        onTap: () {
-                          if (i != index) HapticFeedback.selectionClick();
-                          onSelect(i);
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 220),
-                          curve: Curves.easeOutCubic,
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 6,
-                          ),
+            child: LayoutBuilder(
+              builder: (context, box) {
+                final width = box.maxWidth;
+                final cell = width / items.length;
+                final pos = _drag ?? widget.index.toDouble();
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapUp: (d) {
+                    final tab = _at(d.localPosition.dx, width).round();
+                    if (tab != widget.index) {
+                      HapticFeedback.selectionClick();
+                      widget.onSelect(tab);
+                    }
+                  },
+                  onHorizontalDragStart: (d) =>
+                      _move(d.localPosition.dx, width),
+                  onHorizontalDragUpdate: (d) =>
+                      _move(d.localPosition.dx, width),
+                  onHorizontalDragEnd: (d) => _release(),
+                  onHorizontalDragCancel: _cancel,
+                  child: Stack(
+                    children: [
+                      // the highlight: slides to the chosen tab, or follows the finger
+                      AnimatedPositioned(
+                        duration: _drag != null
+                            ? Duration.zero
+                            : const Duration(milliseconds: 280),
+                        curve: Curves.easeOutCubic,
+                        left: pos * cell + 4,
+                        top: 6,
+                        bottom: 6,
+                        width: cell - 8,
+                        child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: i == index
-                                ? active.withValues(alpha: 0.14)
-                                : Colors.transparent,
+                            color: active.withValues(
+                              alpha: _drag != null ? 0.22 : 0.14,
+                            ),
                             borderRadius: BorderRadius.circular(Radii.pill),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              AnimatedScale(
-                                scale: i == index ? 1.08 : 1,
-                                duration: const Duration(milliseconds: 220),
-                                curve: Curves.easeOutBack,
-                                child: Icon(
-                                  iconFor(
-                                    i == index
-                                        ? items[i].iconActive
-                                        : items[i].icon,
-                                  ),
-                                  size: 24,
-                                  color: i == index ? active : idle,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                items[i].label,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: i == index ? active : idle,
-                                ),
-                              ),
-                            ],
                           ),
                         ),
                       ),
-                    ),
+                      Row(
+                        children: [
+                          for (var i = 0; i < items.length; i++)
+                            Expanded(
+                              child: Semantics(
+                                button: true,
+                                selected: i == widget.index,
+                                label: items[i].label,
+                                onTap: () => widget.onSelect(i),
+                                excludeSemantics: true,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    AnimatedScale(
+                                      scale: i == shown ? 1.08 : 1,
+                                      duration: const Duration(
+                                        milliseconds: 220,
+                                      ),
+                                      curve: Curves.easeOutBack,
+                                      child: Icon(
+                                        iconFor(
+                                          i == shown
+                                              ? items[i].iconActive
+                                              : items[i].icon,
+                                        ),
+                                        size: 24,
+                                        color: i == shown ? active : idle,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      items[i].label,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: i == shown ? active : idle,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
                   ),
-              ],
+                );
+              },
             ),
           ),
         ),

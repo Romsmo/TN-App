@@ -499,7 +499,7 @@
  "camera.calibrate": "Kamera ausrichten",
  "camera.recalibrate": "Neu ausrichten",
  "camera.modelMissing": "In dieser Version ist noch kein Erkennungsmodell enthalten. Die Kamera bleibt aus, bis eine Version mit Modell installiert ist.",
- "camera.limits": "Die Kamera findet Schilder mit rotem Rand (Warn- und Verbotsschilder) und liest nur Schilder, die das Display zeichnen kann, und Tempolimits von 20 bis 130. Schilder, die eine Begrenzung aufheben, haben keinen roten Rand und werden nicht erkannt: Ein gelesenes Tempolimit gilt bis zum nächsten Tempolimit, bis die Datenbank für die Straße einen neuen Wert hat, höchstens aber 1,5 Kilometer. Auf Entfernungen über etwa 40 Meter, bei Dunkelheit, starkem Gegenlicht und verdreckten Schildern erkennt sie wenig.",
+ "camera.limits": "Die Kamera findet Schilder mit rotem Rand (Warn- und Verbotsschilder) und liest nur Schilder, die das Display zeichnen kann, und Tempolimits von 5 bis 130 (auch die kleinen aus Fußgängerzonen). Schilder, die eine Begrenzung aufheben, haben keinen roten Rand und werden nicht erkannt: Ein gelesenes Tempolimit gilt bis zum nächsten Tempolimit, bis die Datenbank für die Straße einen neuen Wert hat, höchstens aber 1,5 Kilometer. Auf Entfernungen über etwa 40 Meter, bei Dunkelheit, starkem Gegenlicht und verdreckten Schildern erkennt sie wenig.",
  "camera.status.running": "Die Kamera erkennt Schilder.",
  "camera.status.starting": "Die Kamera startet …",
  "camera.status.noModel": "Kamera aus: In dieser Version ist kein Erkennungsmodell enthalten.",

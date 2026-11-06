@@ -499,7 +499,7 @@
  "camera.calibrate": "Align the camera",
  "camera.recalibrate": "Align again",
  "camera.modelMissing": "This version contains no recognition model yet. The camera stays off until a version with a model is installed.",
- "camera.limits": "The camera finds signs with a red border (warning and prohibition signs) and reads only signs the display can draw, and speed limits from 20 to 130. Signs that lift a restriction have no red border and are not recognised: a limit it read applies until the next limit, until the database holds a new value for the road, but for 1.5 kilometres at most. It sees little beyond about 40 metres, in the dark, in strong backlight and on dirty signs.",
+ "camera.limits": "The camera finds signs with a red border (warning and prohibition signs) and reads only signs the display can draw, and speed limits from 5 to 130 (including the small ones of pedestrian zones). Signs that lift a restriction have no red border and are not recognised: a limit it read applies until the next limit, until the database holds a new value for the road, but for 1.5 kilometres at most. It sees little beyond about 40 metres, in the dark, in strong backlight and on dirty signs.",
  "camera.status.running": "The camera is recognising signs.",
  "camera.status.starting": "The camera is starting …",
  "camera.status.noModel": "Camera off: this version contains no recognition model.",

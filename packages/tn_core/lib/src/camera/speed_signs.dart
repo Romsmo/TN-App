@@ -4,8 +4,9 @@ library;
 
 const String speedVzPrefix = '274-';
 
-/// The limits a German sign can show and the classifier reads. 20 and 130 are rare; 5, 10 and 15 (walking pace) are not read.
-const List<int> readableSpeeds = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130];
+/// The limits a German sign can show and the classifier reads, including the small ones of pedestrian zones, car parks and
+/// residential areas (5, 10, 15, 25 km/h). The "walking pace" sign (Zeichen 325.1) and 35/45/55 are not read.
+const List<int> readableSpeeds = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130];
 
 String speedVzOf(int kmh) => '$speedVzPrefix$kmh';
 

@@ -1,8 +1,8 @@
 """The classes of the sign classifier and what each one means for the app.
 
 The first 43 classes are those of the German Traffic Sign Recognition Benchmark (GTSRB), in its numbering. The GTSRB has eight speed
-limits (20, 30, 50, 60, 70, 80, 100, 120); the German limits 40, 90, 110 and 130 are not in it, so four more classes (43-46) are
-added for them, trained on made-up pictures (`speed_synth.py`). The last class is "not a sign" (background): without it every red blob
+limits (20, 30, 50, 60, 70, 80, 100, 120); the German limits 40, 90, 110 and 130, and the small ones 5, 10, 15 and 25 (pedestrian
+zones), are not in it, so eight more classes (43-50) are added for them, trained on made-up and repainted pictures (`speed_synth.py`). The last class is "not a sign" (background): without it every red blob
 the finder proposes would be read as some sign.
 
 `VZ` maps a class to the catalogue number of the display's sign list (docs/contract/sign-rules.json of the display repository) or, for
@@ -22,8 +22,9 @@ GTSRB_NAMES = [
     "End of no passing", "End of no passing for vehicles over 3.5 t",
 ]
 
-# the speed limits the GTSRB does not have, in the order of their classes 43, 44, ...
-EXTRA_SPEEDS = [40, 90, 110, 130]
+# the speed limits the GTSRB does not have, in the order of their classes 43, 44, ... (the last four are the small ones of pedestrian
+# zones, car parks and residential areas)
+EXTRA_SPEEDS = [40, 90, 110, 130, 5, 10, 15, 25]
 EXTRA_NAMES = ["Speed limit %d" % v for v in EXTRA_SPEEDS]
 
 # GTSRB class -> speed value
@@ -48,7 +49,7 @@ BACKGROUND = N_SIGN_CLASSES  # the extra class, always the last one
 N_CLASSES = N_SIGN_CLASSES + 1
 SIZE = 32  # crop size the classifier takes
 
-# class -> speed value, for all twelve
+# class -> speed value, for all sixteen
 SPEED_OF_CLASS = dict(GTSRB_SPEEDS)
 SPEED_OF_CLASS.update({43 + i: v for i, v in enumerate(EXTRA_SPEEDS)})
 

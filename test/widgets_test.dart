@@ -20,6 +20,7 @@ import 'package:tnviewer/services/location.dart';
 import 'package:tnviewer/services/stores.dart';
 import 'package:tnviewer/services/tn_controller.dart';
 import 'package:tnviewer/ui/theme.dart';
+import 'package:tnviewer/ui/widgets.dart';
 
 Map<String, String> _table(String lang) =>
     (jsonDecode(File('assets/texts/$lang.json').readAsStringSync()) as Map).cast<String, String>();
@@ -50,6 +51,68 @@ void main() {
     await initializeDateFormatting('de');
   });
   _joinTests();
+
+  group('FloatingTabBar', () {
+    Future<List<int>> pump(WidgetTester tester) async {
+      final chosen = <int>[];
+      var index = 0;
+      await tester.pumpWidget(MaterialApp(
+        theme: buildTheme(TnColors.light),
+        home: StatefulBuilder(
+          builder: (context, set) => Scaffold(
+            bottomNavigationBar: FloatingTabBar(
+              index: index,
+              onSelect: (i) => set(() {
+                index = i;
+                chosen.add(i);
+              }),
+              items: const [
+                (label: 'Karte', icon: 'map-outline', iconActive: 'map'),
+                (label: 'Fahrt', icon: 'speedometer', iconActive: 'speedometer'),
+                (label: 'Einstellungen', icon: 'settings-outline', iconActive: 'settings'),
+              ],
+            ),
+          ),
+        ),
+      ));
+      return chosen;
+    }
+
+    testWidgets('a tap opens the tab', (tester) async {
+      final chosen = await pump(tester);
+      await tester.tap(find.text('Fahrt'));
+      await tester.pumpAndSettle();
+      expect(chosen, [1]);
+    });
+
+    testWidgets('dragging across the bar opens the tab under the finger only when it lifts', (tester) async {
+      final chosen = await pump(tester);
+      final start = tester.getCenter(find.text('Karte'));
+      final end = tester.getCenter(find.text('Einstellungen'));
+      final g = await tester.startGesture(start);
+      await g.moveTo(Offset((start.dx + end.dx) / 2, start.dy));
+      await tester.pump();
+      expect(chosen, isEmpty, reason: 'nothing opens while the finger is still down');
+      await g.moveTo(end);
+      await tester.pump();
+      expect(chosen, isEmpty);
+      await g.up();
+      await tester.pumpAndSettle();
+      expect(chosen, [2]);
+    });
+
+    testWidgets('dragging back to the open tab changes nothing', (tester) async {
+      final chosen = await pump(tester);
+      final start = tester.getCenter(find.text('Karte'));
+      final g = await tester.startGesture(start);
+      await g.moveTo(tester.getCenter(find.text('Fahrt')));
+      await tester.pump();
+      await g.moveTo(start);
+      await g.up();
+      await tester.pumpAndSettle();
+      expect(chosen, isEmpty);
+    });
+  });
 
   testWidgets('DetailCard shows a hazard with votes and the remaining time', (tester) async {
     final s = (await tester.runAsync(_services))!;

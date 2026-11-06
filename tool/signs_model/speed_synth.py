@@ -1,4 +1,4 @@
-"""Made-up pictures of German speed-limit signs (Zeichen 274), for the limits the GTSRB does not contain (40, 90, 110, 130) and as a
+"""Made-up pictures of German speed-limit signs (Zeichen 274), for the limits the GTSRB does not contain (40, 90, 110, 130 and the small 5, 10, 15, 25) and as a
 share of the others, so that "looks made-up" is no hint for the network which limit it is.
 
 A sign is a white disc with a red ring and the number in black, in a DIN-like face (Bahnschrift, which ships with Windows), put on a
@@ -139,7 +139,7 @@ if __name__ == "__main__":  # a contact sheet to look at
     import sys
 
     rng = np.random.default_rng(1)
-    vals = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130]
+    vals = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130]
     rows = []
     for v in vals:
         rows.append(np.concatenate([render(v, rng) for _ in range(10)], axis=1))

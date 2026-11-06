@@ -50,6 +50,15 @@ void main() {
       expect(isSpeedVz('274-30'), isTrue);
       expect(speedVzOf(40), '274-40');
     });
+
+    test('the small limits of pedestrian zones and car parks are limits too', () {
+      for (final v in [5, 10, 15, 25]) {
+        expect(speedOfVz('274-$v'), v);
+        expect(isSpeedVz(speedVzOf(v)), isTrue);
+      }
+      expect(speedOfVz('274-0'), isNull);
+      expect(speedOfVz('274-35'), isNull); // not read
+    });
   });
 
   group('SignRecognizer: speed limits', () {
