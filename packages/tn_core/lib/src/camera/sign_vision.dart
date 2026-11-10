@@ -39,8 +39,8 @@ class SignVision {
   /// The database has a newer value for the road than the sign the car passed more than [passedM] ago: that sign is dropped.
   bool forgetSpeedPassedBeyond(double passedM) => recognizer.forgetSpeedPassedBeyond(passedM);
 
+  /// The camera's alignment as the recognition currently has it (learned from the signs, see [AutoCalibration]).
   CameraCalibration get calibration => recognizer.calibration;
-  set calibration(CameraCalibration c) => recognizer.calibration = c;
 
   void start() {
     recognizer.reset();

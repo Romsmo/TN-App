@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:test/test.dart';
 import 'package:tn_core/tn_core.dart';
 
-const cal = CameraCalibration(vanishingX: 0.5, horizonY: 0.5, hFovDeg: 65, aspect: 16 / 9, calibratedAtMs: 1);
+const cal = CameraCalibration(vanishingX: 0.5, horizonY: 0.5, hFovDeg: 65, aspect: 16 / 9);
 
 /// A grey road scene, 640 x 360.
 SignFrame scene({void Function(void Function(int x, int y, int r, int g, int b) put)? draw}) {
@@ -94,7 +94,7 @@ void main() {
     test('ignores red below the horizon, too small a spot and a plain red rectangle', () {
       final frame = scene(draw: (put) {
         ring(put, 300, 280, 24, 5); // a ring on the road (a tail light, a bonnet ornament), below the horizon
-        ring(put, 100, 100, 3, 1); // far too small
+        ring(put, 100, 100, 1, 1); // far too small
         for (var y = 80; y < 110; y++) {
           for (var x = 500; x < 580; x++) {
             put(x, y, 200, 20, 25); // a red banner: filled, not a ring, aspect off
@@ -104,16 +104,68 @@ void main() {
       expect(finder.find(frame, cal), isEmpty);
     });
 
-    test('a calibrated horizon moves where signs are looked for', () {
-      final frame = scene(draw: (put) => ring(put, 300, 280, 24, 5));
-      expect(finder.find(frame, cal.copyWith(horizonY: 0.8)), hasLength(1));
+    test('a known horizon limits how far below it a sign is looked for', () {
+      final frame = scene(draw: (put) => ring(put, 300, 200, 24, 5)); // centre at 0.56 of the height
+      expect(finder.find(frame, cal), hasLength(1)); // horizon at 0.5
+      expect(finder.find(frame, cal.copyWith(horizonY: 0.3)), isEmpty); // well below a horizon this high
+      expect(finder.find(frame, cal.copyWith(horizonY: 0.65)), hasLength(1));
     });
 
-    test('orange, brown and dark red are not sign red', () {
+    test('a sign on a low post, a little below the horizon, is still found', () {
+      final frame = scene(draw: (put) => ring(put, 300, 205, 22, 5));
+      expect(finder.find(frame, cal.copyWith(horizonY: 0.5)), hasLength(1));
+    });
+
+    test('a sign ring in shade (dark, dull red) is found as well as one in the sun', () {
+      SignFrame dim(int r, int g, int b) => scene(draw: (put) {
+            for (var y = 60; y < 140; y++) {
+              for (var x = 260; x < 340; x++) {
+                final d = math.sqrt(math.pow(x - 300, 2) + math.pow(y - 100, 2));
+                if (d <= 40 && d >= 33) {
+                  put(x, y, r, g, b);
+                } else if (d < 33) {
+                  put(x, y, 200, 200, 200);
+                }
+              }
+            }
+          });
+      expect(finder.find(dim(200, 20, 25), cal), hasLength(1)); // sun
+      expect(finder.find(dim(120, 53, 47), cal), hasLength(1)); // the median red of real German signs
+      expect(finder.find(dim(80, 30, 28), cal), hasLength(1)); // shade
+    });
+
+    test('a ring broken by a branch or a glare is still one region', () {
+      final frame = scene(draw: (put) {
+        ring(put, 300, 100, 30, 6);
+        for (var y = 60; y < 150; y++) {
+          put(300, y, 120, 125, 130); // a one pixel branch across the ring
+          put(301, y, 120, 125, 130);
+        }
+      });
+      final found = finder.find(frame, cal);
+      expect(found, hasLength(1));
+      expect(found.single.width, greaterThan(50));
+    });
+
+    test('a region that is far too big (a wall, a lorry) is no sign', () {
+      final frame = scene(draw: (put) {
+        for (var y = 20; y < 180; y++) {
+          for (var x = 100; x < 400; x++) {
+            if (y < 28 || y > 172 || x < 108 || x > 392) put(x, y, 200, 20, 25);
+          }
+        }
+      });
+      expect(finder.find(frame, cal), isEmpty);
+    });
+
+    test('sign red: the real ring red, shade and sun yes; orange, brown, pink, dark, washed out no', () {
       expect(CandidateFinder.isSignRed(200, 20, 25), isTrue);
+      expect(CandidateFinder.isSignRed(120, 53, 47), isTrue); // median ring of 2,878 real signs
+      expect(CandidateFinder.isSignRed(70, 25, 25), isTrue); // in shade
       expect(CandidateFinder.isSignRed(230, 120, 30), isFalse); // orange
-      expect(CandidateFinder.isSignRed(110, 70, 50), isFalse); // brown
-      expect(CandidateFinder.isSignRed(60, 5, 5), isFalse); // too dark
+      expect(CandidateFinder.isSignRed(200, 150, 120), isFalse); // skin, brick
+      expect(CandidateFinder.isSignRed(220, 30, 150), isFalse); // pink
+      expect(CandidateFinder.isSignRed(30, 5, 5), isFalse); // nearly black
       expect(CandidateFinder.isSignRed(180, 170, 170), isFalse); // washed out
     });
 
@@ -174,6 +226,25 @@ void main() {
       }
       final unsure = FinderSignDetector(classifier: FakeClassifier((_) => 0), labels: labels, calibration: () => cal, minProbability: 0.99);
       expect(await unsure.detect(twoSigns()), isEmpty);
+    });
+
+    test('the boxes of the latest frame are kept for the camera view, read or not', () async {
+      final read = FinderSignDetector(classifier: FakeClassifier((_) => 0), labels: labels, calibration: () => cal);
+      await read.detect(twoSigns());
+      expect(read.lastBoxes, hasLength(2));
+      expect(read.lastBoxes.every((b) => b.read && b.vz == '276'), isTrue);
+      final notASign = FinderSignDetector(classifier: FakeClassifier((_) => 3), labels: labels, calibration: () => cal);
+      await notASign.detect(twoSigns());
+      expect(notASign.lastBoxes, hasLength(2));
+      expect(notASign.lastBoxes.any((b) => b.read), isFalse);
+      await notASign.detect(scene());
+      expect(notASign.lastBoxes, isEmpty);
+    });
+
+    test('the detections carry the shape of the frame', () async {
+      final detector = FinderSignDetector(classifier: FakeClassifier((_) => 0), labels: labels, calibration: () => cal);
+      final out = await detector.detect(twoSigns());
+      expect(out.first.frameAspect, closeTo(640 / 360, 1e-9));
     });
 
     test('a frame without candidates does not call the classifier', () async {

@@ -18,24 +18,35 @@ class SignModel {
   /// The catalogue number of each class except the last ("not a sign"); null where the app does not use the class.
   final List<String?> labels;
 
-  /// Loads the model; null when the app was built without one (the sign camera is then unavailable, nothing else is affected).
+  /// Why the last [load] returned null (for the camera view: a model that is missing and a runtime that does not start are different
+  /// problems); null while nothing went wrong.
+  static String? lastError;
+
+  /// Loads the model; null when the app was built without one or the runtime could not start it (the sign camera is then unavailable,
+  /// nothing else is affected; [lastError] says which).
   static Future<SignModel?> load() async {
+    lastError = null;
     final Map<String, Object?> meta;
     try {
       await rootBundle.load(signModelAsset);
       meta = jsonDecode(await rootBundle.loadString(signLabelsAsset)) as Map<String, Object?>;
-    } catch (_) {
+    } catch (e) {
+      lastError = 'model files: $e';
       return null;
     }
     final classes = meta['classes'];
     final size = meta['size'];
-    if (classes is! List || size is! int) return null;
+    if (classes is! List || size is! int) {
+      lastError = 'model labels: unexpected format';
+      return null;
+    }
     final labels = [for (final c in classes) c is String ? c : null];
     try {
       final interpreter = await Interpreter.fromAsset(signModelAsset);
       final model = SignModel._(TfliteSignClassifier(interpreter, size, labels.length + 1), labels);
       return model;
-    } catch (_) {
+    } catch (e) {
+      lastError = 'TensorFlow Lite: $e';
       return null;
     }
   }

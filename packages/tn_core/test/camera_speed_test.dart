@@ -3,7 +3,7 @@ import 'package:tn_core/tn_core.dart';
 
 import 'session_test.dart' show Harness, origin;
 
-const cal = CameraCalibration(vanishingX: 0.5, horizonY: 0.5, rollDeg: 0, hFovDeg: 65, aspect: 16 / 9, calibratedAtMs: 1);
+const cal = CameraCalibration(vanishingX: 0.5, horizonY: 0.5, rollDeg: 0, hFovDeg: 65, aspect: 16 / 9);
 
 Fix fixAt(double northM, {double speedKmh = 36, double? heading = 0, int t = 0}) {
   final p = destination(origin, 0, northM);

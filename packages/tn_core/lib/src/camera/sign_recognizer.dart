@@ -6,19 +6,31 @@ import '../display/sign_columns.dart';
 import '../drive/fix.dart';
 import '../drive/geo.dart';
 import '../tn/types.dart';
+import 'auto_calibration.dart';
 import 'camera_calibration.dart';
 import 'speed_signs.dart';
 
 /// One sign the detector found in one camera frame. [vz] is the catalogue number (`276`, `142-10`), the box is normalised to the
 /// upright frame: centre ([x], [y]) and size ([w], [h]).
 class RawDetection {
-  const RawDetection({required this.vz, required this.confidence, required this.x, required this.y, required this.w, required this.h});
+  const RawDetection({
+    required this.vz,
+    required this.confidence,
+    required this.x,
+    required this.y,
+    required this.w,
+    required this.h,
+    this.frameAspect,
+  });
   final String vz;
   final double confidence;
   final double x;
   final double y;
   final double w;
   final double h;
+
+  /// Width over height of the upright frame the detection comes from (a phone held upright gives a narrow one); null = not told.
+  final double? frameAspect;
 }
 
 /// A sign the camera has recognised on the road, placed on it.
@@ -171,7 +183,7 @@ class _Track {
   RecognizedSign? sign;
 
   /// (odometer, apparent width) of every frame, for the check that a speed sign is approached.
-  final List<({double odo, double w})> samples = [];
+  final List<({double odo, double w, double x, double y})> samples = [];
 
   String get leader => (score.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).first.key;
 }
@@ -183,13 +195,21 @@ class _Track {
 /// the distance. Position fixes come in separately; they give the odometer that keeps "where is the sign now" right.
 class SignRecognizer {
   SignRecognizer({
-    this.calibration = CameraCalibration.none,
+    CameraCalibration calibration = CameraCalibration.none,
+    AutoCalibration? auto,
     this.config = const RecognizerConfig(),
     this.onFinished,
     this.onStretchEnded,
-  });
+  }) : _auto = auto ?? AutoCalibration(base: calibration);
 
-  CameraCalibration calibration;
+  /// Where the car is heading in the picture, learned from the signs (see [AutoCalibration]); shared between drives of one run.
+  final AutoCalibration _auto;
+  AutoCalibration get autoCalibration => _auto;
+
+  /// The calibration in use: the image centre until the signs have taught better, the lens and frame shape of the latest frames.
+  CameraCalibration get calibration => _auto.current;
+  set calibration(CameraCalibration c) => _auto.base = c;
+
   final RecognizerConfig config;
 
   /// A sign went out of sight: its position is as good as it gets.
@@ -276,6 +296,11 @@ class SignRecognizer {
     final car = _carAt(frameMs);
     if (car == null) return;
     for (final det in detections) {
+      final a = det.frameAspect;
+      if (a != null) _auto.setAspect(a);
+    }
+    final calibration = this.calibration;
+    for (final det in detections) {
       if (det.confidence < config.minDetectionConfidence || det.w < config.minBoxWidth) continue;
       if (vzNrOf('DE:${det.vz}') == null && !isSpeedVz(det.vz)) continue;
       final off = calibration.bearingOffsetDeg(det.x, det.y);
@@ -321,12 +346,12 @@ class SignRecognizer {
     t.lastX = det.x;
     t.lastY = det.y;
     t.lastW = det.w;
-    t.samples.add((odo: car.odoM, w: det.w));
+    t.samples.add((odo: car.odoM, w: det.w, x: det.x, y: det.y));
     if (det.w > t.bestW) {
       t.bestW = det.w;
       t.bestCar = car;
       t.bestBearingOffset = bearingOffset;
-      t.bestDistance = calibration.distanceToSignM(det.w);
+      t.bestDistance = _auto.current.distanceToSignM(det.w);
       t.bestChanged = true;
     }
   }
@@ -406,7 +431,7 @@ class SignRecognizer {
     }
     if (vr <= 0) return false;
     final slope = -cov / vr; // 1 / width falls as the odometer rises
-    final weakest = 1 / (config.speedMaxSignWidthM * calibration.focalInImageWidths);
+    final weakest = 1 / (config.speedMaxSignWidthM * _auto.current.focalInImageWidths);
     return slope >= config.speedMinSlopeShare * weakest;
   }
 
@@ -434,6 +459,8 @@ class SignRecognizer {
       _tracks.remove(t);
       final s = t.sign;
       if (s != null) {
+        // a sign that was seen for real shows where the car is heading: the path of its box points to the vanishing point
+        _auto.addTrack([for (final p in t.samples) (x: p.x, y: p.y, w: p.w)]);
         s.finished = true;
         onFinished?.call(s);
       }

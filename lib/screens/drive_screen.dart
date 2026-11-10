@@ -12,6 +12,7 @@ import '../ui/icons.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 import 'common.dart' show LockGuard;
+import 'camera_view_screen.dart';
 import 'display_screen.dart';
 
 Color _hex(String hex) => Color(int.parse('FF${hex.substring(1)}', radix: 16));
@@ -216,6 +217,9 @@ class _RunningDriveState extends State<RunningDrive> {
           onAnswer: (still) => session?.answerPrompt(still),
           onMute: () => session?.setMuted(!snapshot.muted),
           onStop: app.drive.stop,
+          onCameraView: s.cameraSigns
+              ? () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CameraViewScreen()))
+              : null,
           onEnableLock: () =>
               app.settings.update((x) => x.copyWith(driveLockEnabled: true)),
         );
@@ -241,6 +245,7 @@ class DriveView extends StatefulWidget {
     required this.onMute,
     required this.onStop,
     required this.onEnableLock,
+    this.onCameraView,
   });
 
   final DriveSnapshot snapshot;
@@ -258,6 +263,9 @@ class DriveView extends StatefulWidget {
   final void Function(bool stillThere) onAnswer;
   final VoidCallback onMute;
   final VoidCallback onStop;
+
+  /// Opens the camera view; null when the sign camera is off.
+  final VoidCallback? onCameraView;
   final VoidCallback onEnableLock;
 
   @override
@@ -643,6 +651,16 @@ class _DriveViewState extends State<DriveView> {
                               onPressed: widget.onMute,
                             ),
                           ),
+                          if (widget.onCameraView != null) ...[
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _BigButton(
+                                label: context.t('camera.view.button'),
+                                icon: Icons.videocam,
+                                onPressed: widget.onCameraView!,
+                              ),
+                            ),
+                          ],
                           const SizedBox(width: 10),
                           Expanded(
                             child: _BigButton(

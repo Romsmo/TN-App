@@ -2,6 +2,7 @@
 /// client library, and the connection state. Pure Dart; the Flutter app wires it to the device.
 library;
 
+export 'src/camera/auto_calibration.dart';
 export 'src/camera/camera_calibration.dart';
 export 'src/camera/sign_detector.dart';
 export 'src/camera/sign_recognizer.dart';

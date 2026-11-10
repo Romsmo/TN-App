@@ -3,7 +3,7 @@ import 'package:tn_core/tn_core.dart';
 
 import 'session_test.dart' show Harness, origin;
 
-const cal = CameraCalibration(vanishingX: 0.5, horizonY: 0.5, rollDeg: 0, hFovDeg: 65, aspect: 16 / 9, calibratedAtMs: 1);
+const cal = CameraCalibration(vanishingX: 0.5, horizonY: 0.5, rollDeg: 0, hFovDeg: 65, aspect: 16 / 9);
 
 Fix fixAt(double northM, {double speedKmh = 36, double? heading = 0, int t = 0}) {
   final p = destination(origin, 0, northM);
@@ -53,33 +53,105 @@ void main() {
       expect(cal.elevationDeg(0.9, 0.5 + (16 / 9) * 0.4 * 0.17633), lessThan(-5));
     });
 
-    test('it is stored and read back; anything unusable is "not calibrated"', () {
-      expect(CameraCalibration.fromJson(cal.toJson()).vanishingX, 0.5);
-      expect(CameraCalibration.fromJson(cal.toJson()).isCalibrated, isTrue);
-      expect(CameraCalibration.fromJson(null).isCalibrated, isFalse);
-      expect(CameraCalibration.fromJson({...cal.toJson(), 'hFovDeg': 500}).isCalibrated, isFalse);
-      expect(CameraCalibration.fromJson({...cal.toJson(), 'calibratedAtMs': null}).isCalibrated, isFalse);
-      expect(CameraCalibration.none.isCalibrated, isFalse);
+    test('a phone held upright sees less across the picture than one held sideways', () {
+      final upright = cal.copyWith(aspect: 9 / 16);
+      expect(cal.acrossFovDeg, 65);
+      expect(upright.acrossFovDeg, closeTo(39.5, 0.2));
+      // the same share of a narrow frame is a smaller angle, so the sign is further away
+      expect(upright.distanceToSignM(0.04), greaterThan(cal.distanceToSignM(0.04)));
+      expect(upright.focalInImageWidths, greaterThan(cal.focalInImageWidths));
     });
 
-    test('a bad placement is named', () {
-      expect(cal.problem, isNull);
-      expect(cal.copyWith(horizonY: 0.1).problem, CalibrationProblem.lookingDown);
-      expect(cal.copyWith(horizonY: 0.8).problem, CalibrationProblem.lookingUp);
-      expect(cal.copyWith(rollDeg: 12).problem, CalibrationProblem.rolled);
-      expect(cal.copyWith(vanishingX: 0.9).problem, CalibrationProblem.turned);
-    });
-
-    test('settings keep the switches and the calibration', () {
-      final s = const Settings().copyWith(cameraSigns: true, cameraSignsReport: true, cameraCalibration: cal);
+    test('settings keep the switches; an old stored alignment is ignored', () {
+      final s = const Settings().copyWith(cameraSigns: true, cameraSignsReport: true);
       final back = parseSettings(encodeSettings(s));
       expect(back.cameraSigns, isTrue);
       expect(back.cameraSignsReport, isTrue);
-      expect(back.cameraCalibration.isCalibrated, isTrue);
       final fresh = parseSettings(null);
       expect(fresh.cameraSigns, isFalse);
       expect(fresh.cameraSignsReport, isFalse);
-      expect(fresh.cameraCalibration.isCalibrated, isFalse);
+      final old = parseSettings('{"cameraSigns": true, "cameraCalibration": {"vanishingX": 0.4, "calibratedAtMs": 5}}');
+      expect(old.cameraSigns, isTrue);
+    });
+  });
+
+  group('AutoCalibration', () {
+    /// The path of a sign at a fixed lateral offset while the car drives straight at a vanishing point (vx, vy): the box centre
+    /// moves away from that point in proportion to its width.
+    List<TrackPoint> path({double vx = 0.5, double vy = 0.5, double dx = 8, double dy = -3, double noise = 0, int n = 8}) {
+      return [
+        for (var i = 0; i < n; i++)
+          (
+            x: vx + dx * (0.01 + i * 0.004) + (i.isEven ? noise : -noise),
+            y: vy + dy * (0.01 + i * 0.004) + (i.isEven ? -noise : noise),
+            w: 0.01 + i * 0.004,
+          ),
+      ];
+    }
+
+    test('one sign\'s path points back to the vanishing point', () {
+      final e = AutoCalibration.estimate(path(vx: 0.44, vy: 0.55))!;
+      expect(e.x, closeTo(0.44, 0.01));
+      expect(e.y, closeTo(0.55, 0.01));
+    });
+
+    test('a path that cannot tell is not used: too short, hardly any growth, jumping about', () {
+      expect(AutoCalibration.estimate(path(n: 4)), isNull);
+      expect(AutoCalibration.estimate([for (var i = 0; i < 8; i++) (x: 0.6, y: 0.4, w: 0.02 + i * 0.0005)]), isNull);
+      expect(AutoCalibration.estimate(path(noise: 0.12)), isNull);
+    });
+
+    test('the middle of the picture counts until three signs agree, then the median of them', () {
+      final a = AutoCalibration();
+      expect(a.current.vanishingX, 0.5);
+      expect(a.learned, isFalse);
+      a.addTrack(path(vx: 0.42, vy: 0.56));
+      a.addTrack(path(vx: 0.43, vy: 0.55, dx: -6));
+      expect(a.learned, isFalse);
+      a.addTrack(path(vx: 0.41, vy: 0.57, dx: 12));
+      expect(a.learned, isTrue);
+      expect(a.current.vanishingX, closeTo(0.42, 0.01));
+      expect(a.current.horizonY, closeTo(0.56, 0.01));
+      // one wild sign does not move it
+      a.addTrack(path(vx: 0.68, vy: 0.3));
+      expect(a.current.vanishingX, closeTo(0.425, 0.02));
+    });
+
+    test('what is learned stays inside what a phone in a holder can look like', () {
+      final a = AutoCalibration(minTracks: 1);
+      a.addTrack(path(vx: 0.9, vy: 0.9));
+      expect(a.current.vanishingX, 0.7);
+      expect(a.current.horizonY, 0.7);
+    });
+
+    test('the frame shape is taken from the detections', () {
+      final r = SignRecognizer();
+      r.onFix(fixAt(0));
+      r.onDetections(0, [RawDetection(vz: '276', confidence: 0.9, x: 0.5, y: 0.4, w: 0.02, h: 0.02, frameAspect: 9 / 16)]);
+      expect(r.calibration.aspect, closeTo(9 / 16, 1e-9));
+    });
+
+    test('a recogniser learns from the signs it confirmed and uses it for the next ones', () {
+      final auto = AutoCalibration(minTracks: 2);
+      final r = SignRecognizer(auto: auto);
+      var t = 0;
+      var north = 0.0;
+      r.onFix(fixAt(0));
+      // two signs seen while the car drives straight at a vanishing point left of the middle (0.4, 0.5)
+      for (var s = 0; s < 2; s++) {
+        for (var i = 0; i < 7; i++) {
+          final w = 0.012 + i * 0.005;
+          north += 4;
+          r.onFix(fixAt(north, t: t));
+          r.onDetections(t, [RawDetection(vz: '276', confidence: 0.9, x: 0.4 + 5 * w, y: 0.5 - 2 * w, w: w, h: w)]);
+          t += 250;
+        }
+        t += 4000; // out of sight
+        r.onFix(fixAt(north += 40, t: t));
+      }
+      expect(auto.learned, isTrue);
+      expect(auto.current.vanishingX, closeTo(0.4, 0.02));
+      expect(auto.current.horizonY, closeTo(0.5, 0.02));
     });
   });
 
@@ -118,6 +190,7 @@ void main() {
 
     test('a sign far off the direction of travel stands at a side road and is ignored', () {
       final skewed = SignRecognizer(calibration: cal.copyWith(vanishingX: 0.3));
+      expect(skewed.calibration.vanishingX, 0.3);
       skewed.onFix(fixAt(0));
       see(skewed, '276', x: 0.95); // about 40 degrees to the right of the road
       expect(skewed.signs, isEmpty);

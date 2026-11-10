@@ -45,20 +45,25 @@ abstract interface class SignDetector {
 
 /// Finds the places in a frame that may hold a sign with a red border (warning triangles, prohibition rings, the no-entry disc):
 /// red pixels are grouped, and a group is kept when its size, shape and the share of red look like a sign and it sits where a sign
-/// can be, above the horizon (a sign hangs higher than the camera, so its centre is above the horizon at every distance).
+/// can be: not in the lower part of the picture (road, bonnet) and not far below the horizon.
+///
+/// "Red" is a share of the pixel's own brightness (see [isSignRed]), so a sign in shade or at dusk counts as well as one in the sun;
+/// the ring is thickened by a pixel before grouping so that a ring broken by a glare or a branch stays one piece.
 ///
 /// What it does not find: signs without red (the end-of-ban signs are white and grey). Those need a different finder.
 class CandidateFinder {
   const CandidateFinder({
     this.analysisWidth = 480,
-    this.minSidePx = 9,
-    this.minFill = 0.10,
-    this.maxFill = 0.80,
-    this.minAspect = 0.7,
-    this.maxAspect = 1.45,
-    this.maxCandidates = 6,
-    this.aboveHorizonMargin = 0.02,
-    this.maxAboveHorizon = 0.45,
+    this.minSidePx = 7,
+    this.minFill = 0.08,
+    this.maxFill = 0.92,
+    this.minAspect = 0.6,
+    this.maxAspect = 1.65,
+    this.maxCandidates = 10,
+    this.belowHorizonMargin = 0.12,
+    this.maxAboveHorizon = 0.55,
+    this.maxCentreY = 0.72,
+    this.maxSideShare = 0.3,
   });
 
   /// The frame is looked at in this width (a box average of the pixels); the crops come from the full frame.
@@ -70,12 +75,25 @@ class CandidateFinder {
   final double maxAspect;
   final int maxCandidates;
 
-  /// How far below the horizon (share of the image height) a candidate's centre may be, and how far above it.
-  final double aboveHorizonMargin;
+  /// How far below the horizon (share of the image height) a candidate's centre may be (signs on low posts, in a bend, a horizon that
+  /// is not known yet), how far above it, and the lowest the centre may be in the picture at all.
+  final double belowHorizonMargin;
   final double maxAboveHorizon;
+  final double maxCentreY;
 
-  /// True for a "sign red": clearly red, not orange or brown, not dark, not washed out.
-  static bool isSignRed(int r, int g, int b) => r >= 110 && r * 10 >= g * 28 && r * 10 >= b * 28 && (r - math.min(g, b)) >= 60;
+  /// A region wider than this share of the frame is a wall or a car, not a sign.
+  final double maxSideShare;
+
+  /// True for a "sign red": the pixel is red against its own brightness, so it does not matter how bright the light is. The red of a
+  /// sign ring is rarely the pure red of a sunny day: measured on 2,878 real German circle signs, the ring median is about
+  /// (120, 53, 47) and its red over the larger of green and blue about 2.2 times; a fixed bright threshold missed nearly all of them.
+  /// Red must lead both other channels by at least 16 % of the pixel's brightness sum, green and blue must be about equal (that keeps
+  /// orange out; on the real rings it costs nothing), and the pixel must not be nearly black.
+  static bool isSignRed(int r, int g, int b) {
+    final lead = math.min(r - g, r - b);
+    // green and blue are about equal on a sign (orange, a cone or a lorry side has far less blue; pink far less green)
+    return r >= 40 && lead * 25 >= 4 * (r + g + b + 1) && (g - b).abs() * 5 <= 2 * lead + 50;
+  }
 
   List<SignCandidate> find(SignFrame frame, CameraCalibration cal) {
     final step = math.max(1, frame.width ~/ analysisWidth);
@@ -93,6 +111,7 @@ class CandidateFinder {
         if (isSignRed(rgb[i], rgb[i + 1], rgb[i + 2])) mask[y * w + x] = 1;
       }
     }
+    _thicken(mask, w, h);
     final seen = Uint8List(w * h);
     final stack = Int32List(w * h);
     final out = <SignCandidate>[];
@@ -129,18 +148,54 @@ class CandidateFinder {
       final bw = maxX - minX + 1;
       final bh = maxY - minY + 1;
       if (bw < minSidePx || bh < minSidePx) continue;
+      if (bw > maxSideShare * w || bh > maxSideShare * w) continue;
       final aspect = bw / bh;
       if (aspect < minAspect || aspect > maxAspect) continue;
       final fill = count / (bw * bh);
       if (fill < minFill || fill > maxFill) continue;
       // where the candidate sits: above the horizon (see the class comment)
       final cy = (minY + bh / 2) / h;
-      if (cy > cal.horizonY + aboveHorizonMargin || cy < cal.horizonY - maxAboveHorizon) continue;
+      if (cy > cal.horizonY + belowHorizonMargin || cy < cal.horizonY - maxAboveHorizon || cy > maxCentreY) continue;
       out.add(SignCandidate(minX * step, minY * step, bw * step, bh * step, count));
     }
     out.sort((a, b) => (b.width * b.height).compareTo(a.width * a.height));
     return out.length > maxCandidates ? out.sublist(0, maxCandidates) : out;
   }
+
+  /// Every red pixel also marks its eight neighbours (in place).
+  static void _thicken(Uint8List mask, int w, int h) {
+    final src = Uint8List.fromList(mask);
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        if (src[y * w + x] == 0) continue;
+        for (var dy = -1; dy <= 1; dy++) {
+          final ny = y + dy;
+          if (ny < 0 || ny >= h) continue;
+          for (var dx = -1; dx <= 1; dx++) {
+            final nx = x + dx;
+            if (nx >= 0 && nx < w) mask[ny * w + nx] = 1;
+          }
+        }
+      }
+    }
+  }
+}
+
+/// A box of the latest frame, for the camera view: a region the finder proposed and what the classifier made of it.
+class SignBox {
+  const SignBox({required this.x, required this.y, required this.w, required this.h, required this.confidence, this.vz});
+
+  /// Centre and size, normalised to the upright frame.
+  final double x;
+  final double y;
+  final double w;
+  final double h;
+
+  /// The class's catalogue number when the classifier took it for a sign the app uses (above the confidence it needs), else null.
+  final String? vz;
+  final double confidence;
+
+  bool get read => vz != null;
 }
 
 /// A crop of [frame] around [c] (with a margin for the sign's white background), scaled to [size] x [size], RGB 0..1.
@@ -183,14 +238,22 @@ class FinderSignDetector implements SignDetector {
   final CandidateFinder finder;
   final double minProbability;
 
+  /// Every region of the latest frame the finder proposed, with what it was read as (for the camera view).
+  List<SignBox> lastBoxes = const [];
+
   @override
   Future<List<RawDetection>> detect(SignFrame frame) async {
     final cal = calibration();
     final candidates = finder.find(frame, cal);
-    if (candidates.isEmpty) return const [];
+    if (candidates.isEmpty) {
+      lastBoxes = const [];
+      return const [];
+    }
     final crops = [for (final c in candidates) cropForClassifier(frame, c, classifier.size)];
     final probs = await classifier.classify(crops);
     final out = <RawDetection>[];
+    final boxes = <SignBox>[];
+    final aspect = frame.width / frame.height;
     for (var i = 0; i < candidates.length && i < probs.length; i++) {
       final p = probs[i];
       if (p.length != classifier.classCount) continue;
@@ -198,19 +261,17 @@ class FinderSignDetector implements SignDetector {
       for (var k = 1; k < p.length; k++) {
         if (p[k] > p[best]) best = k;
       }
-      if (best >= labels.length || p[best] < minProbability) continue; // "not a sign" or unsure
-      final vz = labels[best];
-      if (vz == null || (vzNrOf('DE:$vz') == null && !isSpeedVz(vz))) continue;
       final c = candidates[i];
-      out.add(RawDetection(
-        vz: vz,
-        confidence: p[best],
-        x: c.centerX / frame.width,
-        y: c.centerY / frame.height,
-        w: c.width / frame.width,
-        h: c.height / frame.height,
-      ));
+      final cx = c.centerX / frame.width, cy = c.centerY / frame.height, cw = c.width / frame.width, ch = c.height / frame.height;
+      final vz = best >= labels.length || p[best] < minProbability ? null : labels[best]; // "not a sign" or unsure
+      if (vz == null || (vzNrOf('DE:$vz') == null && !isSpeedVz(vz))) {
+        boxes.add(SignBox(x: cx, y: cy, w: cw, h: ch, confidence: p[best]));
+        continue;
+      }
+      boxes.add(SignBox(x: cx, y: cy, w: cw, h: ch, confidence: p[best], vz: vz));
+      out.add(RawDetection(vz: vz, confidence: p[best], x: cx, y: cy, w: cw, h: ch, frameAspect: aspect));
     }
+    lastBoxes = boxes;
     return out;
   }
 }

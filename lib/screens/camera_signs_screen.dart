@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:tn_core/tn_core.dart';
 
 import '../app_scope.dart';
 import '../services/sign_pipeline.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
-import 'camera_calibration_screen.dart';
+import 'camera_view_screen.dart';
 import 'common.dart';
 
-/// "Schilder per Kamera": the switches of the sign recognition, the alignment of the camera and what the camera is doing.
+/// "Schilder per Kamera": the switches of the sign recognition, the camera view and what the camera is doing.
 class CameraSignsScreen extends StatefulWidget {
   const CameraSignsScreen({super.key});
 
@@ -35,7 +34,6 @@ class _CameraSignsScreenState extends State<CameraSignsScreen> {
       listenable: Listenable.merge([app.settings, app.drive]),
       builder: (context, _) {
         final s = app.settings.value;
-        final cal = s.cameraCalibration;
         final status = app.drive.cameraStatus;
         final c = context.colors;
         return SubPage(title: context.t('camera.title'), children: [
@@ -49,14 +47,13 @@ class _CameraSignsScreenState extends State<CameraSignsScreen> {
             if (_modelOk == false) Notice(text: context.t('camera.modelMissing'), icon: Icons.info_outline),
             Hint(context.t('camera.limits')),
           ]),
-          CardSection(title: context.t('camera.calibration'), children: [
-            Body(cal.isCalibrated
-                ? context.t('camera.calibrated', {'date': DateFormat('dd.MM.yyyy').format(DateTime.fromMillisecondsSinceEpoch(cal.calibratedAtMs!))})
-                : context.t('camera.notCalibrated')),
+          CardSection(title: context.t('camera.view.section'), children: [
+            Body(context.t('camera.view.intro')),
             const SizedBox(height: Space.sm),
             PrimaryButton(
-              label: context.t(cal.isCalibrated ? 'camera.recalibrate' : 'camera.calibrate'),
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CameraCalibrationScreen())),
+              icon: Icons.videocam,
+              label: context.t('camera.view.open'),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CameraViewScreen())),
             ),
           ]),
           CardSection(children: [
@@ -85,6 +82,5 @@ class _CameraSignsScreenState extends State<CameraSignsScreen> {
 String cameraSummary(BuildContext context, Settings s, bool? modelOk) {
   if (!s.cameraSigns) return context.t('camera.summary.off');
   if (modelOk == false) return context.t('camera.summary.noModel');
-  if (!s.cameraCalibration.isCalibrated) return context.t('camera.summary.notCalibrated');
   return context.t('camera.summary.ready');
 }

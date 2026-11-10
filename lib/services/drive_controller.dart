@@ -41,8 +41,13 @@ class DriveController extends ChangeNotifier {
   late final GeolocatorBackend _backend;
   late final DriveHost _host;
 
-  /// The sign camera: runs only during a real drive, when the owner switched it on and calibrated it.
-  late final SignPipeline pipeline = SignPipeline(calibration: () => settings.value.cameraCalibration);
+  /// Where the car is heading in the camera's picture, learned from the signs the camera sees (nobody aligns the camera). Kept for
+  /// the app's run, so a second drive starts with what the first one learned.
+  final AutoCalibration _autoCalibration = AutoCalibration();
+  AutoCalibration get autoCalibration => _autoCalibration;
+
+  /// The sign camera: runs during a real drive when the owner switched it on, and while a camera view is open.
+  late final SignPipeline pipeline = SignPipeline(calibration: () => _autoCalibration.current);
   SignVision? _vision;
   DriveSession? _cameraSession;
   bool _finished = false;
@@ -106,7 +111,7 @@ class DriveController extends ChangeNotifier {
     ));
   }
 
-  bool get _cameraWanted => settings.value.cameraSigns && settings.value.cameraCalibration.isCalibrated;
+  bool get _cameraWanted => settings.value.cameraSigns;
 
   /// Recognition and reporting of the camera's signs. Reports and confirmations are queued like every other write; the library
   /// signs them with the device key when it syncs. What leaves the phone is decided by the reporters (see `SignReporter` and
@@ -114,7 +119,7 @@ class DriveController extends ChangeNotifier {
   SignVision _buildVision() {
     final data = LibraryDataSource(() => tn.service);
     return SignVision(
-      recognizer: SignRecognizer(calibration: settings.value.cameraCalibration),
+      recognizer: SignRecognizer(auto: _autoCalibration),
       reporter: SignReporter(
         readDb: (lat, lng, heading) => data.contextSigns(lat, lng, heading, includeUnconfirmed: true),
         report: (request) async {

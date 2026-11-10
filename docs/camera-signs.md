@@ -1,12 +1,13 @@
 # Traffic signs by camera
 
 The phone's camera reads the signs at the roadside during a drive (beta 6) and, since beta 7, the speed limits. What it reads is shown first on
-the display and, where the database lacks it, fed into the database. Off at the first start; needs the calibration.
+the display and, where the database lacks it, fed into the database. Off at the first start. Nothing has to be aligned or set: the camera aligns itself while driving, and the **camera view** shows what the
+phone sees.
 
 ## The chain
 
 ```
-camera frame (about 4 per second, only in drive mode, in memory)
+camera frame (about 7 per second, in a drive or while the camera view is open, in memory)
   -> upright RGB picture, at most 960 px wide                    lib/services/camera_frame.dart
   -> CandidateFinder: red regions that look like a sign           tn_core camera/sign_detector.dart
   -> SignClassifier (32 x 32 crop, TFLite)                        lib/services/sign_model_io.dart, assets/models/signs.tflite
@@ -20,16 +21,27 @@ camera frame (about 4 per second, only in drive mode, in memory)
 Everything except the camera plugin and the network runtime is plain Dart and tested without a device (`packages/tn_core/test/camera_*`,
 `test/camera_frame_test.dart`).
 
-## Calibration
+## Alignment (automatic) and the camera view
 
-*Settings -> Signs by camera -> Align the camera.* The car stands on a straight road. The owner drags a cross onto the point where the road
-disappears (it gives the direction of travel `vanishingX` and the horizon `horizonY`) and turns a line with a slider until it lies on the
-horizon (`rollDeg`). `CameraCalibration` turns an image point into an angle off the direction of travel and an elevation; a sign whose
-angle is more than 35 degrees off the road stands at a side road and is ignored. The field of view of the lens is not readable from the
-camera plugin: 65 degrees is assumed (`hFovDeg`), which makes distances rough (a typical sign of 0.6 m width is assumed; a motorway
-sign is twice that). A small picture on the calibration page shows what the recognition itself sees, so a wrongly turned image is
-noticed there. A placement is rejected with a hint when the horizon is outside the middle band, the image is turned by more than 8
-degrees, or the road does not lead to the middle.
+Until beta 8 the owner had to align the camera by hand (drag a cross onto the vanishing point, turn a slider) and the camera stayed **off**
+until that was done. That is gone: the camera runs whenever the switch is on, and `AutoCalibration` (tn_core) learns what the alignment
+gave.
+
+* **Direction of travel and horizon** (`vanishingX`, `horizonY`): a sign stands still while the car drives up to it, so its box moves away
+  from the vanishing point of the direction of travel in a straight line in the box's width. For every sign the recognition confirmed
+  (5 or more frames, the width grew by at least 60 %), a least-squares line of x and y over the width, followed back to width zero, is
+  one estimate of that point; estimates with a large standard error are dropped. After **3 signs** the median of the latest 30 replaces
+  the image centre (limited to x 0.3-0.7, y 0.25-0.7). A bend, a lorry's sticker or a bad track does not fit a line or is outvoted by the
+  median. What is learned is kept for the app's run, not stored.
+* **Roll** is taken as 0 (a phone in a holder is upright).
+* **Lens:** the field of view is not readable from the camera plugin; 65 degrees along the long side of the picture is assumed. A phone
+  held upright shows the short side across: the field of view across the frame follows the frame's shape (`CameraCalibration.aspect`,
+  about 39.5 degrees for 9:16), which keeps the distance estimate right in both holds. Distances stay rough (a 0.6 m sign is assumed).
+* A sign whose angle is more than 35 degrees off the direction of travel stands at a side road and is ignored.
+* **Camera view** (*Settings -> Signs by camera -> Open the camera view*, and a "Kamera" button in the drive): the live picture with a
+  frame around every region the finder proposed. Green = read as a sign (name and confidence), amber = red region that was not read as a
+  sign; a tick marks a sign the drive has confirmed and follows. It also shows how many pictures a second run through and what was
+  learned. It works outside a drive too (then nothing is followed). Nothing is stored or sent.
 
 ## Speed limits (beta 7)
 
@@ -56,11 +68,26 @@ catalogue (the display draws the limit from a number), so they never enter the s
   Look-alikes: 60 / 80, 100 / 120 / 130, 30 / 50 are the likeliest misreadings; the track must agree in 70 % of its frames at a mean
   of 0.75 to be shown, 0.85 and 4 frames to be sent.
 
+## The finder's "red" (beta 8)
+
+Measured on 2,878 real German circle signs of the GTSRB (32 x 32 crops): the red of a ring is rarely the pure red the old rule asked
+for (R >= 110, R >= 2.8 G, R >= 2.8 B, R - min(G, B) >= 60). The ring's median is about (120, 53, 47), R over max(G, B) about 2.2. With
+the old rule **only 7 % of the real signs gave a candidate at all**, so the camera practically saw nothing. The rule now measures red
+against the pixel's own brightness (`isSignRed`): R >= 40, the lead of R over G and B at least 16 % of R + G + B, and G and B about equal
+(that keeps orange out; it costs no recall). The mask is thickened by one pixel before grouping so that a ring broken by a branch stays one
+region; shape limits are wider (aspect 0.6-1.65, fill 0.08-0.92 so that the filled no-entry disc passes), smallest side 7 px of 480.
+Same test, same data: **67 % of the signs give a candidate** (59 % at least 60 % of the crop's size); on CIFAR-100 pictures (no signs)
+25 % give a candidate, against 4 % with the old rule: the classifier's class "not a sign" and the tracking have to catch those (more
+false candidates cost a little time, not false signs). These are 32 x 32 crops of dark, partly blurred benchmark pictures; on a
+phone's video the ring is wider and better lit, so the share should be higher. **Not measured on road video.**
+
+
 ## From detections to signs (what is strict and why)
 
 * A sign needs the same reading in **3 frames**, 70 % of the track's frames agreeing, mean confidence 0.75. Two boxes at one place that
   read differently vote against each other: nothing is shown.
-* The finder only proposes **red-bordered** regions above the horizon (a sign hangs higher than the camera). **Signs without red are not
+* The finder only proposes **red-bordered** regions (not in the lower 28 % of the picture, not far below the horizon: a sign hangs
+  higher than the camera, but a low post is possible). **Signs without red are not
   found; this includes the end-of-ban signs 280, 281, 282.** Consequence: a ban the camera saw stays on the display until a database sign
   replaces it, the road ends it (not modelled), or **2 km** have been driven (warnings: 400 m).
 * Priority on the display: a camera sign wins against a conflicting database sign that begins up to 30 m after it (both positions are

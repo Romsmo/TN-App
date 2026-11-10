@@ -3,6 +3,11 @@
 * The `.ipa` is **unsigned**. It is for sideloading on your own iPhone with your own Apple ID (for example with
   [xtool](https://github.com/xtool-org/xtool), see `docs/ios-install.md`); with a free Apple account the profile lasts 7 days.
   It is not on TestFlight or the App Store. Minimum iOS 13.1.
+* **New in beta 9:** **no more alignment**: the camera runs as soon as the switch is on and learns the direction of travel from the signs
+  it sees. New **camera view** (*Settings -> Signs by camera*, and a button in the drive) shows the live picture with a frame around every
+  region the recognition looked at (green = read as a sign, amber = not). The red filter of the finder was far too strict (it found only about
+  7 % of real signs in a test, now about 67 %), signs are read about 7 times a second instead of 4. **Not tested on a road**; the camera
+  view is there so that you can see what goes wrong.
 * **New in beta 8:** the camera also reads the **small speed limits** 5, 10, 15 and 25 km/h (pedestrian zones, car parks) - trained on repainted pictures only, never tested on real signs. The **tab bar** at the bottom now has a sliding highlight and can be dragged across the tabs like in iOS 26.
 * **New in beta 7:** the camera also reads **speed-limit signs** (20 to 130 km/h). The limit it reads is shown as the drive's limit (with a
   small camera badge), takes the place of the database's limit, and counts for the over-the-limit warning and the display. It ends at the
@@ -12,7 +17,7 @@
   sticker is kept out by a check that is tested with made-up data only. Additional plates ("bei Nässe", "7-17 Uhr") are not read.
 * **Since beta 6:** **traffic signs by camera** (*Settings -> Signs by camera*, off until you switch it on): during a drive the phone's
   camera reads signs with a red border (warning and prohibition signs the display can draw); what it sees is shown on the display before
-  the database's signs. Needs the **calibration** first (drag a cross onto the vanishing point of the road). A second switch lets the
+  the database's signs. Nothing to align (since beta 9). A second switch lets the
   camera feed the database (confirm known signs, propose new ones; sign type, place and direction only, never an image). **Not tested
   on a phone or in a car; the recognition model was trained on benchmark crops, not road footage.** Start with the report switch off.
   See `docs/camera-signs.md` for what it cannot do (signs without red such as end-of-ban signs, additional plates, dark, far signs).
