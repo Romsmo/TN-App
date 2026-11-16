@@ -514,6 +514,8 @@
  "camera.view.aligning": "Ausrichtung: Bildmitte gilt als Fahrtrichtung. Nach einigen Schildern lernt die Kamera die Fahrtrichtung selbst.",
  "camera.view.aligned": "Ausrichtung: aus {n} Schildern gelernt.",
  "camera.view.speed": "Tempo {value}",
+ "camera.view.locator": "Suche: Das Netz sieht das ganze Bild und markiert die Schilder (auch ohne roten Rand).",
+ "camera.view.finder": "Suche: nur rote Flächen (Ersatz, das Suchnetz fehlt oder startet nicht).",
  "camera.view.modelError": "Technische Angabe: {error}",
  "camera.view.hint": "Grüner Rahmen: als Schild gelesen (Haken: bestätigt und verfolgt). Gelber Rahmen: rote Fläche, die die Erkennung nicht als Schild liest. Das Bild wird nur angezeigt, nie gespeichert oder gesendet.",
  "camera.drive.recognized": "Kamera erkannt: {signs}"

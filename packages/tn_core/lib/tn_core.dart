@@ -5,6 +5,7 @@ library;
 export 'src/camera/auto_calibration.dart';
 export 'src/camera/camera_calibration.dart';
 export 'src/camera/sign_detector.dart';
+export 'src/camera/sign_locator.dart';
 export 'src/camera/sign_recognizer.dart';
 export 'src/camera/sign_reporter.dart';
 export 'src/camera/sign_vision.dart';

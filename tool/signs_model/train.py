@@ -1,6 +1,6 @@
 """Trains the classifier that reads a cropped traffic-sign candidate (see docs/camera-signs.md).
 
-Input of the network: a 32 x 32 RGB crop, values 0..1 (NHWC), cut with a margin of 15 % around the red border of the sign, exactly as
+Input of the network: a SIZE x SIZE (48 x 48) RGB crop, values 0..1 (NHWC), cut with a margin of 15 % around the red border of the sign, exactly as
 the app's candidate finder cuts it. Output: 48 probabilities, the 43 classes of the German Traffic Sign Recognition Benchmark (GTSRB) in
 its numbering, four more speed limits the GTSRB lacks (40, 90, 110, 130; classes 43-46, trained on made-up pictures from
 `speed_synth.py`) and "not a sign" (class 47). The classes are listed in `classes.py`.
@@ -15,6 +15,9 @@ Real training needs data that is NOT part of this repository and whose terms of 
   --background DIR  photographs of roads without the signs the app reads, to learn "not a sign"; red things that are no sign
                     (tail lights, cars, banners) are cut out as hard examples. Photos from the GTSDB can be used with
                     --gtsdb-gt gt.txt: the labelled signs are then kept out of the background crops.
+  --gtsdb-train DIR the GTSDB training frames (00000-00599.ppm with their gt.txt): the labelled signs are cut out as they come from
+                    a road scene (several jittered crops each, as the locator's boxes jitter) and the rest of the frames serves as
+                    "not a sign" (same as --background DIR --gtsdb-gt DIR/gt.txt).
 
 `--synthetic` makes up a tiny data set to test this script from end to end. A model made like that is worthless on a road and is never
 copied into the app.
@@ -105,6 +108,8 @@ def cifar_negatives(path, count, rng):
     rest = rng.choice(len(x), count - len(hard), replace=False)
     pick = np.concatenate([hard, rest])
     out = x[pick]
+    if out.shape[1] != SIZE:  # CIFAR pictures are 32 px
+        out = np.stack([np.asarray(Image.fromarray(o).resize((SIZE, SIZE), Image.BICUBIC)) for o in out])
     flip = rng.random(len(out)) < 0.5
     out[flip] = out[flip][:, :, ::-1]
     return out
@@ -160,7 +165,7 @@ def off_centre(x, y, count, rng):
     out = []
     for i in idx:
         img = x[i]
-        dx, dy = rng.choice([-1, 1]) * rng.integers(24, 32), rng.choice([-1, 1]) * rng.integers(0, 12)
+        dx, dy = rng.choice([-1, 1]) * rng.integers(SIZE * 3 // 4, SIZE), rng.choice([-1, 1]) * rng.integers(0, SIZE * 3 // 8)
         shifted = np.roll(np.roll(img, dx, axis=1), dy, axis=0)
         if dx > 0:
             shifted[:, :dx] = shifted[:, dx:dx + 1]
@@ -171,22 +176,53 @@ def off_centre(x, y, count, rng):
 
 
 def is_sign_red(a):
+    """The finder's "sign red" (sign_detector.dart): red against the pixel's own brightness, green and blue about equal."""
     r, g, b = (a[..., i].astype(int) for i in range(3))
-    return (r >= 110) & (r * 10 >= g * 28) & (r * 10 >= b * 28) & ((r - np.minimum(g, b)) >= 60)
+    lead = np.minimum(r - g, r - b)
+    return (r >= 40) & (lead * 25 >= 4 * (r + g + b + 1)) & (np.abs(g - b) * 5 <= 2 * lead + 50)
+
+
+def read_gtsdb_gt(path):
+    """name -> [(left, top, right, bottom, class)] (right and bottom inclusive, as in the file)."""
+    boxes = {}
+    with open(path) as f:
+        for line in f:
+            p = line.strip().split(";")
+            if len(p) >= 6:
+                boxes.setdefault(p[0], []).append(tuple(int(v) for v in p[1:6]))
+    return boxes
+
+
+def load_gtsdb_crops(root, rng, per_sign=4):
+    """The labelled signs of GTSDB frames as crops from the road scene, each cut [per_sign] times with the jitter of a located box
+    (centre off by up to 10 %, side off by up to 20 %), with their GTSRB class and the frame as track."""
+    boxes = read_gtsdb_gt(os.path.join(root, "gt.txt"))
+    xs, ys, tracks = [], [], []
+    for name in sorted(boxes):
+        path = os.path.join(root, name)
+        if not os.path.exists(path):
+            continue
+        img = Image.open(path).convert("RGB")
+        for (x1, y1, x2, y2, c) in boxes[name]:
+            w, h = x2 - x1 + 1, y2 - y1 + 1
+            for _ in range(per_sign):
+                side = max(w, h) * (1 + 2 * MARGIN) * float(rng.uniform(0.8, 1.2))
+                cx = x1 + w / 2 + float(rng.uniform(-0.1, 0.1)) * w
+                cy = y1 + h / 2 + float(rng.uniform(-0.1, 0.1)) * h
+                xs.append(crop_square(img, cx, cy, side))
+                ys.append(c)
+                tracks.append(60000 + int(name[:5]))
+    return np.stack(xs), np.array(ys), np.array(tracks)
 
 
 def load_background(root, gtsdb_gt, per_image_random=6, rng=None):
     """Crops without a sign: red regions that look like candidates (hard examples) and random squares."""
-    import cv2
+    from scipy import ndimage
 
     rng = rng or random.Random(1)
     boxes = {}
     if gtsdb_gt:
-        with open(gtsdb_gt) as f:
-            for line in f:
-                p = line.strip().split(";")
-                if len(p) >= 6:
-                    boxes.setdefault(p[0], []).append(tuple(int(v) for v in p[1:5]))
+        boxes = {k: [b[:4] for b in v] for k, v in read_gtsdb_gt(gtsdb_gt).items()}
 
     def clear_of_signs(name, x0, y0, x1, y1):
         for (a, b, c, d) in boxes.get(name, []):
@@ -201,11 +237,15 @@ def load_background(root, gtsdb_gt, per_image_random=6, rng=None):
         img = Image.open(os.path.join(root, fn)).convert("RGB")
         a = np.asarray(img)
         h, w = a.shape[:2]
-        mask = is_sign_red(a).astype(np.uint8)
-        n, _, stats, cent = cv2.connectedComponentsWithStats(mask, connectivity=8)
-        for i in range(1, n):
-            x, y, bw, bh, area = stats[i]
-            if bw < 9 or bh < 9 or not (0.7 <= bw / bh <= 1.45) or not (0.1 <= area / (bw * bh) <= 0.8):
+        mask = is_sign_red(a)
+        lab, n = ndimage.label(mask, structure=np.ones((3, 3)))
+        for i, sl in enumerate(ndimage.find_objects(lab)):
+            if sl is None:
+                continue
+            y, x = sl[0].start, sl[1].start
+            bh, bw = sl[0].stop - y, sl[1].stop - x
+            area = int((lab[sl] == i + 1).sum())
+            if bw < 9 or bh < 9 or bw > w // 3 or not (0.6 <= bw / bh <= 1.65) or not (0.08 <= area / (bw * bh) <= 0.92):
                 continue
             if clear_of_signs(fn, x, y, x + bw, y + bh):
                 out.append(crop_square(img, x + bw / 2, y + bh / 2, max(bw, bh) * (1 + 2 * MARGIN)))
@@ -289,6 +329,7 @@ def main():
     ap.add_argument("--cifar", help="CIFAR-100 train parquet file")
     ap.add_argument("--background")
     ap.add_argument("--gtsdb-gt")
+    ap.add_argument("--gtsdb-train", help="GTSDB training frames with gt.txt: real road-scene crops of the signs, and background")
     ap.add_argument("--synthetic", action="store_true")
     ap.add_argument("--speed-new", type=int, default=2000, help="made-up and repainted pictures per limit the GTSRB lacks (40, 90, 110, 130)")
     ap.add_argument("--speed-known", type=int, default=600, help="made-up and repainted pictures per limit the GTSRB has (so that 'made-up' is no hint)")
@@ -315,12 +356,16 @@ def main():
         x, y, tracks = synthetic(rng)
     else:
         x, y, tracks = load_parquet(args.gtsrb_parquet) if args.gtsrb_parquet else load_gtsrb(args.gtsrb)
+        if args.gtsdb_train:
+            gx, gy, gt = load_gtsdb_crops(args.gtsdb_train, rng)
+            print("GTSDB crops:", len(gx))
+            x, y, tracks = np.concatenate([x, gx]), np.concatenate([y, gy]), np.concatenate([tracks, gt])
         # real speed crops with a red ring: the ground for repainted signs (the real crops of the known limits are removed first in the gap
         # experiment, but still serve as ground: only their ring, light and blur are used, never their numbers)
         sp = np.isin(y, list(classes.GTSRB_SPEEDS))
-        yy_, xx_ = np.mgrid[0:32, 0:32]
-        dist_ = np.hypot(xx_ - 15.5, yy_ - 15.5)
-        ring = (dist_ > 9.5) & (dist_ < 12.5)
+        yy_, xx_ = np.mgrid[0:SIZE, 0:SIZE]
+        dist_ = np.hypot(xx_ - (SIZE - 1) / 2, yy_ - (SIZE - 1) / 2)
+        ring = (dist_ > 9.5 * SIZE / 32) & (dist_ < 12.5 * SIZE / 32)
         red_share = is_sign_red(x[sp])[:, ring].mean(1)
         bases = x[sp][red_share >= 0.35]
         print("repaint grounds:", len(bases), "of", int(sp.sum()))
@@ -349,6 +394,10 @@ def main():
         if args.background:
             bg = load_background(args.background, args.gtsdb_gt)
             parts.append(bg[rng.integers(0, len(bg), want)])
+        if args.gtsdb_train:
+            bg = load_background(args.gtsdb_train, os.path.join(args.gtsdb_train, "gt.txt"), per_image_random=10)
+            print("GTSDB background crops:", len(bg))
+            parts.append(bg[rng.integers(0, len(bg), min(len(bg), want))])
         if args.cifar:
             parts.append(cifar_negatives(args.cifar, want, rng))
             parts.append(distractors(want // 3, rng))

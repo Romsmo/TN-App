@@ -41,6 +41,9 @@ abstract interface class SignClassifier {
 /// Finds signs in a frame and says what they are.
 abstract interface class SignDetector {
   Future<List<RawDetection>> detect(SignFrame frame);
+
+  /// Every region of the latest frame that was looked at, with what it was read as (for the camera view).
+  List<SignBox> get lastBoxes;
 }
 
 /// Finds the places in a frame that may hold a sign with a red border (warning triangles, prohibition rings, the no-entry disc):
@@ -238,7 +241,7 @@ class FinderSignDetector implements SignDetector {
   final CandidateFinder finder;
   final double minProbability;
 
-  /// Every region of the latest frame the finder proposed, with what it was read as (for the camera view).
+  @override
   List<SignBox> lastBoxes = const [];
 
   @override
@@ -249,29 +252,42 @@ class FinderSignDetector implements SignDetector {
       lastBoxes = const [];
       return const [];
     }
-    final crops = [for (final c in candidates) cropForClassifier(frame, c, classifier.size)];
-    final probs = await classifier.classify(crops);
-    final out = <RawDetection>[];
-    final boxes = <SignBox>[];
-    final aspect = frame.width / frame.height;
-    for (var i = 0; i < candidates.length && i < probs.length; i++) {
-      final p = probs[i];
-      if (p.length != classifier.classCount) continue;
-      var best = 0;
-      for (var k = 1; k < p.length; k++) {
-        if (p[k] > p[best]) best = k;
-      }
-      final c = candidates[i];
-      final cx = c.centerX / frame.width, cy = c.centerY / frame.height, cw = c.width / frame.width, ch = c.height / frame.height;
-      final vz = best >= labels.length || p[best] < minProbability ? null : labels[best]; // "not a sign" or unsure
-      if (vz == null || (vzNrOf('DE:$vz') == null && !isSpeedVz(vz))) {
-        boxes.add(SignBox(x: cx, y: cy, w: cw, h: ch, confidence: p[best]));
-        continue;
-      }
-      boxes.add(SignBox(x: cx, y: cy, w: cw, h: ch, confidence: p[best], vz: vz));
-      out.add(RawDetection(vz: vz, confidence: p[best], x: cx, y: cy, w: cw, h: ch, frameAspect: aspect));
-    }
-    lastBoxes = boxes;
-    return out;
+    final read = await classifyCandidates(frame, candidates, classifier, labels, minProbability);
+    lastBoxes = read.boxes;
+    return read.detections;
   }
+}
+
+/// The classifier's reading of every candidate: a detection for each that it read as a sign the app uses (with at least
+/// [minProbability]), and a box for every candidate (read or not) for the camera view.
+Future<({List<RawDetection> detections, List<SignBox> boxes})> classifyCandidates(
+  SignFrame frame,
+  List<SignCandidate> candidates,
+  SignClassifier classifier,
+  List<String?> labels,
+  double minProbability,
+) async {
+  final crops = [for (final c in candidates) cropForClassifier(frame, c, classifier.size)];
+  final probs = await classifier.classify(crops);
+  final out = <RawDetection>[];
+  final boxes = <SignBox>[];
+  final aspect = frame.width / frame.height;
+  for (var i = 0; i < candidates.length && i < probs.length; i++) {
+    final p = probs[i];
+    if (p.length != classifier.classCount) continue;
+    var best = 0;
+    for (var k = 1; k < p.length; k++) {
+      if (p[k] > p[best]) best = k;
+    }
+    final c = candidates[i];
+    final cx = c.centerX / frame.width, cy = c.centerY / frame.height, cw = c.width / frame.width, ch = c.height / frame.height;
+    final vz = best >= labels.length || p[best] < minProbability ? null : labels[best]; // "not a sign" or unsure
+    if (vz == null || (vzNrOf('DE:$vz') == null && !isSpeedVz(vz))) {
+      boxes.add(SignBox(x: cx, y: cy, w: cw, h: ch, confidence: p[best]));
+      continue;
+    }
+    boxes.add(SignBox(x: cx, y: cy, w: cw, h: ch, confidence: p[best], vz: vz));
+    out.add(RawDetection(vz: vz, confidence: p[best], x: cx, y: cy, w: cw, h: ch, frameAspect: aspect));
+  }
+  return (detections: out, boxes: boxes);
 }

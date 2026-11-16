@@ -3,6 +3,12 @@
 * The `.ipa` is **unsigned**. It is for sideloading on your own iPhone with your own Apple ID (for example with
   [xtool](https://github.com/xtool-org/xtool), see `docs/ios-install.md`); with a free Apple account the profile lasts 7 days.
   It is not on TestFlight or the App Store. Minimum iOS 13.1.
+* **New in beta 10:** the signs are found by a **network that looks at the whole picture** (trained on 900 real road frames of the
+  German Traffic Sign Detection Benchmark), no longer by their red border alone: signs in shade, at dusk, small ones and the ones
+  without red (end of a limit, end of all limits) are found too. The reader works on 48 x 48 crops (was 32) and learned from
+  road-scene crops as well; the tracking follows a sign's movement across the picture, so a sign the car passes quickly stays one
+  sign. Measured on 300 road frames the app never trained on: 95.8 % of the signs found and read right, one false sign in 60 frames
+  before the tracking (`docs/camera-signs.md`). **Still not tested on a road.**
 * **New in beta 9:** **no more alignment**: the camera runs as soon as the switch is on and learns the direction of travel from the signs
   it sees. New **camera view** (*Settings -> Signs by camera*, and a button in the drive) shows the live picture with a frame around every
   region the recognition looked at (green = read as a sign, amber = not). The red filter of the finder was far too strict (it found only about

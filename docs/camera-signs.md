@@ -9,10 +9,13 @@ phone sees.
 ```
 camera frame (about 7 per second, in a drive or while the camera view is open, in memory)
   -> upright RGB picture, at most 960 px wide                    lib/services/camera_frame.dart
-  -> CandidateFinder: red regions that look like a sign           tn_core camera/sign_detector.dart
-  -> SignClassifier (32 x 32 crop, TFLite)                        lib/services/sign_model_io.dart, assets/models/signs.tflite
+  -> padded 640 x 640 square -> SignLocator (TFLite): where the   tn_core camera/sign_locator.dart, assets/models/signs_detector.tflite
+     signs are (score, box per cell of a stride-4 grid)
+     (without that model: CandidateFinder, red regions)            tn_core camera/sign_detector.dart
+  -> SignClassifier (48 x 48 crop of the full frame, TFLite)      lib/services/sign_model_io.dart, assets/models/signs.tflite
   -> RawDetection (catalogue number, confidence, box)
-  -> SignRecognizer: tracks over frames, places the sign           tn_core camera/sign_recognizer.dart
+  -> SignRecognizer: tracks over frames (predicted position),      tn_core camera/sign_recognizer.dart
+     votes over the readings, places the sign
   -> RecognizedSign -> DriveSnapshot.recognizedSigns
        -> display columns (signColumnsFor, camera first)
        -> SignReporter: confirm or propose in the database         tn_core camera/sign_reporter.dart
@@ -68,7 +71,42 @@ catalogue (the display draws the limit from a number), so they never enter the s
   Look-alikes: 60 / 80, 100 / 120 / 130, 30 / 50 are the likeliest misreadings; the track must agree in 70 % of its frames at a mean
   of 0.75 to be shown, 0.85 and 4 frames to be sent.
 
-## The finder's "red" (beta 8)
+## The locator (beta 10)
+
+Up to beta 9 the only way to find a sign was its red border (next section). That is what a system in a car never does: it looks at the
+whole picture with a network that was trained on road scenes. Beta 10 does the same (`tool/signs_model/detect_train.py`):
+
+* **Network:** a CenterNet-style heatmap detector. Backbone MobileNetV2 (width 0.35, ImageNet weights from Keras), a small feature
+  pyramid down to stride 4, and per cell of the 160 x 160 grid five numbers: a sign score (0..1), width and height (in cells) and the
+  centre's offset inside the cell. One class only, "a traffic sign"; the classifier says which. About 0.5 million weights, 2 MB.
+* **Input:** the upright camera frame (at most 960 px wide) scaled so that its longer side is 640 px, put at the top left of a black
+  640 x 640 square (`letterbox` in Dart, the same in Python). A phone held upright uses the left 360 px, one held sideways the top
+  360 px. At 640 px a 0.6 m sign is about 10 px wide at 30 m, 6 px at 50 m.
+* **Reading the output** (`decodeHeatmap`, the same rules in `detect_train.decode`): a cell whose score is at least **0.3** and the
+  largest of its 3 x 3 neighbourhood is a sign; at most 20 per frame, boxes that cover another by more than half are dropped (NMS).
+  A box in the black band or smaller than 6 px in the frame is dropped. The box, with a margin of 15 %, is cut from the full-resolution
+  frame for the classifier (so a sign that is 10 px in the 640 square is read from its 15 px in the frame).
+* **Training data:** the German Traffic Sign Detection Benchmark (GTSDB, 900 frames of 1360 x 800 from a car, 1,213 signs; frames
+  0-599 for training, 600-899 only for the numbers below; its ReadMe says "You are free to use this data package for any purpose you
+  like", the paper Houben et al., IJCNN 2013 is to be cited). Into the training frames real GTSRB signs and made-up speed signs are
+  pasted with a soft edge of their shape and matched brightness (up to 4 per frame, 8-140 px, 70 % of the pictures), so that the
+  network sees far more signs, small ones in particular, and the sixteen limits. Random scale (0.3-0.95 of the frame), 384 px crops,
+  flips, brightness 0.35-1.3, contrast, saturation, colour cast, blur, motion blur, noise, and in a quarter of the pictures the black
+  band of the padded square. Loss: CenterNet focal loss on the heatmap, L1 on size and offset. 50 epochs of 2,400 pictures on a GPU
+  (RTX 3060 in WSL: 40 s per epoch; the process grows to 7.5 GB over the epochs and WSL froze or killed it twice, so every epoch is
+  checkpointed in `--out` and `--resume` goes on from there).
+* **Numbers** (`out-detector/report.json`, `eval_chain.py`; the 300 GTSDB test frames 600-899, 361 signs, never trained on):
+  AP50 **0.91**. At the app's score 0.3 the locator finds **94.5 %** of the signs (signs up to 12 px in the 640 square: 84 %,
+  12-24 px: 97 %, 24 px and more: 100 %) with 0.5 false boxes per frame (at 0.4: 91 % and 0.21; at 0.5: 81 % and 0.08). Whole chain,
+  locator plus classifier at probability 0.6, on the 238 signs of classes the app uses: **95.8 % found and read as the right sign**;
+  of the found ones 100 % were read right, none wrong, none as "not a sign". False boxes that the classifier reads as a sign:
+  **0.017 per frame** (one in 60 frames, before the tracking, which needs three frames). Caveat: the training frames are the same
+  drive (frames 0-599), so the numbers are for that camera, road and weather; other roads will be worse.
+* **Signs without red** (the end of a limit, 278; the end of all limits, 282; the end of an overtaking ban, 280/281) are found now.
+  The classifier knew them all along (GTSRB classes 6, 32, 41, 42); the finder never proposed them.
+* **Fallback:** an app built without `signs_detector.tflite` uses the colour finder as before; the camera view says which is at work.
+
+## The finder's "red" (beta 8, the fallback since beta 10)
 
 Measured on 2,878 real German circle signs of the GTSRB (32 x 32 crops): the red of a ring is rarely the pure red the old rule asked
 for (R >= 110, R >= 2.8 G, R >= 2.8 B, R - min(G, B) >= 60). The ring's median is about (120, 53, 47), R over max(G, B) about 2.2. With
@@ -84,6 +122,10 @@ phone's video the ring is wider and better lit, so the share should be higher. *
 
 ## From detections to signs (what is strict and why)
 
+* **Tracks** (beta 10): a detection joins the track whose sign is expected nearest in this frame, the last place moved on with the
+  speed the box had in the picture (a sign the car drives past moves outward faster and faster: at 7 frames a second and 100 km/h a
+  near sign jumps by a fifth of the picture between frames, which broke tracks before). The allowed distance is 0.12 of the width or
+  1.5 times the box, whichever is more; the size may change by 0.4-2.5 between frames; the same reading counts as nearer.
 * A sign needs the same reading in **3 frames**, 70 % of the track's frames agreeing, mean confidence 0.75. Two boxes at one place that
   read differently vote against each other: nothing is shown.
 * The finder only proposes **red-bordered** regions (not in the lower 28 % of the picture, not far below the horizon: a sign hangs
@@ -105,10 +147,13 @@ phone's video the ring is wider and better lit, so the share should be higher. *
     feature.
   * What leaves the phone: sign type, a coordinate, the heading. Never an image.
 
-## The model
+## The classifier
 
-`tool/signs_model/train.py` trains a small convolutional network (about 0.3 million weights, 1.2 MB as TFLite) on the German Traffic Sign
-Recognition Benchmark (GTSRB, 43 classes), four more speed limits and a class "not a sign" (48 outputs). Of the 43 GTSRB classes the app
+`tool/signs_model/train.py` trains a small convolutional network (about 0.3 million weights, 1.3 MB as TFLite) on the German Traffic Sign
+Recognition Benchmark (GTSRB, 43 classes), eight more speed limits and a class "not a sign" (52 outputs). Since beta 10 the crop is
+**48 x 48** (was 32: a three-digit limit needs the pixels) and the training data also holds the signs of the GTSDB training frames cut
+out of the road scene four times each with the jitter a located box has (3,408 crops), plus "not a sign" crops of those frames
+(red regions and random squares, the signs kept out). Of the 43 GTSRB classes the app
 uses 22 signs of the display's catalogue plus the eight speed limits (`classes.py`); direction signs are not used, and the right-hand curve
 has no entry. The end-of-limit signs (no red) are in the model but never found by the finder.
 
@@ -135,15 +180,19 @@ python tool/signs_model/train.py --gtsrb-parquet train.parquet --gtsrb-test test
 (`--synthetic` tests the script without data; its model is never installed.) The result and its numbers are written to
 `out/report.json`.
 
-**Numbers of the model in the app** (with the small limits 5, 10, 15, 25: 52 classes; beta 7 had 48, beta 6 had 44; 30 epochs, `report.json`):
+**Numbers of the model in the app** (beta 10: 48 x 48, 52 classes, GTSDB road-scene crops added; 30 epochs, `report.json`):
 
-* **Official GTSRB test set, the eight real speed limits** (4,170 crops): 98.9 % read as the right limit, 0.9 % as another limit, 0.1 % as
-  "not a sign". Weakest: 60 (97.3 %). **For 40, 90, 110, 130 and 5, 10, 15, 25 there is no real data to measure with.** The only
-  estimate is an experiment (`train.py --speed-gap`): a network that never saw a real sign of the eight limits, only painted ones, read
-  the real ones **82 %** right (with fully drawn signs only: 63 %); the weakest were the three-digit limits (100: 54 %, read as 120 or
-  130) and 80 (69 %). Expect the eight new limits to be read worse than the other eight; 5 / 10 / 15 / 25 and 10 / 100 / 110 are the likeliest mix-ups (one or two digits are only a few pixels wide at 32 x 32).
-* Held-out part of the training data: 99.4 % correct (includes painted crops, which says little about the road).
-* Official test set over all 43 classes: 97.8 %; over the 22 sign classes of beta 6: 96.6 % (beta 6: 96.9 %); 1.0 % read as "not a sign".
+* **Official GTSRB test set, the eight real speed limits** (4,170 crops): **99.1 %** read as the right limit (beta 8: 98.9 %), 0.7 % as
+  another limit, 0.1 % as "not a sign". Weakest: 60 (96.7 %, read as 80). **For 40, 90, 110, 130 and 5, 10, 15, 25 there is no real
+  data to measure with.** The only estimate is an experiment at 32 px (`train.py --speed-gap`, beta 7): a network that never saw a real
+  sign of the eight limits, only painted ones, read the real ones **82 %** right (with fully drawn signs only: 63 %); the weakest were
+  the three-digit limits (100: 54 %, read as 120 or 130) and 80 (69 %). Expect the eight new limits to be read worse than the other
+  eight; 5 / 10 / 15 / 25 and 10 / 100 / 110 are the likeliest mix-ups.
+* Official test set over all 43 classes: **98.5 %** (beta 8: 97.8 %); over the 22 sign classes of beta 6: 98.3 % (beta 6: 96.9 %);
+  0.9 % read as "not a sign". At 0.6 minimum probability 99.2 % of the crops are taken.
+* Held-out part of the training data (9,540 crops, whole tracks kept apart): 99.7 % correct (includes painted crops, which says little
+  about the road); 0.03 % of the "not a sign" crops are read as a sign.
+* What the whole chain reads on real road frames: the locator section above and `eval_chain.py`.
 
 Numbers of the beta 6 model (kept for comparison, `tool/signs_model/out/report.json` then):
 
@@ -158,8 +207,8 @@ Numbers of the beta 6 model (kept for comparison, `tool/signs_model/out/report.j
   driven) is tested with made-up tracks only; real boxes jitter, so it may reject real signs too (a missed limit, not a wrong one) or let
   a sticker through. The limits 40, 90, 110, 130 were never seen as real pictures (see the model numbers). Whether a camera limit on a
   real road matches the real limit, and how often the database proposals are right, is unknown. Start with the report switch off.
-* The model was trained on cropped benchmark images and "not a sign" pictures that are not road scenes; it has never seen the finder's
-  crops of real footage. The false-reading rate on a real road is unknown. A drive with a mounted phone and the report switch **off** is
-  the first test; look at what the display shows before switching reporting on.
+* The locator and the classifier were trained on 600 road frames of one German drive in 2013 (GTSDB) and cropped benchmark images, and
+  measured on 300 frames of the same kind. Other cameras, other roads, night, rain and a phone's windscreen reflection are not in that
+  data. A drive with a mounted phone and the report switch **off** is the first test; look at the camera view before switching reporting on.
 * The distance and the position of a sign are estimates (a few tens of metres at best).
 * Dark, backlight, rain, dirty signs, signs on gantries and signs for other lanes are not handled specially.

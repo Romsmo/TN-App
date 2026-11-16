@@ -514,6 +514,8 @@
  "camera.view.aligning": "Alignment: the middle of the picture counts as the direction of travel. After a few signs the camera learns the direction itself.",
  "camera.view.aligned": "Alignment: learned from {n} signs.",
  "camera.view.speed": "Speed {value}",
+ "camera.view.locator": "Search: the network looks at the whole picture and marks the signs (also those without a red border).",
+ "camera.view.finder": "Search: red areas only (fallback, the search network is missing or does not start).",
  "camera.view.modelError": "Technical detail: {error}",
  "camera.view.hint": "Green frame: read as a sign (tick: confirmed and followed). Amber frame: a red area the recognition does not read as a sign. The picture is only shown, never stored or sent.",
  "camera.drive.recognized": "Camera recognised: {signs}"

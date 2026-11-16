@@ -64,6 +64,8 @@ class _CameraViewScreenState extends State<CameraViewScreen> {
                       ? context.t('camera.view.nothing')
                       : context.t('camera.view.found', {'read': read, 'other': other})),
                   Hint(context.t('camera.view.stats', {'ms': v.passMs, 'frames': v.frames})),
+                  Hint(context.t(pipeline.usingLocator ? 'camera.view.locator' : 'camera.view.finder')),
+                  if (!pipeline.usingLocator && pipeline.locatorError != null) Hint(context.t('camera.view.modelError', {'error': pipeline.locatorError!})),
                 ],
                 Body(driving
                     ? (tracked.isEmpty && limit == null

@@ -6,8 +6,10 @@ class SignModel {
 
   SignClassifier get classifier => throw UnsupportedError('no sign model in the browser preview');
   List<String?> get labels => const [];
+  SignLocator? get locator => null;
 
   static String? lastError = 'the browser preview has no neural network runtime';
+  static String? locatorError;
 
   static Future<SignModel?> load() async => null;
 

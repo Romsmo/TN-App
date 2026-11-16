@@ -43,7 +43,8 @@ class SignPipeline extends ChangeNotifier {
 
   final SignCamera _camera = SignCamera();
   SignModel? _model;
-  FinderSignDetector? _detector;
+  SignDetector? _detector;
+  bool _usingLocator = false;
   bool _busy = false;
   int _lastMs = 0;
   int _failures = 0;
@@ -78,6 +79,12 @@ class SignPipeline extends ChangeNotifier {
 
   /// Why there is no model, when the camera says so (the runtime failed to start it, or the files are missing); null otherwise.
   String? get modelError => _model == null && _modelAsked ? SignModel.lastError : null;
+
+  /// Whether the signs are found by the locator network (whole frame) or, without it, by the colour-based candidate finder.
+  bool get usingLocator => _usingLocator;
+
+  /// Why the locator is not in use although the classifier is, or null.
+  String? get locatorError => _modelAsked && _model != null && _model!.locator == null ? SignModel.locatorError : null;
 
   /// The running camera, for a preview widget; null while it is not running.
   CameraController? get previewController => _status == CameraStatus.running ? _camera.controller : null;
@@ -115,7 +122,11 @@ class SignPipeline extends ChangeNotifier {
       return;
     }
     final model = _model!;
-    _detector = FinderSignDetector(classifier: model.classifier, labels: model.labels, calibration: calibration);
+    final locator = model.locator;
+    _usingLocator = locator != null;
+    _detector = locator != null
+        ? HeatmapSignDetector(locator: locator, classifier: model.classifier, labels: model.labels)
+        : FinderSignDetector(classifier: model.classifier, labels: model.labels, calibration: calibration);
     try {
       await _camera.start(_onImage);
     } on SignCameraException catch (e) {
@@ -158,7 +169,7 @@ class SignPipeline extends ChangeNotifier {
     unawaited(_pass(detector, frame, now));
   }
 
-  Future<void> _pass(FinderSignDetector detector, SignFrame frame, int ms) async {
+  Future<void> _pass(SignDetector detector, SignFrame frame, int ms) async {
     try {
       final found = await detector.detect(frame);
       if (_detector == null) return;

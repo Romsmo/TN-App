@@ -47,7 +47,7 @@ assert len(GTSRB_NAMES) == 43
 N_SIGN_CLASSES = 43 + len(EXTRA_SPEEDS)
 BACKGROUND = N_SIGN_CLASSES  # the extra class, always the last one
 N_CLASSES = N_SIGN_CLASSES + 1
-SIZE = 32  # crop size the classifier takes
+SIZE = 48  # crop size the classifier takes (48 since beta 10: three-digit limits need the pixels)
 
 # class -> speed value, for all sixteen
 SPEED_OF_CLASS = dict(GTSRB_SPEEDS)

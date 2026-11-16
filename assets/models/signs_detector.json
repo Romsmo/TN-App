@@ -1,0 +1,11 @@
+{
+ "inputSize": 640,
+ "stride": 4,
+ "channels": [
+  "score",
+  "width",
+  "height",
+  "dx",
+  "dy"
+ ]
+}

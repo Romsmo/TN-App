@@ -12,8 +12,11 @@ limits only as made-up pictures reads the real ones: that number is the honest g
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+from classes import SIZE
+
 FONT_PATHS = [
     "C:/Windows/Fonts/bahnschrift.ttf",
+    "/mnt/c/Windows/Fonts/bahnschrift.ttf",  # the same font seen from WSL
     "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf",
     "C:/Windows/Fonts/arialbd.ttf",
 ]
@@ -53,13 +56,29 @@ def _background(rng, bgs):
     return arr
 
 
-def render(value, rng, bgs=None):
-    """One 32 x 32 uint8 picture of the limit [value]."""
+def sign_rgba(value, rng):
+    """The sign alone, drawn on a transparent CANVAS x CANVAS picture, bent and turned a little: (RGBA PIL image, centre x, centre y,
+    diameter). For the detector's composites (pasted into road scenes) and for `render`."""
     s = CANVAS
     d = s / (1 + 2 * MARGIN) * float(rng.uniform(0.9, 1.1))
     cx = s / 2 + float(rng.uniform(-0.06, 0.06)) * s
     cy = s / 2 + float(rng.uniform(-0.06, 0.06)) * s
+    sign = _draw(value, rng, s, cx, cy, d)
+    return sign, cx, cy, d
 
+
+def render(value, rng, bgs=None):
+    """One SIZE x SIZE uint8 picture of the limit [value]."""
+    s = CANVAS
+    sign, cx, cy, d = sign_rgba(value, rng)
+    bg = _background(rng, bgs)
+    a = np.asarray(sign).astype(np.float32)
+    alpha = a[..., 3:4] / 255
+    img = bg * (1 - alpha) + a[..., :3] * alpha
+    return _finish(img, rng)
+
+
+def _draw(value, rng, s, cx, cy, d):
     sign = Image.new("RGBA", (s, s), (0, 0, 0, 0))
     dr = ImageDraw.Draw(sign)
     rim = d * 1.03
@@ -93,12 +112,12 @@ def render(value, rng, bgs=None):
     sign = sign.rotate(ang, resample=Image.BICUBIC, center=(cx, cy))
     k = float(rng.uniform(-0.12, 0.12))
     sign = sign.transform((s, s), Image.AFFINE, (1, k, -k * cy, float(rng.uniform(-0.05, 0.05)), 1, 0), resample=Image.BICUBIC)
+    return sign
 
-    bg = _background(rng, bgs)
-    a = np.asarray(sign).astype(np.float32)
-    alpha = a[..., 3:4] / 255
-    img = bg * (1 - alpha) + a[..., :3] * alpha
 
+def _finish(img, rng):
+    """Light, blur, scaling down and noise of a composed CANVAS x CANVAS picture -> SIZE x SIZE uint8."""
+    s = CANVAS
     # uneven light: a shadow or a glare across the sign, a general brightness
     yy, xx = np.mgrid[0:s, 0:s].astype(np.float32) / s
     th = float(rng.uniform(0, 2 * np.pi))
@@ -118,7 +137,7 @@ def render(value, rng, bgs=None):
             acc += np.roll(a, sh - n // 2, axis=1)
         pic = Image.fromarray(np.clip(acc / n, 0, 255).astype(np.uint8))
     pic = pic.filter(ImageFilter.GaussianBlur(float(rng.uniform(0.0, 3.2))))
-    pic = pic.resize((32, 32), [Image.BILINEAR, Image.BOX, Image.LANCZOS][int(rng.integers(0, 3))])
+    pic = pic.resize((SIZE, SIZE), [Image.BILINEAR, Image.BOX, Image.LANCZOS][int(rng.integers(0, 3))])
     out = np.asarray(pic).astype(np.float32)
     out = out + rng.normal(0, float(rng.uniform(0, 7)), out.shape)
     return np.clip(out, 0, 255).astype(np.uint8)
@@ -151,14 +170,14 @@ if __name__ == "__main__":  # a contact sheet to look at
 # Real signs with new digits: the ring, the light, the blur and the noise of a real GTSRB crop of some speed limit stay; only the
 # number is wiped out and written again. This closes most of the gap that made-up signs leave (see `--speed-gap`).
 
-_YY, _XX = np.mgrid[0:32, 0:32]
-_R = np.hypot(_XX - 15.5, _YY - 15.5)
+_YY, _XX = np.mgrid[0:SIZE, 0:SIZE]
+_R = np.hypot(_XX - (SIZE - 1) / 2, _YY - (SIZE - 1) / 2)
 
 
 def repaint(base, value, rng):
-    """[base] is a real 32 x 32 crop of a speed sign (margin 15 %); the result shows the same sign with the number [value]."""
+    """[base] is a real SIZE x SIZE crop of a speed sign (margin 15 %); the result shows the same sign with the number [value]."""
     img = base.astype(np.float32)
-    disc_r = 32 / (1 + 2 * MARGIN) / 2  # radius of the red ring's outer edge
+    disc_r = SIZE / (1 + 2 * MARGIN) / 2  # radius of the red ring's outer edge
     ring_w = float(rng.uniform(0.11, 0.16)) * 2 * disc_r
     inner_r = disc_r - ring_w
     inside = _R < inner_r + 0.5
@@ -172,12 +191,12 @@ def repaint(base, value, rng):
     # wipe the old number: the disc inside the ring, a little smaller so the ring stays
     wipe_r = inner_r - 0.4
     m = np.clip(wipe_r + 0.6 - _R, 0, 1)[..., None]
-    face = np.tile(white, (32, 32, 1)) + rng.normal(0, float(rng.uniform(1, 5)), (32, 32, 3))
+    face = np.tile(white, (SIZE, SIZE, 1)) + rng.normal(0, float(rng.uniform(1, 5)), (SIZE, SIZE, 3))
     img = img * (1 - m) + face * m
 
     # the new number, drawn big and scaled down
     big = 256
-    k = big / 32
+    k = big / SIZE
     layer = Image.new("L", (big, big), 0)
     dr = ImageDraw.Draw(layer)
     text = str(value)
@@ -194,7 +213,7 @@ def repaint(base, value, rng):
     cy = big / 2 + float(rng.uniform(-0.5, 0.5)) * k
     dr.text((cx - w / 2 - box[0], cy - h / 2 - box[1]), text, font=font, fill=255)
     layer = layer.rotate(float(rng.uniform(-6, 6)), resample=Image.BICUBIC, center=(big / 2, big / 2))
-    layer = layer.resize((32, 32), Image.BOX).filter(ImageFilter.GaussianBlur(float(rng.uniform(0.2, 1.0))))
+    layer = layer.resize((SIZE, SIZE), Image.BOX).filter(ImageFilter.GaussianBlur(float(rng.uniform(0.2, 1.0))))
     a = (np.asarray(layer).astype(np.float32) / 255)[..., None]
     img = img * (1 - a) + ink * a
     return np.clip(img, 0, 255).astype(np.uint8)

@@ -125,7 +125,8 @@ class RecognizerConfig {
   /// The sign is out of sight when it was not seen for this long.
   final int maxGapMs;
 
-  /// How far apart (normalised image units) two boxes of the same sign in consecutive frames may be.
+  /// How far (normalised image units) a detection may be from where a track's sign is expected in this frame (its last place
+  /// moved on with its speed in the picture), at least; a big box may be further off by its own width.
   final double matchDistance;
 
   /// A sign further off the direction of travel than this stands at a side road, not at ours.
@@ -175,6 +176,9 @@ class _Track {
   final Map<String, double> score = {};
   final Map<String, int> count = {};
   double lastX = 0, lastY = 0, lastW = 0;
+
+  /// How the box moves in the picture, per millisecond (normalised units), smoothed over the frames.
+  double vx = 0, vy = 0;
   double bestW = 0;
   _Car? bestCar;
   double bestBearingOffset = 0;
@@ -319,19 +323,25 @@ class SignRecognizer {
     return t;
   }
 
-  /// The track a detection belongs to: the nearest box in the image, one detection per track and frame (two signs on one post are
-  /// two tracks). A track whose reading is the same as the detection's counts as nearer. A detection that reads differently still
-  /// joins a track at the same place: it is a vote against the reading, not a new sign.
+  /// The track a detection belongs to: the one whose sign is expected nearest to the detection in this frame (its last place moved
+  /// on with the speed it had in the picture: a sign the car drives past moves outward faster and faster), one detection per track and
+  /// frame (two signs on one post are two tracks). A track whose reading is the same as the detection's counts as nearer. A detection
+  /// that reads differently still joins a track at the same place: it is a vote against the reading, not a new sign.
   _Track? _match(RawDetection det, int ms) {
     _Track? best;
-    var bestDist = config.matchDistance;
+    var bestScore = 1.0;
     for (final t in _tracks) {
-      if (ms - t.lastMs > config.maxGapMs || t.lastMs == ms) continue;
+      final dt = ms - t.lastMs;
+      if (dt > config.maxGapMs || dt <= 0) continue;
       final ratio = t.lastW > 0 ? det.w / t.lastW : 1.0;
-      if (ratio < 0.5 || ratio > 2) continue;
-      final dist = math.sqrt(math.pow(det.x - t.lastX, 2) + math.pow(det.y - t.lastY, 2)) * (t.leader == det.vz ? 0.5 : 1);
-      if (dist < bestDist) {
-        bestDist = dist;
+      if (ratio < 0.4 || ratio > 2.5) continue;
+      final px = t.lastX + t.vx * dt;
+      final py = t.lastY + t.vy * dt;
+      final allowed = math.max(config.matchDistance, 1.5 * math.max(det.w, t.lastW));
+      final dist = math.sqrt(math.pow(det.x - px, 2) + math.pow(det.y - py, 2));
+      final score = dist / allowed * (t.leader == det.vz ? 0.5 : 1);
+      if (score < bestScore) {
+        bestScore = score;
         best = t;
       }
     }
@@ -339,6 +349,12 @@ class SignRecognizer {
   }
 
   void _add(_Track t, RawDetection det, int ms, _Car car, double bearingOffset) {
+    final dt = ms - t.lastMs;
+    if (t.frames > 0 && dt > 0) {
+      final k = t.frames == 1 ? 1.0 : 0.5; // the first step is the speed; later ones are smoothed
+      t.vx = t.vx * (1 - k) + (det.x - t.lastX) / dt * k;
+      t.vy = t.vy * (1 - k) + (det.y - t.lastY) / dt * k;
+    }
     t.lastMs = ms;
     t.frames++;
     t.score[det.vz] = (t.score[det.vz] ?? 0) + det.confidence;

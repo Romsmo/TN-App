@@ -198,6 +198,29 @@ void main() {
       expect(skewed.signs, hasLength(1));
     });
 
+    test('a sign that moves fast across the picture (the car drives past it) stays one track', () {
+      // 7 frames a second; the box moves outward by 0.08, then 0.12, then 0.17 of the width per frame while it grows
+      final xs = [0.55, 0.6, 0.68, 0.8, 0.97];
+      final ws = [0.02, 0.028, 0.04, 0.06, 0.09];
+      for (var i = 0; i < xs.length; i++) {
+        r.onDetections(i * 140, [det('276', x: xs[i], w: ws[i])]);
+      }
+      expect(r.active, hasLength(1));
+      expect(r.active.single.frames, 5);
+    });
+
+    test('two signs in one frame stay two tracks; a far-off detection does not join a slow track', () {
+      for (var i = 0; i < 4; i++) {
+        r.onDetections(i * 140, [det('276', x: 0.6 + i * 0.01, w: 0.02), det('123', x: 0.3 - i * 0.01, y: 0.4, w: 0.02)]);
+      }
+      expect(r.active.map((s) => s.vz).toSet(), {'276', '123'});
+      r.onDetections(4 * 140, [det('276', x: 0.9, w: 0.02)]); // 0.26 away from a track that crawls at 0.01 per frame
+      r.onDetections(5 * 140, [det('276', x: 0.9, w: 0.02)]);
+      r.onDetections(6 * 140, [det('276', x: 0.9, w: 0.02)]);
+      expect(r.active.where((s) => s.vz == '276'), hasLength(1)); // the same sign is not shown twice ...
+      expect(r.active.firstWhere((s) => s.vz == '276').frames, 4); // ... and the new track is not the old one
+    });
+
     test('a track that cannot make up its mind between two signs shows neither', () {
       for (var i = 0; i < 6; i++) {
         r.onDetections(i * 250, [det(i.isEven ? '276' : '277', w: 0.012 + i * 0.002, conf: 0.8)]);
